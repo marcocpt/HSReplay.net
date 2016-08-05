@@ -8,16 +8,16 @@ html {
 
 ::selection {
 	color: white;
-	background: #c9485b;
+	background: $red;
 }
 
 ::-moz-selection {
 	color: white;
-	background: #c9485b;
+	background: $red;
 }
 
 body {
-	background-color: #fbf7f6;
+	background-color: $offwhite;
 }
 
 .full_height {
@@ -47,8 +47,8 @@ body, html {
 }
 
 header nav {
-	background-color: #1d3657;
-	border-bottom: 1px solid #1d3657;
+	background-color: $blue;
+	border-bottom: 1px solid $blue;
 	height: 50px;
 }
 
@@ -139,9 +139,9 @@ header nav h1 {
 	line-height: 2em;
 	font-size: 1.2em;
 	text-decoration: none;
-	border: solid 1px #c9485b;
+	border: solid 1px $red;
 	color: white;
-	background-color: #c9485b;
+	background-color: $red;
 }
 
 .promo-button {
@@ -149,21 +149,21 @@ header nav h1 {
 }
 
 .promo-button:hover, .promo-button:active {
-	color: #c9485b;
+	color: $red;
 	background-color: white;
 	text-decoration: none;
-	border-color: #c9485b;
+	border-color: $red;
 }
 
 
 .promo-button-outline, .promo-button-outline:visited {
 	background-color: transparent;
-	color: #c9485b;
+	color: $red;
 }
 
 .promo-button-outline:hover, .promo-button-outline:active{
 	text-decoration: none;
-	color: #c9485b;
+	color: $red;
 }
 
 .promo-button img, .promo-button-outline img {
@@ -185,12 +185,11 @@ header nav h1 {
 }
 
 .promo-link:hover, .promo-link:active {
-	color: #c9485b;
+	color: $red;
 }
 
 #site-messages:not(:empty) {
-	background-color: #4677B7;
-	border: 1px solid #1D3657;
+	background-color: $blue;
 	color: white;
 	list-style: none;
 	margin: 1em auto;
@@ -201,7 +200,7 @@ header nav h1 {
 
 /* Status message for uploads in progress */
 .upload-status-message {
-	background-color: #3A79A0;
+	background-color: $blue;
 	color: white;
 	font-size: 1.8em;
 	margin-top: 10%;

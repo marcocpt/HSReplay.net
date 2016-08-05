@@ -1,46 +1,41 @@
 #promo {
-	background: #1d3657;
+	background: $blue;
 	color: white;
 	padding: 60px 0 40px 0;
 	text-align: center;
 	margin-bottom: 40px;
-}
 
-#promo h1 {
-	font-size: 3em;
-	font-weight: bold;
-}
+	h1 {
+		font-size: 3em;
+		font-weight: bold;
+	}
 
-#promo .tagline {
-	font-size: 2em;
-	margin: 15px 0 40px 0;
-}
+	.tagline {
+		font-size: 2em;
+		margin: 15px 0 40px 0;
+	}
 
-#promo p {
-	margin: 15px 0;
-	padding: 0;
-}
+	p {
+		margin: 15px 0;
+		padding: 0;
+	}
 
-#promo .promo-button, #promo .promo-button:visited {
-	background-color: white;
-	color: #c9485b;
-	border-color: white;
-}
+	.promo-button, .promo-button:visited {
+		background-color: white;
+		color: $red;
+		border-color: white;
+	}
 
-#promo .promo-button-outline, #promo .promo-button-outline:visited {
-	color: white;
-	border-color: white;
-}
+	.promo-button-outline, .promo-button-outline:visited {
+		color: white;
+		border-color: white;
+	}
 
-#promo .promo-button:hover, #promo .promo-button:active {
-	color: white;
-	background-color: #c9485b;
-	border-color: #c9485b;
-}
-
-#promo .promo-button-outline:hover, #promo .promo-button-outline:active {
-	border-color: #c9485b;
-	color: #c9485b;
+	.promo-button:hover, .promo-button:active {
+		color: white;
+		background-color: #c9485b;
+		border-color: #c9485b;
+	}
 }
 
 #logo {
@@ -78,7 +73,7 @@ header h2 {
 	color: #555;
 }
 
-.front-feature > img{
+.front-feature > img {
 	float: left;
 	padding-right: 1em;
 }
