@@ -143,7 +143,8 @@ def queue_upload_event_for_processing(upload_event_id):
 		success = True
 		try:
 			logger.info("Submitting %r to SNS", message)
-			response = aws.publish_sns_message(settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC, message)
+			sns_topic_arn = aws.get_sns_topic_arn_from_name(settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC)
+			response = aws.publish_sns_message(sns_topic_arn, message)
 			logger.info("SNS Response: %s" % str(response))
 		except Exception as e:
 			logger.error("Exception raised.")

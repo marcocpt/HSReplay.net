@@ -167,12 +167,14 @@ if ENV_PROD:
 		"application/xml",
 		"application/octet-stream",
 	)
+else:
+	AWS_STORAGE_BUCKET_NAME = "hsreplaynet-dev-replays"
 
 # WARNING: To change this it must also be updated in isolated.uploaders.py
 S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
 SNS_PROCESS_RAW_LOG_UPOAD_TOPIC = "process_s3_raw_upload"
-SNS_PROCESS_UPLOAD_EVENT_TOPIC = None
+SNS_PROCESS_UPLOAD_EVENT_TOPIC = "process_upload_event"
 
 JOUST_STATIC_URL = STATIC_URL + "joust/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
