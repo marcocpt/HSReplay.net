@@ -49,6 +49,7 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	clip-path: rect(2%, 10%, 2%, 10%);
 	margin-right: 2px;
 	font-size: 4vw;
+	overflow: hidden;
 }
 
 .hsreplay-involved figure img {
@@ -64,13 +65,20 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	margin-top: -25%;
 	position: absolute;
 	width: 100%;
-	height: 25%;
+	bottom: 0;
 	align-items: center;
 	justify-content: center;
 	text-align: center;
 	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000,
 		-1px 1px 0 #000, 1px 1px 0 #000;
 	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	line-height: 2em;
+}
+
+.hsreplay-involved:hover figcaption {
+	opacity: 0.5;
 }
 
 @media (min-width: 768px) {
