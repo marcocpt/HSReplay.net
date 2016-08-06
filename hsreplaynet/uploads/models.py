@@ -121,7 +121,11 @@ class RawUpload(object):
 			CopySource=failed_descriptor_copy_source,
 		)
 
-		error_message_json = json.loads(reason)
+		try:
+			error_message_json = json.loads(reason)
+		except Exception:
+			error_message_json = {"reason": reason}
+
 		error_message_json["made_failed_ts"] = datetime.now().isoformat()
 		failed_error_key = self._create_failed_error_key(ts_string, self.shortid)
 		aws.S3.put_object(

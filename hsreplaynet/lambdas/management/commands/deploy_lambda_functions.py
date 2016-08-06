@@ -1,5 +1,4 @@
 import importlib
-from base64 import b64encode
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from hsreplaynet.utils.aws import LAMBDA, IAM
@@ -69,7 +68,7 @@ class Command(BaseCommand):
 						Runtime = "python2.7",
 						Role = execution_role_arn,
 						Handler = descriptor["handler"],
-						Code = {"ZipFile":b64encode(code_payload_bytes)},
+						Code = {"ZipFile":code_payload_bytes},
 						Timeout = descriptor["cpu_seconds"],
 						MemorySize = descriptor["memory"],
 						Publish = True

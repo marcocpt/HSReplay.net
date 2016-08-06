@@ -82,6 +82,9 @@ def process_raw_upload(raw_upload):
 	upload_metadata["type"] = int(UploadEventType.POWER_LOG)
 
 	gateway_headers = descriptor["gateway_headers"]
+
+	logger.info("Authorization Header: %s" % gateway_headers["Authorization"])
+
 	headers = {
 		"HTTP_X_FORWARDED_FOR": descriptor["source_ip"],
 		"HTTP_AUTHORIZATION": gateway_headers["Authorization"],

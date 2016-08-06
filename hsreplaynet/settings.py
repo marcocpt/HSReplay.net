@@ -17,6 +17,7 @@ ENV_CI = platform.node() == "build.hearthsim.net"
 ENV_PROD = ENV_LIVE or ENV_LAMBDA or ENV_CI
 ENV_DEV = not ENV_PROD
 
+INFLUX_ENABLED = ENV_LIVE or ENV_LAMBDA
 
 if ENV_DEV and not os.path.exists(BUILD_DIR):
 	os.mkdir(BUILD_DIR)
@@ -251,7 +252,7 @@ REST_FRAMEWORK = {
 # Swap when we're in public beta
 HDT_DOWNLOAD_URL = "https://hsreplay.net/pages/beta/"
 
-INFLUX_ENABLED = ENV_PROD
+
 
 # Used for compiling SCSS
 SCSS_INPUT_FILE = os.path.join(BASE_DIR, "hsreplaynet", "static", "styles", "main.scss")

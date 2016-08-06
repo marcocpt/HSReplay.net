@@ -35,7 +35,7 @@ lambdas_logger = logging.getLogger("hsreplaynet")
 lambdas_logger.addHandler(_handler)
 lambdas_logger.setLevel(logging.DEBUG)
 
-logging.getLogger("boto").setLevel(logging.WARN)
+#logging.getLogger("boto").setLevel(logging.WARN)
 
 # Make sure django.setup() has already been invoked to import handlers
 from hsreplaynet.lambdas.uploads import *
