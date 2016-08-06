@@ -125,7 +125,6 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 	return inner_lambda_handler
 
 
-
 if settings.INFLUX_ENABLED:
 	from influxdb import InfluxDBClient
 

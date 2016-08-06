@@ -8,9 +8,10 @@ const {spawnSync} = require("child_process");
 const exportSettings = [
 	"STATIC_URL", "JOUST_STATIC_URL", "HEARTHSTONE_ART_URL"
 ];
-const managePy = path.resolve(__dirname, "./manage.py")
+const python = process.env.PYTHON || "python"
+const manageCmd = [path.resolve(__dirname, "./manage.py"), "show_settings"]
 const exportedSettings = JSON.parse(
-	spawnSync(managePy, ["show_settings"].concat(exportSettings), {encoding: "utf-8"}).stdout
+	spawnSync(python, manageCmd.concat(exportSettings), {encoding: "utf-8"}).stdout
 );
 const settings = exportSettings.reduce((obj, current) => {
 	obj[current] = JSON.stringify(exportedSettings[current]);
