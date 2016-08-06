@@ -78,7 +78,7 @@ class UploadBehavior(TaskSet):
 		self.api_token_url = "/api/v1/tokens/"
 		if self.is_live:
 			self.api_token_url = "https://hsreplay.net" + self.api_token_url
-			self.api_endpoint = "/api/v1/replay/upload/powerlog"
+			self.api_endpoint = "/api/v1/replay/upload/request"
 		else:
 			self.api_endpoint = "/api/v1/uploads/"
 
@@ -93,29 +93,37 @@ class UploadBehavior(TaskSet):
 			return data["key"]
 
 	def post_replay(self, name, data):
-		kwargs = {
-			"data": {
-				"match_start": "2016-05-10T17:10:06.4923855+02:00",
-				"build": 12574,
-			},
-			"headers": {
-				"Authorization": "Token %s" % (self.token),
-				"X-Api-Key": self.api_key,
-			},
+		extra = {
 			"timeout": None,
 			"name": name,
 		}
+		metadata = {
+				"match_start": "2016-05-10T17:10:06.4923855+02:00",
+				"build": 12574,
+		}
+
+		request_one_headers =  {
+			"Authorization": "Token %s" % (self.token),
+			"X-Api-Key": self.api_key,
+		}
+
+		request_two_headers = {
+			"Content-Type": "text/plain"
+		}
 
 		if self.is_live:
-			# On production systems, the replay file is the data
-			kwargs["params"] = kwargs.pop("data")
-			kwargs["data"] = data
-		else:
-			# By default, the replay file is the `file` parameter
-			kwargs["files"] = {"file": (name + ".log", data)}
-			kwargs["data"]["type"] = 1
+			response_one = self.client.post(self.api_endpoint,
+											 json=metadata,
+											 headers=request_one_headers,
+											 **extra).json()
 
-		return self.client.post(self.api_endpoint, **kwargs)
+
+
+			response_two = self.client.put(response_one["put_url"],
+											data=data,
+											headers=request_two_headers,
+											**extra)
+
 
 	@task(6)
 	def short_replay(self):
