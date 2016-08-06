@@ -311,6 +311,11 @@ class GameReplay(models.Model):
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.shortid})
 
+	def player(self, number):
+		for player in self.global_game.players:
+			if player.player_id == number:
+				return player
+
 	def update_final_states(self):
 		"""
 		Updates the replay's `won` and `disconnected` attributes

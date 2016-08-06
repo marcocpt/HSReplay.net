@@ -3,10 +3,19 @@ from django.core.management import call_command
 from base64 import b64encode
 
 
+def pytest_addoption(parser):
+	parser.addoption(
+		"--upload_regression_suite",
+		action="store_true",
+		help="run the lambdas upload regression suite"
+	)
+
+
+@pytest.mark.django_db
 @pytest.yield_fixture(scope="session")
-def django_db_setup(django_db_setup, django_db_blocker):
-	with django_db_blocker:
-		call_command("load_cards")
+def hsreplaynet_card_db():
+	call_command("load_cards")
+	yield None
 
 
 @pytest.yield_fixture(scope="session")

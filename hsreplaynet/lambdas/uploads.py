@@ -1,14 +1,14 @@
 import json
 import logging
-import tempfile
-from base64 import b64decode
 from django.conf import settings
 from django.contrib.sessions.middleware import SessionMiddleware
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import UploadEventViewSet
-from hsreplaynet.uploads.models import UploadEvent, UploadEventType, RawUpload, _generate_upload_key
+from hsreplaynet.uploads.models import (
+	UploadEvent, UploadEventType, RawUpload, _generate_upload_key
+)
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
-from hsreplaynet.utils import instrumentation, aws
+from hsreplaynet.utils import instrumentation
 
 
 def emulate_api_request(path, data, headers):
@@ -62,17 +62,11 @@ def process_raw_upload(raw_upload):
 	new_bucket = settings.AWS_STORAGE_BUCKET_NAME
 
 	# First we copy the log to the proper location
-	copy_source = "%s/%s" % (raw_upload.bucket, raw_upload.log_key)
-
 	logger.info("*** COPY RAW LOG TO NEW LOCATION ***")
-	logger.info("SOURCE: %s" % copy_source)
+	logger.info("SOURCE: %s/%s" % (raw_upload.bucket, raw_upload.log_key))
 	logger.info("DESTINATION: %s/%s" % (new_bucket, new_key))
 
-	aws.S3.copy_object(
-		Bucket=new_bucket,
-		Key=new_key,
-		CopySource=copy_source,
-	)
+	raw_upload.prepare_upload_event_log_location(new_bucket, new_key)
 
 	# Then we build the request and send it to DRF
 	# If "file" is a string, DRF will interpret as a S3 Key
@@ -101,14 +95,11 @@ def process_raw_upload(raw_upload):
 		logger.info("Create Upload Event Failed!!")
 
 		# If DRF fails: delete the copy of the log to not leave orphans around.
-		aws.S3.delete_object(Bucket=new_bucket, Key=new_key)
-
-		# Now move the failed upload into the failed location for easier inspection.
+		# Then move the failed upload into the failed location for easier inspection.
 		raw_upload.make_failed(str(e))
 		logger.info("RawUpload has been marked failed: %s", str(raw_upload))
 
 		raise
-
 	else:
 		logger.info("Create Upload Event Success - RawUpload will be deleted.")
 

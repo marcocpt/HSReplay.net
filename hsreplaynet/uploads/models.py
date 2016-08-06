@@ -86,6 +86,10 @@ class RawUpload(object):
 		else:
 			raise NotImplementedError("__init__ is not supported for key pattern: %s" % key)
 
+		self._upload_event_log_bucket = None
+		self._upload_event_log_key = None
+		self._upload_event_location_populated = False
+
 		# These are loaded lazily from S3
 		self._descriptor = None
 		self._error = None
@@ -103,6 +107,14 @@ class RawUpload(object):
 		return "failed/%s/%s.power.log" % (shortid, ts_string)
 
 	def make_failed(self, reason):
+		if self._upload_event_location_populated:
+			aws.S3.delete_object(
+				Bucket=self._upload_event_log_bucket,
+				Key=self._upload_event_log_key
+			)
+
+			self._upload_event_location_populated = False
+
 		ts_string = self.timestamp.strftime(RawUpload.FAILED_TIMESTAMP_FORMAT)
 
 		failed_log_key = self._create_failed_log_key(ts_string, self.shortid)
@@ -146,6 +158,19 @@ class RawUpload(object):
 		self._descriptor_key = failed_descriptor_key
 		self._error_key = failed_error_key
 		self._state = RawUploadState.FAILED
+
+	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key):
+		self._upload_event_log_bucket = upload_event_bucket
+		self._upload_event_log_key = upload_event_key
+
+		copy_source = "%s/%s" % (self.bucket, self.log_key)
+		aws.S3.copy_object(
+			Bucket=upload_event_bucket,
+			Key=upload_event_key,
+			CopySource=copy_source,
+		)
+
+		self._upload_event_location_populated = True
 
 	def delete(self):
 

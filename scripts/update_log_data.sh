@@ -1,5 +1,15 @@
 #!/bin/bash
-BASEDIR="$(readlink -f $(dirname $0))"
+
+
+if [ ! -z "$WORKSPACE" ]; then
+	# Jenkins hack...
+	BASEDIR="$WORKSPACE/scripts"
+elif [ "$(uname)" = "Darwin" ]; then
+	BASEDIR="$(dirname $(stat -f ${BASH_SOURCE[0]}))"
+else
+	BASEDIR="$(readlink -f $(dirname $0))"
+fi
+
 DATADIR="$BASEDIR/../data"
 GITDIR="$DATADIR/hsreplay-test-data"
 TESTDATA_URL="https://github.com/HearthSim/hsreplay-test-data.git"
@@ -8,7 +18,7 @@ set -e
 
 mkdir -p "$DATADIR"
 
-if [[ -d "$GITDIR" ]]; then
+if [ -d "$GITDIR" ]; then
 	echo "Updating $GITDIR"
 	git -C "$GITDIR" fetch --all
 	git -C "$GITDIR" reset --hard origin/master
