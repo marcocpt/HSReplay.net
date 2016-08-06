@@ -148,11 +148,11 @@ if ENV_PROD:
 	# S3
 	S3_RAW_LOG_STORAGE_BUCKET = os.environ.get(
 		"S3_RAW_LOG_STORAGE_BUCKET",
-		"test.raw.replaystorage.hsreplay.net"
+		"hsreplaynet-uploads"
 	)
 	S3_REPLAY_STORAGE_BUCKET = os.environ.get(
 		"S3_REPLAY_STORAGE_BUCKET",
-		"test.replaystorage.hsreplay.net"
+		"hsreplaynet-replays"
 	)
 	AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
 
@@ -168,7 +168,7 @@ if ENV_PROD:
 	)
 
 # WARNING: To change this it must also be updated in isolated.uploaders.py
-S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-raw-log-uploads"
+S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
 SNS_PROCESS_RAW_LOG_UPOAD_TOPIC = "process_s3_raw_upload"
 SNS_PROCESS_UPLOAD_EVENT_TOPIC = None

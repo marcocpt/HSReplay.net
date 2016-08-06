@@ -28,7 +28,7 @@ try:
 except ImportError:
 	S3 = None
 
-S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-raw-log-uploads"
+S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
 
 def get_timestamp():
