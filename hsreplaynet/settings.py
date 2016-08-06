@@ -265,8 +265,10 @@ StaticFilesConfig.ignore_patterns += ["*.scss", "*.ts", "*.tsx", "typings.json"]
 
 try:
 	from hsreplaynet.local_settings import *
-except ImportError:
-	pass
+except ImportError as e:
+	# Make sure you have a `local_settings.py` file in the same directory as `settings.py`.
+	# We raise a verbose error because the file is *required* in production.
+	raise RuntimeError("A `local_settings.py` file could not be found or imported. (%s)" % e)
 
 
 if __name__ == "__main__":
