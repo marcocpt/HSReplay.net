@@ -161,12 +161,12 @@ if ENV_PROD:
 	AWS_DEFAULT_ACL = "private"
 
 	AWS_IS_GZIPPED = True
-	GZIP_CONTENT_TYPES = (
+	GZIP_CONTENT_TYPES = [
 		"text/xml",
 		"text/plain",
 		"application/xml",
 		"application/octet-stream",
-	)
+	]
 else:
 	AWS_STORAGE_BUCKET_NAME = "hsreplaynet-dev-replays"
 
@@ -222,12 +222,12 @@ SITE_ID = 1
 
 AUTH_USER_MODEL = "accounts.User"
 
-AUTHENTICATION_BACKENDS = (
+AUTHENTICATION_BACKENDS = [
 	# Needed to login by username in Django admin, regardless of `allauth`
 	"django.contrib.auth.backends.ModelBackend",
 	# `allauth` specific authentication methods, such as login by e-mail
 	"allauth.account.auth_backends.AuthenticationBackend",
-)
+]
 
 LOGIN_REDIRECT_URL = reverse_lazy("my_replays")
 LOGIN_URL = reverse_lazy("account_login")

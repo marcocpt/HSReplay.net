@@ -162,6 +162,8 @@ def capture_class_distribution_stats(replay):
 		"winning_class_name": None,
 		"loosing_deck_digest": None,
 		"loosing_class_name": None,
+		"game_type": None,
+		"format": None,
 	}
 
 	players = replay.global_game.players.all()
@@ -170,6 +172,8 @@ def capture_class_distribution_stats(replay):
 		# Only capture stats if it's a typical game with a winner and looser.
 
 		fields["num_turns"] = replay.global_game.num_turns
+		tags["game_type"] = replay.global_game.game_type.name
+		tags["format"] = replay.global_game.format.name
 
 		for player in players:
 			if player.won:
@@ -191,7 +195,9 @@ def capture_class_distribution_stats(replay):
 def parse_upload_event(upload_event, meta):
 	match_start = dateutil_parse(meta["match_start"])
 	upload_event.file.open(mode="rb")
-	log = StringIO(upload_event.file.read().decode("utf-8"))
+	log_bytes = upload_event.file.read()
+	influx_metric("raw_power_log_upload_num_bytes", {"size": len(log_bytes)})
+	log = StringIO(log_bytes.decode("utf-8"))
 	upload_event.file.close()
 
 	try:
