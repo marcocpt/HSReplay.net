@@ -2,14 +2,16 @@ const path = require("path");
 const webpack = require("webpack");
 const BundleTracker = require("webpack-bundle-tracker");
 const fs = require("fs");
-const {spawnSync} = require("child_process");
+const spawnSync = require("child_process").spawnSync;
 
 
 const exportSettings = [
-	"STATIC_URL", "JOUST_STATIC_URL", "HEARTHSTONE_ART_URL"
+	"STATIC_URL",
+	"JOUST_STATIC_URL",
+	"HEARTHSTONE_ART_URL",
 ];
-const python = process.env.PYTHON || "python"
-const manageCmd = [path.resolve(__dirname, "./manage.py"), "show_settings"]
+const python = process.env.PYTHON || "python";
+const manageCmd = [path.resolve(__dirname, "./manage.py"), "show_settings"];
 const exportedSettings = JSON.parse(
 	spawnSync(python, manageCmd.concat(exportSettings), {encoding: "utf-8"}).stdout
 );
