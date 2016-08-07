@@ -99,7 +99,7 @@ class GlobalGame(models.Model):
 		ordering = ("-match_start", )
 
 	def __str__(self):
-		return " vs ".join(str(p) for p in self.players.all())
+		return " vs. ".join(str(p) for p in self.players.all())
 
 	@property
 	def duration(self):
@@ -306,7 +306,7 @@ class GameReplay(models.Model):
 			state = "Tied"
 		else:
 			state = "Lost"
-		return "%s (%s) vs %s" % (friendly[2], state, opponent[2])
+		return "%s (%s) vs. %s" % (friendly[2], state, opponent[2])
 
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.shortid})
