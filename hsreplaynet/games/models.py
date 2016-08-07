@@ -312,19 +312,19 @@ class GameReplay(models.Model):
 		return reverse("games_replay_view", kwargs={"id": self.shortid})
 
 	def player(self, number):
-		for player in self.global_game.players:
+		for player in self.global_game.players.all():
 			if player.player_id == number:
 				return player
 
 	@property
 	def friendly_player(self):
-		for player in self.global_game.players:
+		for player in self.global_game.players.all():
 			if player.player_id == self.friendly_player_id:
 				return player
 
 	@property
 	def opposing_player(self):
-		for player in self.global_game.players:
+		for player in self.global_game.players.all():
 			if player.player_id != self.friendly_player_id:
 				return player
 
