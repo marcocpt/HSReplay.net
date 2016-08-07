@@ -289,7 +289,6 @@ class GameReplay(models.Model):
 	def __str__(self):
 		return str(self.global_game)
 
-
 	@property
 	def pretty_name(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")

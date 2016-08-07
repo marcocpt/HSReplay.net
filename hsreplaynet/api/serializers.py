@@ -122,6 +122,7 @@ class UploadEventSerializer(serializers.Serializer):
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
 	stats = SnapshotStatsSerializer(required=False)
+	test_data = serializers.BooleanField(default=False)
 
 	file = SmartFileField(write_only=True)
 	game_type = serializers.IntegerField(default=0, write_only=True)
@@ -155,6 +156,7 @@ class UploadEventSerializer(serializers.Serializer):
 			token=request.auth_token,
 			api_key=request.api_key,
 			type=data.pop("type"),
+			test_data=data.pop("test_data"),
 			upload_ip=get_client_ip(request),
 		)
 		if "shortid" in data:
