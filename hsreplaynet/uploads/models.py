@@ -107,7 +107,9 @@ class RawUpload(object):
 		return "failed/%s/%s.power.log" % (shortid, ts_string)
 
 	def make_failed(self, reason):
+
 		if self._upload_event_location_populated:
+			# Always revert our temporary copy of the log to the uploads location
 			aws.S3.delete_object(
 				Bucket=self._upload_event_log_bucket,
 				Key=self._upload_event_log_key
@@ -117,47 +119,67 @@ class RawUpload(object):
 
 		ts_string = self.timestamp.strftime(RawUpload.FAILED_TIMESTAMP_FORMAT)
 
-		failed_log_key = self._create_failed_log_key(ts_string, self.shortid)
-		failed_log_copy_source = "%s/%s" % (self.bucket, self.log_key)
-		aws.S3.copy_object(
-			Bucket=self.bucket,
-			Key=failed_log_key,
-			CopySource=failed_log_copy_source,
-		)
+		if self._state == RawUploadState.FAILED:
+			# This RawUpload started out in the /failed directory, so there is no need to move things there.
+			# However, we do still need to update the error message in case the failure was for a different reason.
+			self._create_or_update_error_messages(reason, ts_string)
+		else:
+			
+			failed_log_key = self._create_failed_log_key(ts_string, self.shortid)
+			failed_log_copy_source = "%s/%s" % (self.bucket, self.log_key)
+			aws.S3.copy_object(
+				Bucket=self.bucket,
+				Key=failed_log_key,
+				CopySource=failed_log_copy_source,
+			)
 
-		failed_descriptor_key = self._create_failed_descriptor_key(ts_string, self.shortid)
-		failed_descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
-		aws.S3.copy_object(
-			Bucket=self.bucket,
-			Key=failed_descriptor_key,
-			CopySource=failed_descriptor_copy_source,
-		)
+			failed_descriptor_key = self._create_failed_descriptor_key(ts_string, self.shortid)
+			failed_descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
+			aws.S3.copy_object(
+				Bucket=self.bucket,
+				Key=failed_descriptor_key,
+				CopySource=failed_descriptor_copy_source,
+			)
+
+			self._create_or_update_error_messages(reason, ts_string)
+
+			# Finally remove the two objects from the /raw prefix to avoid that filling up.
+			aws.S3.delete_objects(
+				Bucket=self.bucket,
+				Delete={
+					"Objects": [{"Key": self.log_key}, {"Key": self.descriptor_key}]
+				}
+			)
+
+			self._log_key = failed_log_key
+			self._descriptor_key = failed_descriptor_key
+			self._state = RawUploadState.FAILED
+
+	def _create_or_update_error_messages(self, reason, ts_string):
+
+		# If the upload failed previously retrieve the history of errors to append to it.
+		if self._state == RawUploadState.FAILED:
+			error_json = self.error
+		else:
+			error_json = {"attempts": []}
 
 		try:
-			error_message_json = json.loads(reason)
+			current_attempt_json = json.loads(reason)
 		except Exception:
-			error_message_json = {"reason": reason}
+			current_attempt_json = {"reason": reason}
 
-		error_message_json["made_failed_ts"] = datetime.now().isoformat()
+		current_attempt_json["made_failed_ts"] = datetime.now().isoformat()
+
+		error_json["attempts"].append(current_attempt_json)
+
 		failed_error_key = self._create_failed_error_key(ts_string, self.shortid)
 		aws.S3.put_object(
 			Key=failed_error_key,
-			Body=json.dumps(error_message_json, sort_keys=True, indent=4).encode("utf8"),
+			Body=json.dumps(error_json, sort_keys=True, indent=4).encode("utf8"),
 			Bucket=self.bucket,
 		)
 
-		# Finally remove the two objects from the /raw prefix to avoid that filling up.
-		aws.S3.delete_objects(
-			Bucket=self.bucket,
-			Delete={
-				"Objects": [{"Key": self.log_key}, {"Key": self.descriptor_key}]
-			}
-		)
-
-		self._log_key = failed_log_key
-		self._descriptor_key = failed_descriptor_key
 		self._error_key = failed_error_key
-		self._state = RawUploadState.FAILED
 
 	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key):
 		self._upload_event_log_bucket = upload_event_bucket
