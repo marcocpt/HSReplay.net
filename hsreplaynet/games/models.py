@@ -289,6 +289,7 @@ class GameReplay(models.Model):
 	def __str__(self):
 		return str(self.global_game)
 
+
 	@property
 	def pretty_name(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")
@@ -314,6 +315,18 @@ class GameReplay(models.Model):
 	def player(self, number):
 		for player in self.global_game.players:
 			if player.player_id == number:
+				return player
+
+	@property
+	def friendly_player(self):
+		for player in self.global_game.players:
+			if player.player_id == self.friendly_player_id:
+				return player
+
+	@property
+	def opposing_player(self):
+		for player in self.global_game.players:
+			if player.player_id != self.friendly_player_id:
 				return player
 
 	def update_final_states(self):
