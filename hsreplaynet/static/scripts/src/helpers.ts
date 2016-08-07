@@ -10,6 +10,10 @@ export function image(image: string) {
 	return staticFile("images/" + image);
 }
 
+export function joustAsset(asset: string) {
+	return joustStaticFile("assets/" + asset);
+}
+
 export function cardArt(cardArt: string) {
 	return HEARTHSTONE_ART_URL + cardArt + ".jpg";
 }
