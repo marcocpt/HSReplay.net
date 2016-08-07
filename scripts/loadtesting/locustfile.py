@@ -100,6 +100,7 @@ class UploadBehavior(TaskSet):
 		metadata = {
 				"match_start": "2016-05-10T17:10:06.4923855+02:00",
 				"build": 12574,
+				"test_data": True
 		}
 
 		request_one_headers =  {
