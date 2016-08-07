@@ -98,7 +98,7 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 
 		return (
 			<div>
-				<div className="row">
+				<div className="row" id="replay-search">
 					<div className="col-md-3 col-md-offset-9 col-sm-4 col-sm-offset-8 col-xs-12">
 						<GameHistorySearch
 							query={this.state.query}
