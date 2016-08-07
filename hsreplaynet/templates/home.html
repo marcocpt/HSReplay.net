@@ -38,8 +38,8 @@
 					<a href="{% setting 'HDT_DOWNLOAD_URL' %}" class="promo-link">Download Hearthstone Deck Tracker</a>
 				</p>
 			{% else %}
-				<p><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
-				<p class="promo-help">You don't need a new account&mdash;we'll simply use <img src="{% static 'images/bnet.png' %}"/> Battle.net.</p>
+				{% include 'login_button.html' %}
+				<p class="promo-help">You don't need a new account&mdash;we use <img src="{% static 'images/bnet.png' %}"/> Battle.net.</p>
 				{% if debug %}
 					<a href="{% url 'account_login' %}" class="promo-link">(DEBUG) Log in with password</a>
 				{% endif %}
@@ -121,7 +121,7 @@
 			<p class="front-pad"><a href="{% url 'my_replays' %}" class="promo-button hero-button">View your replays</a></p>
 		{% else %}
 			<h2>Let's go!</h2>
-			<p class="front-pad"><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
+			<div class="front-pad">{% include 'login_button.html' %}</div>
 		{% endif %}
 	</article>
 
