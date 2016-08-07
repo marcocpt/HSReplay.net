@@ -198,11 +198,17 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 
 /* Styling for empty section */
 
-#my-games-empty {
+#play-some-hearthstone, #claim-account {
 	text-align: center;
 }
 
-#my-games-claim-account {
+#play-some-hearthstone {
+	margin-top: 8em;
+}
+
+#claim-account {
+	margin: 5em 0;
+
 	a {
 		display: block;
 		margin: 1em auto;

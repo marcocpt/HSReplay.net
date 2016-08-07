@@ -7,16 +7,14 @@
 
 {% block fullcontent %}
 <div class="content replay-listing">
-<div class="container-fluid" id="my-games-container">
 {% if not replays %}
-	<section id="my-games-empty">
+	<section id="play-some-hearthstone">
 		<h1>Play a few games!</h1>
 		<p>Your replays will appear here once you've uploaded them using Hearthstone Deck Tracker.</p>
 		<p><a href="{% setting 'HDT_DOWNLOAD_URL' %}" class="promo-button">Download HDT</a></p>
-
-		<hr/>
-
-		<p id="my-games-claim-account">
+	</section>
+	<section id="claim-account">
+		<p>
 			Make sure to claim your account from HDT in <code>Options → Replays</code>.
 			<a href="{% static 'images/claim-account.jpg' %}">
 				<img src="{% static 'images/claim-account.png' %}"/>
@@ -24,6 +22,7 @@
 		</p>
 	</section>
 {% else %}
+	<div class="container-fluid" id="my-games-container">
 	{% render_bundle "my_replays" %}
 {% endif %}
 </div>
