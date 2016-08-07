@@ -186,3 +186,15 @@ ul.home-steps .promo-button {
 	height: 80%;
 	margin: 5% auto;
 }
+
+dl {
+	dd + dt {
+		margin-top: 1.2em;
+	}
+}
+
+#faq {
+	h2 {
+		margin-bottom: 1em;
+	}
+}
