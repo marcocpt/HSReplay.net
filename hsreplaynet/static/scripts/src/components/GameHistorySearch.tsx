@@ -16,8 +16,8 @@ export default class GameHistorySearch extends React.Component<GameHistorySearch
 			<div>
 				<input
 					type="search"
-					placeholder="Search…"
-					className="replay-search"
+					placeholder="Search for players…"
+					className="form-control"
 					value={this.props.query}
 					onChange={(e: any) => this.props.setQuery(e.target.value)}
 				/>
