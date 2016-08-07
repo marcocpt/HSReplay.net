@@ -172,8 +172,8 @@ def capture_class_distribution_stats(replay):
 		# Only capture stats if it's a typical game with a winner and looser.
 
 		fields["num_turns"] = replay.global_game.num_turns
-		tags["game_type"] = replay.global_game.game_type.name
-		tags["format"] = replay.global_game.format.name
+		tags["game_type"] = replay.global_game.game_type
+		tags["format"] = replay.global_game.format
 
 		for player in players:
 			if player.won:
