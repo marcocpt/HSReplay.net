@@ -14,12 +14,12 @@ BUILD_DIR = os.path.join(BASE_DIR, "build")
 ENV_LIVE = platform.node() in ["hsreplay.net", "hearthsim.net"]
 ENV_LAMBDA = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 ENV_CI = platform.node() == "build.hearthsim.net"
-ENV_PROD = ENV_LIVE or ENV_LAMBDA or ENV_CI
-ENV_DEV = not ENV_PROD
+ENV_PROD = ENV_LIVE or ENV_LAMBDA
+ENV_DEV = not ENV_PROD and not ENV_CI
 
 INFLUX_ENABLED = ENV_LIVE or ENV_LAMBDA
 
-if ENV_DEV and not os.path.exists(BUILD_DIR):
+if (ENV_DEV or ENV_CI) and (not os.path.exists(BUILD_DIR)):
 	os.mkdir(BUILD_DIR)
 
 
