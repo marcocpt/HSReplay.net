@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Account{% endblock %}
+
 {% block fullcontent %}
 	{% if user.is_authenticated %}
 		<nav class="navbar navbar-default">
