@@ -323,6 +323,7 @@ class UploadEvent(models.Model):
 	tainted = models.BooleanField(default=False)
 	error = models.TextField(blank=True)
 	traceback = models.TextField(blank=True)
+	test_data = models.BooleanField(default=False)
 
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_upload_path)
