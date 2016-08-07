@@ -23,8 +23,9 @@
 			</a>
 		</p>
 	</section>
+{% else %}
+	{% render_bundle "my_replays" %}
 {% endif %}
 </div>
 </div>
-{% render_bundle "my_replays" %}
 {% endblock %}

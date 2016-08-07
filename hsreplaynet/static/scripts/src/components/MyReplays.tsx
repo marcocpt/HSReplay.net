@@ -23,12 +23,14 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			query: document.location.hash.substr(1) || "",
 		};
 		$.getJSON("/api/v1/games", {username: $("body").data("username")}, (data) => {
+			let games = [];
 			if (data.count) {
-				this.setState({
-					working: false,
-					games: data.results,
-				});
+				games = data.results;
 			}
+			this.setState({
+				working: false,
+				games: games,
+			});
 		});
 
 	}
