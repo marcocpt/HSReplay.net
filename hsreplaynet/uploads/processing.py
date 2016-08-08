@@ -56,7 +56,7 @@ def check_for_failed_raw_upload_with_id(shortid):
 		shortid - The shortid to check for an error.
 	"""
 	prefix = "failed/%s" % shortid
-	matching_uploads = _list_raw_uploads_by_prefix(prefix)
+	matching_uploads = list(_list_raw_uploads_by_prefix(prefix))
 	if len(matching_uploads) > 0:
 		return matching_uploads[0]
 	else:

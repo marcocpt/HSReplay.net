@@ -263,7 +263,7 @@ class RawUpload(object):
 	def descriptor(self):
 		if self._descriptor is None:
 			obj = aws.S3.get_object(Bucket=self.bucket, Key=self.descriptor_key)
-			self._descriptor = json.load(obj["Body"])
+			self._descriptor = json.load(obj["Body"].decode("utf8"))
 
 		return self._descriptor
 
@@ -275,7 +275,7 @@ class RawUpload(object):
 	def error(self):
 		if self._error is None:
 			obj = aws.S3.get_object(Bucket=self.bucket, Key=self.error_key)
-			self._error = json.load(obj["Body"])
+			self._error = json.load(obj["Body"].decode("utf8"))
 
 		return self._error
 
