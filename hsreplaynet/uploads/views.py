@@ -26,7 +26,7 @@ def list_upload_failures(request):
 
 def reprocess_failed_upload(request, shortid):
 	results = []
-	if request.method == 'POST' and request.user.is_staff:
+	if request.user.is_staff:
 		results = processing.requeue_failed_raw_single_upload_with_id(shortid)
 
 	failed_uploads = processing.list_all_failed_raw_log_uploads()

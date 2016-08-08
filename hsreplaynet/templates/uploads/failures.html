@@ -13,25 +13,30 @@
             {{ results }}
         {% endif %}
 
-        <table>
+        <div class="container">
+
             {% for failure in failures %}
-                <tr>
-                    <td>{{ failure.shortid  }}</td>
-                    <td>{{ failure.state }}</td>
-                    <td>{{ failure.timestamp }}</td>
-                    <td><a href="{{ failure.descriptor_url }}">descriptor</a></td>
-                    <td><a href="{{ failure.log_url }}">log</a></td>
-                    <td><a href="{{ failure.error_url }}">errors</a></td>
-                    <td><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}">papertrail</a></td>
-                    <td>
-                        <form method="POST" action="/upload/failures/{{ failure.shortid }}/">
-                            {% csrf_token %}
-                            <button type="button">Reprocess</button>
-                        </form>
-                    </td>
-                </tr>
+
+			<div class="row">
+				<div class="col-md-4">
+                <ul>
+                    <li><a href="/upload/failures/{{ failure.shortid }}/">Reprocess</a></li>
+                    <li>{{ failure.shortid  }}</li>
+                    <li>{{ failure.state }}</li>
+                    <li>{{ failure.timestamp }}</li>
+                    <li><a href="{{ failure.descriptor_url }}">descriptor</a></li>
+                    <li><a href="{{ failure.log_url }}">log</a></li>
+                    <li><a href="{{ failure.error_url }}">errors</a></li>
+                    <li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}">papertrail</a></li>
+                </ul>
+                </div>
+                <div class="col-md-8">
+                    <code>{{ failure.error_str }}</code>
+                </div>
+            </div>
             {% endfor %}
-        </table>
+
+        </div>
     {% endif %}
 
 {% endblock %}

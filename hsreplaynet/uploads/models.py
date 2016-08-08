@@ -280,6 +280,10 @@ class RawUpload(object):
 		return self._error
 
 	@property
+	def error_str(self):
+		return json.dumps(self.error, sort_keys=True, indent=4)
+
+	@property
 	def error_url(self):
 		return self._signed_url_for(self._error_key)
 
