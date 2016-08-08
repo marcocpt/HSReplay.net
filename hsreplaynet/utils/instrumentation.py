@@ -2,6 +2,7 @@ import json
 import os
 import time
 import re
+from datetime import datetime
 from contextlib import contextmanager
 from functools import wraps
 from django.conf import settings
@@ -62,6 +63,19 @@ def get_lambda_descriptors():
 	return _lambda_descriptors
 
 
+def build_cloudwatch_url(log_group_name, log_stream_name):
+	template = "https://console.aws.amazon.com/cloudwatch/home?region=%s#logEvent:group=%s;stream=%s;start=%s"
+	return template % (settings.AWS_DEFAULT_REGION,
+					   log_group_name,
+					   log_stream_name,
+					   datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+	)
+
+
+def build_papertrail_url(tracing_id):
+	return "https://papertrailapp.com/systems/Lambda/events?q=%s" % tracing_id
+
+
 def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 	"""Indicates the decorated function is a AWS Lambda handler.
 
@@ -100,6 +114,9 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 					"aws_log_group_name": getattr(context, "log_group_name"),
 					"aws_log_stream_name": getattr(context, "log_stream_name"),
 					"aws_function_name": getattr(context, "function_name"),
+					"aws_cloudwatch_url": build_cloudwatch_url(getattr(context, "log_group_name"),
+															   getattr(context, "log_stream_name")),
+					"papertrail_url": build_papertrail_url(tracing_id),
 					"tracing_id": tracing_id
 				})
 
