@@ -137,7 +137,7 @@ def create_upload_event_from_request(request):
 	}
 
 
-@instrumentation.lambda_handler(cpu_seconds=120, name="ProcessUploadEventV1")
+@instrumentation.lambda_handler(cpu_seconds=180, name="ProcessUploadEventV1")
 def process_upload_event_handler(event, context):
 	"""
 	This handler is triggered by SNS whenever someone

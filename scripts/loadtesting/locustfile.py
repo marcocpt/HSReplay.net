@@ -113,14 +113,14 @@ class UploadBehavior(TaskSet):
 		}
 
 		if self.is_live:
-			response_one = self.client.post(self.api_endpoint,
+			response_one = requests.post(self.api_endpoint,
 											 json=metadata,
 											 headers=request_one_headers,
-											 **extra).json()
+											 ).json()
 
 
 			# Use requests so that this call does not get counted against the total number of requests.
-			response_two = requests.put(response_one["put_url"],
+			response_two = self.client.put(response_one["put_url"],
 											data=data,
 											headers=request_two_headers,
 											)
