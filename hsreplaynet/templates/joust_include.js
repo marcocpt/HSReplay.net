@@ -16,6 +16,11 @@ $(document).ready(function() {
 			$("#joust-lightbox").hide();
 		}
 	});
+	$(document).keypress(function (e) {
+		if (e.keyCode == 27) {
+			$("#joust-lightbox").hide();
+		}
+	});
 	var joust_started = false;
 	var joust_check = function() {
 		if(joust_required.length) {
