@@ -29,7 +29,7 @@ const settings = exportSettings.reduce((obj, current) => {
 	INFLUX_DATABASE_JOUST: db ? JSON.stringify(url.format({
 		protocol: db.SSL ? "https" : "http",
 		hostname: db.HOST,
-		port: "" + db.PORT,
+		port: "" + db.PORT || 8086,
 		pathname: "/write",
 		query: {
 			db: db.NAME,
