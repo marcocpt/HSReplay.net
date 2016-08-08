@@ -47,6 +47,11 @@ useful to store sensitive settings such as API keys.
 Several settings such as Sentry, Influx and S3 are disabled by default. The
 default database engine is set to sqlite3.
 
+Various vendor libraries are required. Run `scripts/get_vendor_static.sh`.
+
+Node >v5.3 is required to compile the scripts. Run `npm install` in the
+source root.
+
 Run the dev server with `./manage.py runserver [host:port]`. Will run on
 `localhost:8000` by default.
 
