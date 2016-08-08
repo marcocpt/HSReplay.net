@@ -9,9 +9,10 @@ else
 fi
 
 STATICDIR="$BASEDIR/hsreplaynet/static/vendor"
+FONTSDIR="$BASEDIR/hsreplaynet/static/fonts"
 
-rm -rf "$STATICDIR"
-mkdir -p "$STATICDIR"
+rm -rf "$STATICDIR" "$FONTSDIR"
+mkdir -p "$STATICDIR" "$FONTSDIR"
 
 
 # Bootstrap
@@ -74,20 +75,12 @@ wget "$SOURCE" -O "$OUTFILE"
 
 # Joust Fonts
 
-SOURCE="https://hearthsim.net/static/fonts"
-OUTDIR="$STATICDIR/../fonts"
+FONTS_SOURCE="https://hearthsim.net/static/fonts"
 
-rm -rf $OUTDIR
-
-SUBDIR="/belwefs_extrabold_macroman"
-FILES=`echo "$SOURCE$SUBDIR/"{"Belwe-ExtraBold-webfont."{eot,svg,ttf,woff,woff2},stylesheet.css}`
-FONTDIR="$OUTDIR$SUBDIR"
-mkdir -p "$FONTDIR"
-echo -n $FILES | sed "s/ /\n/g" | xargs -I "{}" wget "{}" -P "$FONTDIR"
-
-
-SUBDIR="/franklingothicfs_mediumcondensed_macroman"
-FILES=`echo "$SOURCE$SUBDIR/"{"franklingothic-medcd-webfont."{eot,svg,ttf,woff,woff2},stylesheet.css}`
-FONTDIR="$OUTDIR$SUBDIR"
-mkdir -p "$FONTDIR"
-echo -n $FILES | sed "s/ /\n/g" | xargs -I "{}" wget "{}" -P "$FONTDIR"
+belwe="belwefs_extrabold_macroman/Belwe-ExtraBold-webfont"
+franklin="franklingothicfs_mediumcondensed_macroman/franklingothic-medcd-webfont"
+for font in $belwe $franklin; do
+	dir="$(dirname $font)"
+	name="$(basename $font)"
+	wget "$FONTS_SOURCE/$dir"/{$name.{eot,svg,ttf,woff,woff2},stylesheet.css} -P "$FONTSDIR/$dir"
+done
