@@ -20,7 +20,7 @@
 			<div class="row">
 				<div class="col-md-4">
                 <ul>
-                    <li><a href="uploads/upload/failures/{{ failure.shortid }}/">Reprocess</a></li>
+                    <li><a href="{{ failure.shortid }}/">Reprocess</a></li>
                     <li>{{ failure.shortid  }}</li>
                     <li>{{ failure.state }}</li>
                     <li>{{ failure.timestamp }}</li>
@@ -31,7 +31,7 @@
                 </ul>
                 </div>
                 <div class="col-md-8">
-                    <code>{{ failure.error_str }}</code>
+                    <pre>{{ failure.error_str }}</pre>
                 </div>
             </div>
 
