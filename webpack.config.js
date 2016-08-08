@@ -1,3 +1,5 @@
+"use strict";
+
 const path = require("path");
 const webpack = require("webpack");
 const BundleTracker = require("webpack-bundle-tracker");
@@ -21,7 +23,7 @@ const exportedSettings = JSON.parse(
 	spawnSync(python, manageCmd.concat(exportSettings, ["INFLUX_DATABASES"]), {encoding: "utf-8"}).stdout
 );
 
-let db = exportedSettings["INFLUX_DATABASES"]["joust"];
+const db = exportedSettings["INFLUX_DATABASES"]["joust"];
 const settings = exportSettings.reduce((obj, current) => {
 	obj[current] = JSON.stringify(exportedSettings[current]);
 	return obj;
