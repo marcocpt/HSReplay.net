@@ -57,7 +57,8 @@
 							Try out our super slick Hearthstone replayer:
 						</p>
 					</header>
-					<a href="{% static 'images/joust-screenshot.jpg' %}">
+					{% setting "FEATURED_GAME_ID" as featured_game %}
+					<a href="{% if featured_game %}{% url 'games_replay_view' id=featured_game %}{% else %}{% static 'images/joust-screenshot.jpg' %}{% endif %}">
 						<img src="{% static 'images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
 					</a>
 				</div>
