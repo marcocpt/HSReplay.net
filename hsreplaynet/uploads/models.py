@@ -262,8 +262,7 @@ class RawUpload(object):
 	@property
 	def descriptor(self):
 		if self._descriptor is None:
-			obj = aws.S3.get_object(Bucket=self.bucket, Key=self.descriptor_key)
-			self._descriptor = json.load(obj["Body"].decode("utf8"))
+			self._descriptor = self._get_object(self._descriptor_key)
 
 		return self._descriptor
 
@@ -274,8 +273,7 @@ class RawUpload(object):
 	@property
 	def error(self):
 		if self._error is None:
-			obj = aws.S3.get_object(Bucket=self.bucket, Key=self.error_key)
-			self._error = json.load(obj["Body"].decode("utf8"))
+			self._error = self._get_object(self._error_key)
 
 		return self._error
 
@@ -286,6 +284,10 @@ class RawUpload(object):
 	@property
 	def error_url(self):
 		return self._signed_url_for(self._error_key)
+
+	def _get_object(self, key):
+		obj = aws.S3.get_object(Bucket=self.bucket, Key=key)
+		return json.loads(obj["Body"].read().decode("utf8"))
 
 	def _signed_url_for(self, key):
 		return aws.S3.generate_presigned_url(
