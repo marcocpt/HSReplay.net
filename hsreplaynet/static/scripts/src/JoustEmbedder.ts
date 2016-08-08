@@ -81,14 +81,12 @@ export default class JoustEmbedder extends EventEmitter {
 				tags["release"] = release;
 				tags["locale"] = this.locale;
 				switch (series) {
-					case "cards_received": // deprecated
 					case "metadata":
 						let flags = Object.keys(metaFlags);
 						for (let i = 0; i < flags.length; i++) {
 							let flag = flags[i];
 							tags[flag] = metaFlags[flag];
 						}
-						console.log(tags);
 						break;
 				}
 				metrics.writePoint(series, values, tags);
