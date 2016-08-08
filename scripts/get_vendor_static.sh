@@ -65,3 +65,23 @@ SOURCE="https://api.hearthstonejson.com/v1/enums.d.ts"
 OUTFILE="$STATICDIR/../scripts/src/hearthstone.d.ts"
 
 wget "$SOURCE" -O "$OUTFILE"
+
+
+# Joust Fonts
+
+SOURCE="https://hearthsim.net/static/fonts"
+OUTDIR="$STATICDIR/../fonts"
+
+rm -rf $OUTDIR
+
+SUBDIR="/belwefs_extrabold_macroman"
+FILES=`echo "$SOURCE$SUBDIR/"{"Belwe-ExtraBold-webfont."{eot,svg,ttf,woff,woff2},stylesheet.css}`
+FONTDIR="$OUTDIR$SUBDIR"
+mkdir -p "$FONTDIR"
+echo -n $FILES | xargs -d " " -I "{}" wget "{}" -P "$FONTDIR"
+
+SUBDIR="/franklingothicfs_mediumcondensed_macroman"
+FILES=`echo "$SOURCE$SUBDIR/"{"franklingothic-medcd-webfont."{eot,svg,ttf,woff,woff2},stylesheet.css}`
+FONTDIR="$OUTDIR$SUBDIR"
+mkdir -p "$FONTDIR"
+echo -n $FILES | xargs -d " " -I "{}" wget "{}" -P "$FONTDIR"
