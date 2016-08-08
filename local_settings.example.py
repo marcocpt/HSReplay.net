@@ -27,7 +27,7 @@ RAVEN_CONFIG = {
 INFLUX_DATABASES = {
 	"hsreplaynet": {
 		"NAME": "hsreplaynet",
-		"ADDRESS": "localhost",
+		"HOST": "localhost",
 		"PORT": 8086,
 		"USER": "",
 		"PASSWORD": "",
