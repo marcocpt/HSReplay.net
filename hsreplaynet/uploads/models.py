@@ -124,7 +124,7 @@ class RawUpload(object):
 			# However, we do still need to update the error message in case the failure was for a different reason.
 			self._create_or_update_error_messages(reason, ts_string)
 		else:
-			
+
 			failed_log_key = self._create_failed_log_key(ts_string, self.shortid)
 			failed_log_copy_source = "%s/%s" % (self.bucket, self.log_key)
 			aws.S3.copy_object(
@@ -248,8 +248,16 @@ class RawUpload(object):
 		return self._log_key
 
 	@property
+	def log_url(self):
+		return self._signed_url_for(self._log_key)
+
+	@property
 	def descriptor_key(self):
 		return self._descriptor_key
+
+	@property
+	def descriptor_url(self):
+		return self._signed_url_for(self._descriptor_key)
 
 	@property
 	def descriptor(self):
@@ -270,6 +278,21 @@ class RawUpload(object):
 			self._error = json.load(obj["Body"])
 
 		return self._error
+
+	@property
+	def error_url(self):
+		return self._signed_url_for(self._error_key)
+
+	def _signed_url_for(self, key):
+		return aws.S3.generate_presigned_url(
+			"get_object",
+			Params={
+				"Bucket": self._bucket,
+				"Key": key
+			},
+			ExpiresIn=60 * 60 * 24,
+			HttpMethod="GET"
+		)
 
 	@property
 	def shortid(self):

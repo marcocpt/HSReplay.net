@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+	{{ block.super }}
+{% endblock %}
+
+{% block content %}
+
+    {% if user.is_staff %}
+
+        {% if results %}
+            {{ results }}
+        {% endif %}
+
+        <table>
+            {% for failure in failures %}
+                <tr>
+                    <td>{{ failure.shortid  }}</td>
+                    <td>{{ failure.state }}</td>
+                    <td>{{ failure.timestamp }}</td>
+                    <td><a href="{{ failure.descriptor_url }}">descriptor</a></td>
+                    <td><a href="{{ failure.log_url }}">log</a></td>
+                    <td><a href="{{ failure.error_url }}">errors</a></td>
+                    <td><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}">papertrail</a></td>
+                    <td>
+                        <form method="POST" action="/upload/failures/{{ failure.shortid }}/">
+                            {% csrf_token %}
+                            <button type="button">Reprocess</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+{% endblock %}

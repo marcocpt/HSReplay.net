@@ -107,8 +107,12 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	"""
 	Requeue all failed raw logs to attempt processing them into UploadEvents.
 	"""
+	results = []
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):
-		_publish_requeue_message_for_failed_raw_log(raw_upload)
+		result = _publish_requeue_message_for_failed_raw_log(raw_upload)
+		results.append(result)
+
+	return results
 
 
 def _publish_requeue_message_for_failed_raw_log(raw_upload):
@@ -118,7 +122,7 @@ def _publish_requeue_message_for_failed_raw_log(raw_upload):
 	if topic_arn is None:
 		raise Exception("A Topic for queueing raw uploads is not configured.")
 
-	aws.publish_sns_message(topic_arn, raw_upload.sns_message)
+	return aws.publish_sns_message(topic_arn, raw_upload.sns_message)
 
 
 def queue_upload_event_for_processing(upload_event_id):
