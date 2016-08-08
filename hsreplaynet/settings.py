@@ -72,7 +72,7 @@ if not ENV_LAMBDA:
 		"webpack_loader",
 	]
 
-if ENV_LIVE:
+if ENV_PROD:
 	INSTALLED_APPS += [
 		"raven.contrib.django.raven_compat",
 	]
