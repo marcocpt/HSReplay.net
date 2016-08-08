@@ -51,11 +51,21 @@ export default class JoustEmbedder extends EventEmitter {
 		launcher.cardArt((cardId: string) => cardArt(cardId));
 
 		// setup metadata
+		let metaFlags = {
+			has_build: null,
+			cached: null,
+			fetched: null,
+			fallback: null,
+		};
 		let manager = new MetaDataManager((build: number|"latest", locale: string): string => {
 			return HEARTHSTONEJSON_URL.replace(/%\(build\)s/, "" + build).replace(/%\(locale\)s/, locale);
 		}, new LocalStorageBackend(), this.locale);
 		launcher.metadata((build: number|null, cb: (data: any[]) => void): void => {
+			metaFlags.has_build = !!(+build);
 			manager.get(+build || "latest", (data: any[]): void => {
+				metaFlags.cached = manager.cached;
+				metaFlags.fetched = manager.fetched;
+				metaFlags.fallback = manager.fallback;
 				cb(data);
 			});
 		});
@@ -68,7 +78,19 @@ export default class JoustEmbedder extends EventEmitter {
 				if (!tags) {
 					tags = {};
 				}
-				tags.release = release;
+				tags["release"] = release;
+				tags["locale"] = this.locale;
+				switch (series) {
+					case "cards_received": // deprecated
+					case "metadata":
+						let flags = Object.keys(metaFlags);
+						for (let i = 0; i < flags.length; i++) {
+							let flag = flags[i];
+							tags[flag] = metaFlags[flag];
+						}
+						console.log(tags);
+						break;
+				}
 				metrics.writePoint(series, values, tags);
 			};
 			metrics = new MetricsReporter(
