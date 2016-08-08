@@ -20,20 +20,23 @@
 			<div class="row">
 				<div class="col-md-4">
                 <ul>
-                    <li><a href="/upload/failures/{{ failure.shortid }}/">Reprocess</a></li>
+                    <li><a href="uploads/upload/failures/{{ failure.shortid }}/">Reprocess</a></li>
                     <li>{{ failure.shortid  }}</li>
                     <li>{{ failure.state }}</li>
                     <li>{{ failure.timestamp }}</li>
-                    <li><a href="{{ failure.descriptor_url }}">descriptor</a></li>
-                    <li><a href="{{ failure.log_url }}">log</a></li>
-                    <li><a href="{{ failure.error_url }}">errors</a></li>
-                    <li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}">papertrail</a></li>
+                    <li><a href="{{ failure.descriptor_url }}" target="_blank">descriptor</a></li>
+                    <li><a href="{{ failure.log_url }}" target="_blank">log</a></li>
+                    <li><a href="{{ failure.error_url }}" target="_blank">errors</a></li>
+                    <li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}" target="_blank">papertrail</a></li>
                 </ul>
                 </div>
                 <div class="col-md-8">
                     <code>{{ failure.error_str }}</code>
                 </div>
             </div>
+
+            <hr>
+
             {% endfor %}
 
         </div>
