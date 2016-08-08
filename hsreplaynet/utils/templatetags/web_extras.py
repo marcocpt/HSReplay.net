@@ -46,3 +46,8 @@ def hearthstonejson(context, build=None, locale="enUS"):
 @register.simple_tag
 def setting(name):
 	return getattr(settings, name, "")
+
+
+@register.simple_tag
+def webfont(font):
+	return settings.WEBFONTS_URL % {"font": font}

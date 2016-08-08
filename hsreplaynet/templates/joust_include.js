@@ -4,7 +4,9 @@
 var joust_required = [
 	"{% joust_static 'joust.css' %}",
 	"{% joust_static 'joust.js' %}",
-	"{% static 'scripts/joust-extra.js' %}"
+	"{% static 'scripts/joust-extra.js' %}",
+	"{% webfont 'belwefs_extrabold_macroman' %}",
+	"{% webfont 'franklingothicfs_mediumcondensed_macroman' %}",
 ];
 
 $(document).ready(function() {

@@ -23,6 +23,7 @@ RAVEN_CONFIG = {
 }
 # JOUST_RAVEN_DSN_PUBLIC = "https://hash@app.getsentry.com/12345"
 # JOUST_RAVEN_ENVIRONMENT = "development"
+# WEBFONTS_URL = "http://example.com/%(font)s/stylesheet.css"
 
 INFLUX_DATABASES = {
 	"hsreplaynet": {
