@@ -18,6 +18,9 @@ class Command(BaseCommand):
 		self.stdout.write("Cleaning up %r" % (api_key))
 		tokens = api_key.tokens.all()
 
+		total_deleted_uploads_count = 0
+		total_deleted_replays_count = 0
+
 		for token in tokens:
 			self.stdout.write("\tDeleting uploads for %r" % (token))
 			uploads = token.uploads.all()
@@ -41,13 +44,18 @@ class Command(BaseCommand):
 						self.stdout.write("Other replays use this global game. It will not be deleted.")
 
 					upload.game.delete()
+					total_deleted_replays_count += 1
 				elif upload.status == UploadEventStatus.SUCCESS:
 					msg = "WARNING: status=SUCCESS but no replay attached on %r" % (upload)
 					raise CommandError(msg)
 				else:
 					self.stdout.write("No replays found.")
 
+			total_deleted_uploads_count += len(uploads)
 			uploads.delete()
+		
+		self.stdout.write("Total replays deleted: %s" % total_deleted_replays_count)
+		self.stdout.write("Total uploads deleted: %s" % total_deleted_uploads_count)
 		self.stdout.write("Deleting %i tokens" % (tokens.count()))
 		tokens.delete()
 
