@@ -40,6 +40,7 @@ class MockRawUpload(object):
 
 		if storage:
 			key = _generate_upload_key(self._timestamp, self._shortid)
+			os.makedirs(os.path.dirname(storage.path(key)), exist_ok=True)
 			with storage.open(key, mode="w") as log_file:
 				log_file.write(self._log)
 
