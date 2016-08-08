@@ -48,7 +48,7 @@ module.exports = {
 	},
 	output: {
 		path: path.resolve(__dirname, "./hsreplaynet/static/bundles/"),
-		filename: "[name]-[hash].js",
+		filename: "[name].js",
 	},
 	resolve: {
 		modulesDirectories: ["node_modules"],
