@@ -2,7 +2,12 @@
 
 set -e
 
-BASEDIR="$(readlink -f $(dirname $0))/.."
+if [ "$(uname)" = "Darwin" ]; then
+	BASEDIR="$(dirname $(stat -f ${BASH_SOURCE[0]}))/.."
+else
+	BASEDIR="$(readlink -f $(dirname $0))/.."
+fi
+
 STATICDIR="$BASEDIR/hsreplaynet/static/vendor"
 
 rm -rf "$STATICDIR"
@@ -78,10 +83,11 @@ SUBDIR="/belwefs_extrabold_macroman"
 FILES=`echo "$SOURCE$SUBDIR/"{"Belwe-ExtraBold-webfont."{eot,svg,ttf,woff,woff2},stylesheet.css}`
 FONTDIR="$OUTDIR$SUBDIR"
 mkdir -p "$FONTDIR"
-echo -n $FILES | xargs -d " " -I "{}" wget "{}" -P "$FONTDIR"
+echo -n $FILES | sed "s/ /\n/g" | xargs -I "{}" wget "{}" -P "$FONTDIR"
+
 
 SUBDIR="/franklingothicfs_mediumcondensed_macroman"
 FILES=`echo "$SOURCE$SUBDIR/"{"franklingothic-medcd-webfont."{eot,svg,ttf,woff,woff2},stylesheet.css}`
 FONTDIR="$OUTDIR$SUBDIR"
 mkdir -p "$FONTDIR"
-echo -n $FILES | xargs -d " " -I "{}" wget "{}" -P "$FONTDIR"
+echo -n $FILES | sed "s/ /\n/g" | xargs -I "{}" wget "{}" -P "$FONTDIR"
