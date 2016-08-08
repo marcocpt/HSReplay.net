@@ -294,7 +294,8 @@ def do_process_upload_event(upload_event):
 	if user is None and upload_event.token is not None:
 		# If the auth token has not yet been claimed, create
 		# a pending claim for the replay for when it will be.
-		claim = PendingReplayOwnership(replay=replay, token=upload_event.token)
-		claim.save()
+		PendingReplayOwnership.objects.get_or_create(
+			replay=replay, token=upload_event.token
+		)
 
 	return replay
