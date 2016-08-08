@@ -11,9 +11,7 @@ export default class InfluxMetricsBackend implements MetricsBackend {
 		if (!points.length) {
 			return;
 		}
-		let request = new XMLHttpRequest();
 		let url = this.url;
-		request.open("POST", url, this.async);
 		let blob = new Blob([
 			points.map(function (point) {
 				let tags = [];
@@ -28,7 +26,17 @@ export default class InfluxMetricsBackend implements MetricsBackend {
 				return line;
 			}).join("\n")], {type: "text/plain"}
 		);
-		request.send(blob);
+		let success = false;
+		if (navigator["sendBeacon"]) {
+			// try beacon api
+			success = (navigator as any).sendBeacon(url, blob);
+		}
+		if (!success) {
+			// fallback to plain old XML http requests
+			let request = new XMLHttpRequest();
+			request.open("POST", url, this.async);
+			request.send(blob);
+		}
 	}
 
 	public writePoint(series: string, values: Object, tags?: Object) {
