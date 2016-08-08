@@ -54,7 +54,7 @@ before it exits.
 import os
 import patch_gevent
 from locust import HttpLocust, ResponseError, TaskSet, task
-
+import requests
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 DATA_DIR = os.path.join(BASE_DIR, "data", "hsreplay-test-data")
@@ -119,11 +119,11 @@ class UploadBehavior(TaskSet):
 											 **extra).json()
 
 
-
-			response_two = self.client.put(response_one["put_url"],
+			# Use requests so that this call does not get counted against the total number of requests.
+			response_two = requests.put(response_one["put_url"],
 											data=data,
 											headers=request_two_headers,
-											**extra)
+											)
 
 
 	@task(6)
