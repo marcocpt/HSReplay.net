@@ -10,6 +10,9 @@ class AuthToken(models.Model):
 		related_name="auth_tokens", null=True, blank=True
 	)
 	created = models.DateTimeField("Created", auto_now_add=True)
+	creation_apikey = models.ForeignKey("api.APIKey", null=True)
+
+	is_test_data = models.BooleanField(default=False)
 
 	def __str__(self):
 		return str(self.key)
