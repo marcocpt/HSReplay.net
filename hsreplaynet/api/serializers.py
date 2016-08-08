@@ -149,8 +149,6 @@ class UploadEventSerializer(serializers.Serializer):
 	player1 = PlayerSerializer(required=False, write_only=True)
 	player2 = PlayerSerializer(required=False, write_only=True)
 
-	debug_crash = serializers.BooleanField(required=False, default=False)
-
 	def create(self, data):
 		request = self.context["request"]
 
@@ -162,10 +160,6 @@ class UploadEventSerializer(serializers.Serializer):
 			test_data=data.pop("test_data"),
 			upload_ip=get_client_ip(request),
 		)
-
-		if data.pop("debug_crash"):
-			raise Exception("You are a bad man, Mr. Seinfeld.")
-
 		if "shortid" in data:
 			ret.shortid = data["shortid"]
 		ret.metadata = json.dumps(data, cls=DjangoJSONEncoder)
