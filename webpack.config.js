@@ -17,13 +17,14 @@ const exportSettings = [
 	"JOUST_RAVEN_ENVIRONMENT",
 	"HEARTHSTONEJSON_URL",
 ];
+const influxKey = "INFLUX_DATABASES";
 const python = process.env.PYTHON || "python";
 const manageCmd = [path.resolve(__dirname, "./manage.py"), "show_settings"];
 const exportedSettings = JSON.parse(
-	spawnSync(python, manageCmd.concat(exportSettings, ["INFLUX_DATABASES"]), {encoding: "utf-8"}).stdout
+	spawnSync(python, manageCmd.concat(exportSettings, [influxKey]), {encoding: "utf-8"}).stdout
 );
 
-const db = exportedSettings["INFLUX_DATABASES"]["joust"];
+const db = exportedSettings[influxKey] ? exportedSettings[influxKey]["joust"] : undefined;
 const settings = exportSettings.reduce((obj, current) => {
 	obj[current] = JSON.stringify(exportedSettings[current]);
 	return obj;
