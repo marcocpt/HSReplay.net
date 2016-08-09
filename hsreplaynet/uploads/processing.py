@@ -63,11 +63,6 @@ def check_for_failed_raw_upload_with_id(shortid):
 		return None
 
 
-def list_all_failed_raw_log_uploads():
-	"""Return a generator over all failed RawUpload objects."""
-	return _list_raw_uploads_by_prefix("failed")
-
-
 def _list_raw_uploads_by_prefix(prefix):
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix=prefix):
 		key = object["Key"]
@@ -80,14 +75,6 @@ def requeue_failed_raw_uploads_all():
 	Requeue all failed raw logs to attempt processing them into UploadEvents.
 	"""
 	return _requeue_failed_raw_uploads_by_prefix("failed")
-
-
-def requeue_failed_raw_single_upload_with_id(shortid):
-	"""
-	Requeue a specific failed shortid to attempt processing it into an UploadEvent.
-	"""
-	prefix = "failed/%s" % shortid
-	return _requeue_failed_raw_uploads_by_prefix(prefix)
 
 
 def requeue_failed_raw_logs_uploaded_after(cutoff):

@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import View
@@ -20,16 +20,38 @@ class UploadDetailView(View):
 		return render(request, "uploads/processing.html", {"upload": upload})
 
 
-class UploadFailuresListView(LoginRequiredMixin, View):
+class UploadFailuresListView(LoginRequiredMixin, UserPassesTestMixin, View):
+	template = "uploads/failures.html"
+	default_limit = 50
+
+	def test_func(self):
+		return self.request.user.is_staff
+
+	def _list_failures(self, limit):
+		ret = []
+		for upload in processing._list_raw_uploads_by_prefix("failed"):
+			ret.append(upload)
+			if len(ret) >= limit:
+				break
+		return ret
+
 	def get(self, request):
-		failed_uploads = processing.list_all_failed_raw_log_uploads()
-		return render(request, "uploads/failures.html", {"failures": failed_uploads})
+		failures = self._list_failures(self.default_limit)
 
+		return render(request, self.template, {"failures": failures})
 
-def reprocess_failed_upload(request, shortid):
-	results = []
-	if request.user.is_staff:
-		results = processing.requeue_failed_raw_single_upload_with_id(shortid)
+	def post(self, request):
+		results = []
+		for shortid in request.POST.getlist("failure_shortid"):
+			if len(shortid) < 10:
+				# shortids are fairly long. Requeuing a catch-all could be dangerous.
+				raise ValueError("Bad shortid: %r" % (shortid))
+			prefix = "failed/%s/" % (shortid)
+			result = processing._requeue_failed_raw_uploads_by_prefix(prefix)
+			results.append(result)
 
-	failed_uploads = processing.list_all_failed_raw_log_uploads()
-	return render(request, "uploads/failures.html", {"failures": failed_uploads, "results": results})
+		context = {
+			"failures": self._list_failures(self.default_limit),
+			"results": results,
+		}
+		return render(request, self.template, context)

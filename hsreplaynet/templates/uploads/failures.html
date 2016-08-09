@@ -6,40 +6,34 @@
 {% endblock %}
 
 {% block content %}
+	{% if results %}
+		<pre id="reprocess-results">{{ results }}</pre>
+	{% endif %}
 
-    {% if user.is_staff %}
+	<div class="container">
+		{% for failure in failures %}
+		<div class="row">
+			<div class="col-md-4">
+			<ul>
+				<li><strong>{{ failure.shortid }}</strong> ({{ failure.state.name }})</li>
+				<li>{{ failure.timestamp }}</li>
+				<li><a href="{{ failure.descriptor_url }}" target="_blank">descriptor</a></li>
+				<li><a href="{{ failure.log_url }}" target="_blank">log</a></li>
+				<li><a href="{{ failure.error_url }}" target="_blank">errors</a></li>
+				<li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}" target="_blank">papertrail</a></li>
 
-        {% if results %}
-            {{ results }}
-        {% endif %}
-
-        <div class="container">
-
-            {% for failure in failures %}
-
-			<div class="row">
-				<div class="col-md-4">
-                <ul>
-                    <li><a href="{{ failure.shortid }}/">Reprocess</a></li>
-                    <li>{{ failure.shortid  }}</li>
-                    <li>{{ failure.state }}</li>
-                    <li>{{ failure.timestamp }}</li>
-                    <li><a href="{{ failure.descriptor_url }}" target="_blank">descriptor</a></li>
-                    <li><a href="{{ failure.log_url }}" target="_blank">log</a></li>
-                    <li><a href="{{ failure.error_url }}" target="_blank">errors</a></li>
-                    <li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}" target="_blank">papertrail</a></li>
-                </ul>
-                </div>
-                <div class="col-md-8">
-                    <pre>{{ failure.error_str }}</pre>
-                </div>
-            </div>
-
-            <hr>
-
-            {% endfor %}
-
-        </div>
-    {% endif %}
-
+				<form action="" method="POST">
+					{% csrf_token %}
+					<input type="hidden" name="failure_shortid" value="{{ failure.shortid }}"/>
+					<input type="submit" value="Reprocess"/>
+				</form>
+			</ul>
+			</div>
+			<div class="col-md-8">
+				<pre>{{ failure.error_str }}</pre>
+			</div>
+		</div>
+		<hr>
+		{% endfor %}
+	</div>
 {% endblock %}
