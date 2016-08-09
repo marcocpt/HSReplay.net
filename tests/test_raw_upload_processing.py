@@ -93,6 +93,10 @@ class MockRawUpload(object):
 	def log_key(self):
 		return "LOG_KEY"
 
+	@property
+	def upload_http_method(self):
+		return "post"
+
 	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key):
 		self._upload_event_log_bucket = upload_event_bucket
 		self._upload_event_log_key = upload_event_key

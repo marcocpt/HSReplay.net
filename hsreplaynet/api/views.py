@@ -1,5 +1,5 @@
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, RetrieveModelMixin
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -14,7 +14,7 @@ from .models import AuthToken, APIKey
 from .permissions import APIKeyPermission, IsOwnerOrReadOnly
 
 
-class WriteOnlyOnceViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet):
+class WriteOnlyOnceViewSet(CreateModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet):
 	pass
 
 
@@ -49,6 +49,13 @@ class UploadEventViewSet(WriteOnlyOnceViewSet):
 	permission_classes = (RequireAuthToken, APIKeyPermission)
 	queryset = UploadEvent.objects.all()
 	serializer_class = serializers.UploadEventSerializer
+
+	def update(self, request, *args, **kwargs):
+		self._shortid = request.data["shortid"]
+		return super(UploadEventViewSet, self).update(request, *args, **kwargs)
+
+	def get_object(self):
+		return UploadEvent.objects.get(shortid=self._shortid)
 
 
 class GameReplayDetail(RetrieveDestroyAPIView):

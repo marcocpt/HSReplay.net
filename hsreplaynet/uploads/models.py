@@ -236,6 +236,10 @@ class RawUpload(object):
 		}
 
 	@property
+	def upload_http_method(self):
+		return "post" if self.state == RawUploadState.NEW else "put"
+
+	@property
 	def state(self):
 		return self._state
 

@@ -167,6 +167,20 @@ class UploadEventSerializer(serializers.Serializer):
 
 		return ret
 
+	def update(self, event, data):
+		request = self.context["request"]
+
+		event.file = data.pop("file")
+		event.token = request.auth_token
+		event.api_key = request.api_key
+		event.type = data.pop("type")
+		event.test_data = data.pop("test_data")
+		event.upload_ip = get_client_ip(request)
+		event.metadata = json.dumps(data, cls=DjangoJSONEncoder)
+		event.save()
+
+		return event
+
 
 class GlobalGamePlayerSerializer(serializers.ModelSerializer):
 	class Meta:
