@@ -1,8 +1,9 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import View
-from .models import UploadEvent
 from hsreplaynet.uploads import processing
+from .models import UploadEvent
 
 
 class UploadDetailView(View):
@@ -19,9 +20,10 @@ class UploadDetailView(View):
 		return render(request, "uploads/processing.html", {"upload": upload})
 
 
-def list_upload_failures(request):
-	failed_uploads = processing.list_all_failed_raw_log_uploads()
-	return render(request, "uploads/failures.html", {"failures": failed_uploads})
+class UploadFailuresListView(LoginRequiredMixin, View):
+	def get(self, request):
+		failed_uploads = processing.list_all_failed_raw_log_uploads()
+		return render(request, "uploads/failures.html", {"failures": failed_uploads})
 
 
 def reprocess_failed_upload(request, shortid):
