@@ -180,6 +180,8 @@ class GlobalGamePlayer(models.Model):
 		null=True, blank=True,
 		help_text="Number of losses in the current game mode (current season)",
 	)
+	deck_id = models.IntegerField("Deck ID", null=True, blank=True)
+	cardback_id = models.IntegerField("Cardback ID", null=True, blank=True)
 
 	def __str__(self):
 		return self.name or self.real_name
