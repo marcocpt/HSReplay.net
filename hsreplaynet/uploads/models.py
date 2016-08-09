@@ -160,15 +160,9 @@ class RawUpload(object):
 			self._state = RawUploadState.FAILED
 
 	def _create_or_update_error_messages(self, reason, ts_string):
-
 		# If the upload failed previously retrieve the history of errors to append to it.
 		if self._state == RawUploadState.FAILED:
 			error_json = self.error
-
-			# Shim to support converting earlier error formats into the current format.
-			if not "attempts" in error_json:
-				new_error_json = {"attempts": [error_json.copy()]}
-				error_json = new_error_json
 		else:
 			error_json = {"attempts": []}
 
