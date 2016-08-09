@@ -21,6 +21,7 @@
 				<li><a href="{{ failure.log_url }}" target="_blank">log</a></li>
 				<li><a href="{{ failure.error_url }}" target="_blank">errors</a></li>
 				<li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}" target="_blank">papertrail</a></li>
+				<li><a href="{% url 'admin:uploads_uploadevent_changelist' %}?shortid={{ failure.shortid }}">Admin</a>
 
 				<form action="" method="POST">
 					{% csrf_token %}
