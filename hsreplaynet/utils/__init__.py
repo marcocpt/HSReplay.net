@@ -23,6 +23,22 @@ def _reset_time_elapsed():
 	_timing_start = time.clock()
 
 
+def delete_file(name):
+	"""
+	Delete a file by name from the default storage
+	"""
+	from django.core.files.storage import default_storage
+	default_storage.delete(name)
+
+
+def delete_file_async(name):
+	"""
+	Enqueue a RQ job to delete a file by name from the default storage
+	"""
+	from hsreplaynet.utils.redis import job_queue
+	job_queue.enqueue(delete_file, name)
+
+
 def generate_key():
 	return binascii.hexlify(os.urandom(20)).decode()
 

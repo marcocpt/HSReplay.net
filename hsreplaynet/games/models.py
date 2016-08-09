@@ -403,9 +403,11 @@ class PendingReplayOwnership(models.Model):
 
 @receiver(models.signals.post_delete, sender=GameReplay)
 def cleanup_hsreplay_file(sender, instance, **kwargs):
+	from hsreplaynet.utils import delete_file_async
+
 	file = instance.replay_xml
 	if file.name and default_storage.exists(file.name):
-		file.delete(save=False)
+		delete_file_async(file.name)
 
 
 @receiver(models.signals.post_save, sender=AuthToken)
