@@ -67,6 +67,8 @@ if not ENV_LAMBDA:
 		"allauth.account",
 		"allauth.socialaccount",
 		"allauth.socialaccount.providers.battlenet",
+		"django_rq",
+		"django_rq_dashboard",
 		"loginas",
 		"cloud_browser",
 		"webpack_loader",
@@ -180,7 +182,7 @@ JOUST_STATIC_URL = STATIC_URL + "joust/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/cards/by-id/"
 
-LAMBDA_DEFAULT_EXECUTION_ROLE_NAME="iam_lambda_execution_role"
+LAMBDA_DEFAULT_EXECUTION_ROLE_NAME = "iam_lambda_execution_role"
 
 # Email
 # https://docs.djangoproject.com/en/1.9/ref/settings/#email-backend
@@ -237,6 +239,20 @@ SOCIALACCOUNT_ADAPTER = "allauth.socialaccount.providers.battlenet.provider.Batt
 SOCIALACCOUNT_PROVIDERS = {"battlenet": {"SCOPE": []}}
 
 
+# RQ
+# https://github.com/ui/django-rq
+
+RQ_QUEUES = {
+	"default": {
+		"HOST": "localhost",
+		"PORT": 6379,
+		"DB": 0,
+		"PASSWORD": "",
+		"DEFAULT_TIMEOUT": 360,
+	}
+}
+
+
 # API
 REST_FRAMEWORK = {
 	# Use Django's standard `django.contrib.auth` permissions,
@@ -253,7 +269,6 @@ REST_FRAMEWORK = {
 # HDT_DOWNLOAD_URL = "https://hsdecktracker.net"
 # Swap when we're in public beta
 HDT_DOWNLOAD_URL = "https://hsreplay.net/pages/beta/"
-
 
 
 # Used for compiling SCSS

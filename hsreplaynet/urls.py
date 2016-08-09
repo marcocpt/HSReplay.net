@@ -10,6 +10,7 @@ urlpatterns = [
 	url(r"^$", TemplateView.as_view(template_name="home.html"), name="home"),
 	url(r"^admin/", include(admin.site.urls)),
 	url(r"^admin/", include("loginas.urls")),
+	url(r"^admin/rq/", include("django_rq_dashboard.urls")),
 	url(r"^admin/s3/", include("cloud_browser.urls_admin")),
 	url(r"^api/", include("hsreplaynet.api.urls")),
 	url(r"^about/privacy/$", flatpage, {"url": "/about/privacy/"}, name="privacy_policy"),
