@@ -28,7 +28,8 @@ def delete_file(name):
 	Delete a file by name from the default storage
 	"""
 	from django.core.files.storage import default_storage
-	default_storage.delete(name)
+	if default_storage.exists(name):
+		default_storage.delete(name)
 
 
 def delete_file_async(name):

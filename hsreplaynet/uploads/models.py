@@ -382,5 +382,5 @@ def cleanup_uploaded_log_file(sender, instance, **kwargs):
 	from hsreplaynet.utils import delete_file_async
 
 	file = instance.file
-	if file.name and default_storage.exists(file.name):
+	if file.name:
 		delete_file_async(file.name)
