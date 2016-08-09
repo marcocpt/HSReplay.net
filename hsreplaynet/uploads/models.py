@@ -94,6 +94,10 @@ class RawUpload(object):
 		self._descriptor = None
 		self._error = None
 
+		# Always, use "post" by default.
+		# Code paths that are aware this is an update can override this to use "put"
+		self.upload_http_method = "post"
+
 	def _create_raw_descriptor_key(self, ts_string, shortid):
 		return "raw/%s/%s.descriptor.json" % (ts_string, shortid)
 
@@ -240,9 +244,6 @@ class RawUpload(object):
 			"shortid" : self.shortid,
 		}
 
-	@property
-	def upload_http_method(self):
-		return "post" if self.state == RawUploadState.NEW else "put"
 
 	@property
 	def state(self):

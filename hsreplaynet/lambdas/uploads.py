@@ -44,6 +44,12 @@ def process_raw_upload_sns_handler(event, context):
 
 	message = json.loads(event["Records"][0]["Sns"]["Message"])
 	raw_upload = RawUpload.from_sns_message(message)
+
+	existing = UploadEvent.objects.filter(shortid=raw_upload.shortid)
+	if existing.count():
+		# This will make DRF update the existing UploadEvent
+		raw_upload.upload_http_method = "put"
+
 	logger.info("Processing a RawUpload from an SNS message: %s", str(raw_upload))
 	process_raw_upload(raw_upload)
 
