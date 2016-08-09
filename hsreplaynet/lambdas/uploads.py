@@ -125,7 +125,8 @@ def create_upload_event_from_request(request):
 	response.render()
 	logger.info("Response (code=%r): %s", response.status_code, response.content)
 
-	if response.status_code != 201:
+	if response.status_code not in (200, 201):
+		# 200 for updated uploads, 201 for created uploads
 		result = {
 			"result_type": "VALIDATION_ERROR",
 			"status_code": response.status_code,
