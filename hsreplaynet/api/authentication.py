@@ -25,10 +25,10 @@ class AuthTokenAuthentication(TokenAuthentication):
 		try:
 			token = model.objects.get(key=key)
 		except (model.DoesNotExist, ValueError):
-			raise AuthenticationFailed("Invalid token.")
+			raise AuthenticationFailed("Invalid token: %r" % (key))
 
 		if token.user:
 			if not token.user.is_active:
-				raise AuthenticationFailed("User cannot log in.")
+				raise AuthenticationFailed("User %r cannot log in." % (token.user))
 
 		return token.user, token
