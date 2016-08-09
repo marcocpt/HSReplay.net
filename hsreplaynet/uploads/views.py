@@ -50,8 +50,19 @@ class UploadFailuresListView(LoginRequiredMixin, UserPassesTestMixin, View):
 			result = processing._requeue_failed_raw_uploads_by_prefix(prefix)
 			results.append(result)
 
+		for shortid in request.POST.getlist("deleted_shortid"):
+			if len(shortid) < 10:
+				# shortids are fairly long. Requeuing a catch-all could be dangerous.
+				raise ValueError("Bad shortid: %r" % (shortid))
+
+			raw_upload = processing.check_for_failed_raw_upload_with_id(shortid)
+			if raw_upload:
+				raw_upload.delete()
+				results.append("Deleted Failed Upload With ID: %s" % shortid)
+
 		context = {
 			"failures": self._list_failures(self.default_limit),
 			"results": results,
 		}
+
 		return render(request, self.template, context)
