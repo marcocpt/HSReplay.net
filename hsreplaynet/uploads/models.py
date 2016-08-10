@@ -64,10 +64,10 @@ class RawUpload(object):
 
 			fields = match.groupdict()
 			self._shortid = fields["shortid"]
-			self._timestamp= datetime.strptime(fields["ts"], RawUpload.RAW_TIMESTAMP_FORMAT)
+			self._timestamp = datetime.strptime(fields["ts"], RawUpload.RAW_TIMESTAMP_FORMAT)
 
 			self._descriptor_key = self._create_raw_descriptor_key(fields["ts"], fields["shortid"])
-			self._error_key = None # New RawUploads should never have an error object
+			self._error_key = None  # New RawUploads should never have an error object
 
 		elif key.startswith("failed"):
 			self._state = RawUploadState.FAILED
@@ -171,7 +171,7 @@ class RawUpload(object):
 		except Exception:
 			current_attempt_json = {"reason": reason}
 
-		current_attempt_json["made_failed_ts"] = datetime.now().isoformat()
+		current_attempt_json["failure_ts"] = now().isoformat()
 
 		error_json["attempts"].append(current_attempt_json)
 
