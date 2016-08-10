@@ -13,6 +13,10 @@ from .models import AccountClaim
 class ClaimAccountView(LoginRequiredMixin, View):
 	def get(self, request, id):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
+		if claim.token.user:
+			# Something's wrong. Get rid of the claim and reject the request.
+			claim.delete()
+			return HttpResponseForbidden("This token has already been claimed.")
 		claim.token.user = request.user
 		claim.token.save()
 		# Replays are claimed in AuthToken post_save signal (games.models)
