@@ -42,7 +42,7 @@ def test_auth_token_request(client, settings):
 
 	token = out["key"]
 	assert token
-	assert out["user"]["username"] == token
+	assert out["user"] is None  # user should be empty for fake users
 
 	# GET (listing tokens) should error
 	response = client.get(url)

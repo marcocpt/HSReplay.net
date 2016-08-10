@@ -35,6 +35,11 @@ class UserSerializer(serializers.Serializer):
 	id = serializers.IntegerField(read_only=True)
 	username = serializers.CharField(max_length=100)
 
+	def to_representation(self, instance):
+		if instance.is_fake:
+			return None
+		return super().to_representation(instance)
+
 
 class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
 	key = serializers.UUIDField(read_only=True)
