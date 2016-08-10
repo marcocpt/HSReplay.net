@@ -285,6 +285,8 @@ def do_process_upload_event(upload_event):
 	if user and not replay.user:
 		replay.user = user
 		replay.visibility = user.default_replay_visibility
+	if upload_event.token:
+		replay.upload_token = upload_event.token
 
 	# Create and save hsreplay.xml file
 	file = replay.save_hsreplay_xml(parser, meta)
