@@ -77,4 +77,6 @@ def test_auth_token_request(client, settings):
 	assert response.url == "/games/mine/"
 
 	# Double check that the AuthToken still exists
-	assert AuthToken.objects.get(key=token)
+	token = AuthToken.objects.get(key=token)
+	assert token
+	assert str(token.creation_apikey.api_key) == api_key
