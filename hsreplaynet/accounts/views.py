@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
 from django.views.generic import TemplateView, View
+from hsreplaynet.games.models import GameReplay
 from hsreplaynet.utils import get_uuid_object_or_404
 from .models import AccountClaim
 
@@ -16,7 +17,7 @@ class ClaimAccountView(LoginRequiredMixin, View):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
 		if claim.token.user:
 			if claim.token.user.is_fake:
-				# TODO: merge the accounts here
+				GameReplay.objects.filter(user=claim.token.user).update(user=request.user)
 				# For now we just delete the fake user, because we are not using it.
 				claim.token.user.delete()
 			else:
