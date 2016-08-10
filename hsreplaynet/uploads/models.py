@@ -316,11 +316,8 @@ class RawUpload(object):
 		return "%s:%s:%s:%s" % (self.shortid, self.timestamp.isoformat(), self.bucket, self.log_key)
 
 
-
 def _generate_upload_path(instance, filename):
-	ts = now()
-	shortid = instance.shortid
-	return _generate_upload_key(ts, shortid)
+	return _generate_upload_key(instance.created, instance.shortid)
 
 
 def _generate_upload_key(ts, shortid):
