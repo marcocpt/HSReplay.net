@@ -196,7 +196,10 @@ def validate_parser(parser, meta):
 	# If a player's name is None, this is an unsupported replay.
 	for player in game_tree.game.players:
 		if player.name is None:
-			raise UnsupportedReplay("Could not extract player information from the log.")
+			raise UnsupportedReplay(
+				"Could not extract player information from the log."
+				" (Was the game too short?)"
+			)
 
 		if not player.heroes:
 			raise UnsupportedReplay("No hero found for player %r" % (player.name))
