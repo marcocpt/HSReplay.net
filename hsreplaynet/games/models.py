@@ -15,8 +15,7 @@ from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 def _generate_upload_path(instance, filename):
 	ts = instance.global_game.match_start
 	timestamp = ts.strftime("%Y/%m/%d/%H/%M")
-	basename = "%s-%s" % (str(instance), instance.shortid)
-	return "replays/%s/%s.hsreplay.xml" % (timestamp, basename)
+	return "replays/%s/%s.hsreplay.xml" % (timestamp, instance.shortid)
 
 
 class GlobalGame(models.Model):
