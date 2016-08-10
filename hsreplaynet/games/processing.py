@@ -82,7 +82,7 @@ def find_or_create_global_game(game_tree, meta):
 
 
 def find_or_create_replay(global_game, meta, unified):
-	client_handle = meta.get("client_handle")
+	client_handle = meta.get("client_handle") or None
 	if unified:
 		# Look for duplicate uploads
 		replays = global_game.replays.filter(

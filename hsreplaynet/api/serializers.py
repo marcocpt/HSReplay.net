@@ -146,7 +146,7 @@ class UploadEventSerializer(serializers.Serializer):
 	server_ip = serializers.IPAddressField(required=False, write_only=True)
 	server_port = serializers.IntegerField(required=False, min_value=1, max_value=65535, write_only=True)
 	server_version = serializers.IntegerField(required=False, min_value=1, write_only=True)
-	client_handle = serializers.IntegerField(required=False, min_value=1, write_only=True)
+	client_handle = serializers.IntegerField(required=False, min_value=0, write_only=True)
 	game_handle = serializers.IntegerField(required=False, min_value=1, write_only=True)
 	aurora_password = serializers.CharField(required=False, write_only=True)
 	spectator_password = serializers.CharField(required=False, write_only=True)
