@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 from hsreplaynet.accounts.models import User
 
@@ -48,7 +48,7 @@ def admin_urlify(column):
 			return "-"
 		try:
 			url = _obj.get_absolute_url()
-		except AttributeError:
+		except (AttributeError, NoReverseMatch):
 			url = ""
 		admin_pattern = "admin:%s_%s_change" % (_obj._meta.app_label, _obj._meta.model_name)
 		admin_url = reverse(admin_pattern, args=[_obj.pk])
