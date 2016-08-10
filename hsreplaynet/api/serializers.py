@@ -39,11 +39,11 @@ class UserSerializer(serializers.Serializer):
 class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
 	key = serializers.UUIDField(read_only=True)
 	user = UserSerializer(read_only=True)
-	is_test_data = serializers.BooleanField(default=False)
+	test_data = serializers.BooleanField(default=False)
 
 	class Meta:
 		model = AuthToken
-		fields = ("key", "user", "is_test_data")
+		fields = ("key", "user", "test_data")
 
 	def create(self, data):
 		ret = super(AuthTokenSerializer, self).create(data)
