@@ -255,7 +255,7 @@ def create_global_players(global_game, game_tree, meta):
 			stars=player_meta.get("stars"),
 			wins=player_meta.get("wins"),
 			losses=player_meta.get("losses"),
-			deck_id=player_meta.get("deck_id"),
+			deck_id=player_meta.get("deck_id") or None,
 			cardback_id=player_meta.get("cardback"),
 			is_first=player.tags.get(GameTag.FIRST_PLAYER, False),
 			final_state=final_state,

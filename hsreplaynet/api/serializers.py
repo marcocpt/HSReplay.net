@@ -118,7 +118,7 @@ class PlayerSerializer(serializers.Serializer):
 	wins = serializers.IntegerField(required=False, write_only=True)
 	losses = serializers.IntegerField(required=False, write_only=True)
 	deck = DeckListField(required=False, write_only=True)
-	deck_id = serializers.IntegerField(required=False, min_value=1, write_only=True)
+	deck_id = serializers.IntegerField(required=False, min_value=0, write_only=True)
 	cardback = serializers.IntegerField(required=False, min_value=1, write_only=True)
 
 
