@@ -19,6 +19,7 @@ class AuthTokenAdmin(admin.ModelAdmin):
 	date_hierarchy = "created"
 	list_display = ("__str__", "user", "created")
 	raw_id_fields = ("user", )
+	search_fields = ("key", "user__username")
 	inlines = (UploadEventInline, )
 
 
