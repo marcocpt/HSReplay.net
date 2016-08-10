@@ -1,0 +1,10 @@
+{% extends "account/signup.html" %}
+{% load account socialaccount %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="account-login login-bnet">
+	{% include 'login_button.html' %}
+</div>
+{% endblock %}
