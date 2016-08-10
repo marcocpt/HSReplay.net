@@ -26,6 +26,7 @@ class AccountClaim(models.Model):
 class User(AbstractUser):
 	id = models.BigAutoField(primary_key=True)
 	username = models.CharField(max_length=150, unique=True)
+	is_fake = models.BooleanField(default=False)
 
 	# Profile fields
 	default_replay_visibility = IntEnumField(
