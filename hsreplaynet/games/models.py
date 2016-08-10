@@ -363,6 +363,9 @@ class GameReplay(models.Model):
 			player_xml.deck = player_meta.get("deck")
 
 		xml_str = hsreplay_doc.to_xml()
+		# Not using get_absolute_url() to avoid tying into Django
+		# (not necessarily avail on lambda)
+		xml_str += "\n<!-- https://hsreplay.net/replay/%s -->\n" % (self.shortid)
 		self.hsreplay_version = hsreplay_doc.version
 		# Clean up existing replays first
 		if self.replay_xml.name and default_storage.exists(self.replay_xml.name):
