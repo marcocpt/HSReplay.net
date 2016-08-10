@@ -3,7 +3,9 @@
 
 {% block head %}
 	{{ block.super }}
-	<meta http-equiv="refresh" content="3"/>
+	{% if upload.status < 3 %} {# Don't refresh errored replays #}
+		<meta http-equiv="refresh" content="3"/>
+	{% endif %}
 {% endblock %}
 
 {% block content %}
