@@ -3,6 +3,7 @@ from django.core.files.storage import default_storage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.six import string_types
 from rest_framework import serializers
+from hsreplaynet.accounts.models import User
 from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
 from hsreplaynet.stats import models as stats_models
 from hsreplaynet.uploads.models import UploadEvent
@@ -48,6 +49,11 @@ class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
 		ret = super(AuthTokenSerializer, self).create(data)
 		api_key = self.context["request"].api_key
 		api_key.tokens.add(ret)
+
+		# Create a "fake" user to correspond to the AuthToken
+		user = User.objects.create(username=str(ret.key), is_fake=True)
+		ret.user = user
+		ret.save()
 		return ret
 
 

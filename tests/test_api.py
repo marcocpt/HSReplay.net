@@ -3,6 +3,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from rest_framework.serializers import ValidationError
 from hsreplaynet.accounts.models import User
+from hsreplaynet.api.models import AuthToken
 from hsreplaynet.api.serializers import SmartFileField
 
 
@@ -41,7 +42,7 @@ def test_auth_token_request(client, settings):
 
 	token = out["key"]
 	assert token
-	assert out["user"] is None
+	assert out["user"]["username"] == token
 
 	# GET (listing tokens) should error
 	response = client.get(url)
@@ -74,3 +75,6 @@ def test_auth_token_request(client, settings):
 	response = client.get(url)
 	assert response.status_code == 302
 	assert response.url == "/games/mine/"
+
+	# Double check that the AuthToken still exists
+	assert AuthToken.objects.get(key=token)

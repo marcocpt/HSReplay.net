@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
@@ -14,9 +15,14 @@ class ClaimAccountView(LoginRequiredMixin, View):
 	def get(self, request, id):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
 		if claim.token.user:
-			# Something's wrong. Get rid of the claim and reject the request.
-			claim.delete()
-			return HttpResponseForbidden("This token has already been claimed.")
+			if claim.token.user.is_fake:
+				# TODO: merge the accounts here
+				# For now we just delete the fake user, because we are not using it.
+				claim.token.user.delete()
+			else:
+				# Something's wrong. Get rid of the claim and reject the request.
+				claim.delete()
+				return HttpResponseForbidden("This token has already been claimed.")
 		claim.token.user = request.user
 		claim.token.save()
 		# Replays are claimed in AuthToken post_save signal (games.models)
