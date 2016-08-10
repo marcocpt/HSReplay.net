@@ -266,9 +266,7 @@ REST_FRAMEWORK = {
 
 # Custom site settings
 
-# HDT_DOWNLOAD_URL = "https://hsdecktracker.net"
-# Swap when we're in public beta
-HDT_DOWNLOAD_URL = "https://hsreplay.net/pages/beta/"
+HDT_DOWNLOAD_URL = "https://github.com/HearthSim/HDT-Releases-HSReplay/releases/download/v1.0.5.24/HDT-Installer.exe"
 
 
 # Used for compiling SCSS
