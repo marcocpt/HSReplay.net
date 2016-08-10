@@ -6,7 +6,6 @@ from django.core.files.storage import default_storage
 from django.db import models
 from django.dispatch.dispatcher import receiver
 from django.urls import reverse
-from django.utils.timezone import now
 from hearthstone.enums import BnetGameType, FormatType, PlayState
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.cards.models import Card, Deck
@@ -14,13 +13,10 @@ from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 
 def _generate_upload_path(instance, filename):
-	ts = now()
-	if instance.user_id:
-		token = instance.user_id
-	else:
-		token = "unknown-user"
-	yymmdd = ts.strftime("%Y/%m/%d")
-	return "replays/%s/%s/%s.hsreplay.xml" % (yymmdd, token, ts.isoformat())
+	ts = instance.global_game.match_start
+	timestamp = ts.strftime("%Y/%m/%d/%H/%M")
+	basename = "%s-%s" % (str(instance), instance.shortid)
+	return "replays/%s/%s.hsreplay.xml" % (timestamp, basename)
 
 
 class GlobalGame(models.Model):
@@ -99,7 +95,7 @@ class GlobalGame(models.Model):
 		ordering = ("-match_start", )
 
 	def __str__(self):
-		return " vs. ".join(str(p) for p in self.players.all())
+		return " vs ".join(str(p) for p in self.players.all())
 
 	@property
 	def duration(self):

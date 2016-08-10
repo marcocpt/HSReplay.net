@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+import shortuuid
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
@@ -96,6 +97,8 @@ def find_or_create_replay(global_game, meta, unified):
 			return replay, True
 
 	replay = GameReplay(
+		# NOTE: shortid generated here so it's available in pre_save for filenames
+		shortid=shortuuid.uuid(),
 		global_game=global_game,
 		friendly_player_id=meta["friendly_player"],
 		client_handle=client_handle,
