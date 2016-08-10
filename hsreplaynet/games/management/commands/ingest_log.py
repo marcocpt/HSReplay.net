@@ -32,3 +32,6 @@ class Command(BaseCommand):
 
 			event.process()
 			self.stdout.write("%r: %s" % (event, event.get_absolute_url()))
+			if event.game:
+				self.stdout.write("%r: %s" % (event.game, event.game.get_absolute_url()))
+				self.stdout.write("Replay: %s" % (event.game.replay_xml.url))
