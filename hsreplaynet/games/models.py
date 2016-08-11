@@ -288,6 +288,13 @@ class GameReplay(models.Model):
 
 	@property
 	def pretty_name(self):
+		return self.build_pretty_name()
+
+	@property
+	def pretty_name_spoilerfree(self):
+		return self.build_pretty_name(False)
+
+	def build_pretty_name(self, spoilers=True):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")
 		if len(players) != 2:
 			return "Broken game (%i players)" % (len(players))
@@ -295,15 +302,17 @@ class GameReplay(models.Model):
 			friendly, opponent = players
 		else:
 			opponent, friendly = players
-		if self.disconnected:
-			state = "Disconnected"
-		elif self.won:
-			state = "Won"
-		elif friendly[1] == opponent[1]:
-			state = "Tied"
-		else:
-			state = "Lost"
-		return "%s (%s) vs. %s" % (friendly[2], state, opponent[2])
+		if spoilers:
+			if self.disconnected:
+				state = "Disconnected"
+			elif self.won:
+				state = "Won"
+			elif friendly[1] == opponent[1]:
+				state = "Tied"
+			else:
+				state = "Lost"
+			return "%s (%s) vs. %s" % (friendly[2], state, opponent[2])
+		return "%s vs. %s" % (friendly[2], opponent[2])
 
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.shortid})
