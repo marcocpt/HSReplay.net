@@ -41,7 +41,8 @@ class DeleteAccountView(LoginRequiredMixin, TemplateView):
 		if not request.POST.get("delete_confirm"):
 			return redirect("account_delete")
 		user = request.user
-		user.is_active = False
+		# If we set `is_active`, the account behaves like it's banned...
+		# user.is_active = False
 		user.delete_account_request = now()
 		if request.POST.get("delete_replays"):
 			user.delete_replay_data = True
