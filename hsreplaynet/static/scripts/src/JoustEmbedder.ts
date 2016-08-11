@@ -31,6 +31,12 @@ export default class JoustEmbedder extends EventEmitter {
 				release: release,
 				environment: JOUST_RAVEN_ENVIRONMENT || "development",
 			} as any).install(); // until typings are updated for environment
+			let username = document.body.getAttribute("data-username");
+			if (username) {
+				raven.setUserContext({
+					username: username,
+				});
+			}
 			logger = (err: string|Error) => {
 				if (raven) {
 					if (typeof err === "string") {
