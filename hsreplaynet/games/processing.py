@@ -25,6 +25,10 @@ class ParsingError(ProcessingError):
 	pass
 
 
+class GameTooShort(ProcessingError):
+	pass
+
+
 class UnsupportedReplay(ProcessingError):
 	pass
 
@@ -126,17 +130,24 @@ def process_upload_event(upload_event):
 	try:
 		replay = do_process_upload_event(upload_event)
 	except Exception as e:
+		upload_event.error = str(e)
+		upload_event.traceback = traceback.format_exc()
+
+		# Set the upload status based on the exception
 		if isinstance(e, ParsingError):
 			upload_event.status = UploadEventStatus.PARSING_ERROR
-		elif isinstance(e, UnsupportedReplay):
+		elif isinstance(e, (GameTooShort, UnsupportedReplay)):
 			upload_event.status = UploadEventStatus.UNSUPPORTED
 		elif isinstance(e, ValidationError):
 			upload_event.status = UploadEventStatus.VALIDATION_ERROR
 		else:
 			upload_event.status = UploadEventStatus.SERVER_ERROR
-		upload_event.error = str(e)
-		upload_event.traceback = traceback.format_exc()
+
 		upload_event.save()
+
+		if isinstance(e, GameTooShort):
+			# Do not re-raise on GameTooShort
+			return
 		raise
 	else:
 		upload_event.game = replay
@@ -198,10 +209,7 @@ def validate_parser(parser, meta):
 	# If a player's name is None, this is an unsupported replay.
 	for player in game_tree.game.players:
 		if player.name is None:
-			raise UnsupportedReplay(
-				"Could not extract player information from the log."
-				" (Was the game too short?)"
-			)
+			raise GameTooShort("The game was too short to parse correctly")
 
 		if not player.heroes:
 			raise UnsupportedReplay("No hero found for player %r" % (player.name))
