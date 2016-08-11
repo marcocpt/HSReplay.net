@@ -176,6 +176,8 @@ def parse_upload_event(upload_event, meta):
 	upload_event.file.open(mode="rb")
 	log_bytes = upload_event.file.read()
 	influx_metric("raw_power_log_upload_num_bytes", {"size": len(log_bytes)})
+	if not log_bytes:
+		raise ValidationError("The uploaded log file is empty.")
 	log = StringIO(log_bytes.decode("utf-8"))
 	upload_event.file.close()
 
