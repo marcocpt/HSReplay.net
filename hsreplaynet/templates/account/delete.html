@@ -8,11 +8,12 @@
 		Problems with the site? Something you're not happy about?
 		Maybe we can fix it. <a href="mailto:help@hsreplay.net">Shoot us an email</a>!
 	</p>
-
 	<p>
-		Once your data is gone, it's irreversible. Are you sure?
 		<form action="" method="POST" onsubmit="return confirm('Are you *really* sure?')">
 			{% csrf_token %}
+			<p>
+				Once your data is gone, it's irreversible. Are you sure?
+			</p>
 			<div class="checkbox">
 				<label>
 					<input name="delete_confirm" type="checkbox" required="required"/>
@@ -25,6 +26,9 @@
 					Also delete my replay data
 				</label>
 			</div>
+			<label>
+				<textarea name="delete_reason" placeholder="Tell us why you're leaving" cols="50" rows="5"></textarea>
+			</label>
 			<div class="form-group">
 				<input type="submit" value="Confirm"/>
 			</div>

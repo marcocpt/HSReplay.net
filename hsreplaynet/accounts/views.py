@@ -46,6 +46,7 @@ class DeleteAccountView(LoginRequiredMixin, TemplateView):
 		user.delete_account_request = now()
 		if request.POST.get("delete_replays"):
 			user.delete_replay_data = True
+		user.delete_reason = request.POST.get("delete_reason")
 		user.save()
 		logout(self.request)
 		return redirect(reverse("home"))

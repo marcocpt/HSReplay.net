@@ -35,3 +35,4 @@ class User(AbstractUser):
 	)
 	delete_account_request = models.DateTimeField(null=True)
 	delete_replay_data = models.BooleanField(default=False)
+	delete_reason = models.TextField(blank=True)
