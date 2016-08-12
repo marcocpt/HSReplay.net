@@ -1,7 +1,8 @@
+from collections import defaultdict
 from enum import IntEnum
 from django.db import models
 from hsreplaynet.utils.fields import IntEnumField
-
+from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
 
 class AdventureMode(IntEnum):
 	# From ADVENTURE_MODE.xml
@@ -80,6 +81,27 @@ class Scenario(models.Model):
 		("MODE_ID", "mode"), "CLIENT_PLAYER2_HERO_CARD_ID", "NAME", "DESCRIPTION",
 		"OPPONENT_NAME", "COMPLETED_DESCRIPTION", "PLAYER1_DECK_ID",
 	]
+
+	def ai_deck_list(self):
+		""" Return the AIs card list as determined across all games played."""
+		deck = defaultdict(int)
+
+		for replay in GameReplay.objects.filter(global_game__scenario_id=self.id).all():
+			for include in replay.opposing_player.deck_list.include_set.all():
+				card = include.card
+				current_count = deck[card]
+				if include.count > current_count:
+					deck[card] = include.count
+
+		alpha_sorted = sorted(deck.keys(), key=lambda c: c.name)
+		mana_sorted = sorted(alpha_sorted, key=lambda c: c.cost)
+
+		result = []
+		for card in mana_sorted:
+			for i in range(0, deck[card]):
+				result.append(card)
+
+		return result
 
 	def __str__(self):
 		return self.name or self.note_desc
