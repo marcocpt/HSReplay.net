@@ -33,6 +33,6 @@ class User(AbstractUser):
 		"Default replay visibility",
 		enum=Visibility, default=Visibility.Public
 	)
-	delete_account_request = models.DateTimeField(null=True)
+	delete_account_request = models.DateTimeField(null=True, blank=True)
 	delete_replay_data = models.BooleanField(default=False)
 	delete_reason = models.TextField(blank=True)
