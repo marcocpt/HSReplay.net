@@ -3,6 +3,7 @@ from enum import IntEnum
 from django.db import models
 from hsreplaynet.utils.fields import IntEnumField
 from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
+from hearthstone.enums import PlayState
 
 class AdventureMode(IntEnum):
 	# From ADVENTURE_MODE.xml
@@ -82,11 +83,14 @@ class Scenario(models.Model):
 		"OPPONENT_NAME", "COMPLETED_DESCRIPTION", "PLAYER1_DECK_ID",
 	]
 
-	def ai_deck_list(self):
+	@staticmethod
+	def ai_deck_list(scenario_id):
 		""" Return the AIs card list as determined across all games played."""
 		deck = defaultdict(int)
 
-		for replay in GameReplay.objects.filter(global_game__scenario_id=self.id).all():
+		# Only examine this many games to make it perform faster
+		sample_size = 20
+		for replay in GameReplay.objects.filter(global_game__scenario_id=scenario_id).all()[:sample_size]:
 			for include in replay.opposing_player.deck_list.include_set.all():
 				card = include.card
 				current_count = deck[card]
@@ -102,6 +106,71 @@ class Scenario(models.Model):
 				result.append(card)
 
 		return result
+
+	@staticmethod
+	def winning_decks(scenario_id):
+		""" Returns a list like:
+		[
+			{
+				"deck": <Deck>,
+				"num_wins": 23,
+				# These are sorted in fastest order
+				"fastest_wins": [<Replay>, <Replay>, ...]
+			},
+			{
+				"deck": <Deck>,
+				"num_wins": 19,
+				# These are sorted in fastest order
+				"fastest_wins": [<Replay>, <Replay>, ...]
+			},
+			...
+		]
+
+		The top level list elements are sorted by the deck with the most wins, and the "fastest_wins" element is sorted
+		in order of the wins which took the least number of turns.
+		"""
+
+		replays_with_complete_decks = []
+		for replay in GameReplay.objects.filter(global_game__scenario_id=scenario_id).all():
+			if replay.friendly_player.final_state == PlayState.WON:
+				if replay.friendly_player.deck_list.size() == 30:
+					replays_with_complete_decks.append(replay)
+
+		all_decks = defaultdict(dict)
+
+		# Sort all the examples by match start so that the first example of a win is selected if there are many.
+		for replay in sorted(replays_with_complete_decks, key=lambda r: r.global_game.match_start):
+
+			current_winning_deck = all_decks[replay.friendly_player.deck_list]
+			if "num_wins" in current_winning_deck:
+				current_winning_deck["num_wins"] += 1
+			else:
+				current_winning_deck["num_wins"] = 1
+
+			if "fastest_wins" in current_winning_deck:
+				fastest_wins = current_winning_deck["fastest_wins"]
+			else:
+				fastest_wins = defaultdict(list)
+				current_winning_deck["fastest_wins"] = fastest_wins
+
+			fastest_wins[replay.global_game.num_turns].append(replay)
+
+		result = []
+
+		for deck,meta in sorted(all_decks.items(), key=lambda t: t[1]["num_wins"], reverse=True):
+			current_result = {
+				"deck": deck,
+				"num_wins": meta["num_wins"],
+				"fastest_wins": []
+			}
+
+			for turns, replays in sorted(meta["fastest_wins"].items(), key=lambda t: t[0]):
+				current_result["fastest_wins"].extend(replays)
+
+			result.append(current_result)
+
+		return result
+
 
 	def __str__(self):
 		return self.name or self.note_desc
