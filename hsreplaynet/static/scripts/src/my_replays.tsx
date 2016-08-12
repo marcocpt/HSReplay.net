@@ -8,6 +8,7 @@ ReactDOM.render(
 	<MyReplays
 		image={image}
 		cardArt={cardArt}
+		username={$("body").data("username")}
 	/>,
 	document.getElementById("my-games-container")
 );
