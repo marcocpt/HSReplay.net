@@ -168,9 +168,10 @@ class Deck(models.Model):
 	def card_id_list(self):
 		result = []
 
-		for i in self.include_set.all():
-			for n in range(0, i.count):
-				result.append(i.card.id)
+		includes = self.include_set.all().values_list("card__id", "count")
+		for id, count in includes:
+			for i in range(count):
+				result.append(id)
 
 		return result
 
