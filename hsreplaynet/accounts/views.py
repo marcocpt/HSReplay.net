@@ -5,11 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils.timezone import now
 from django.views.generic import TemplateView, View
 from hsreplaynet.games.models import GameReplay
 from hsreplaynet.utils import get_uuid_object_or_404
-from .models import AccountClaim
+from .models import AccountClaim, AccountDeleteRequest
 
 
 class ClaimAccountView(LoginRequiredMixin, View):
@@ -40,13 +39,9 @@ class DeleteAccountView(LoginRequiredMixin, TemplateView):
 	def post(self, request):
 		if not request.POST.get("delete_confirm"):
 			return redirect("account_delete")
-		user = request.user
-		# If we set `is_active`, the account behaves like it's banned...
-		# user.is_active = False
-		user.delete_account_request = now()
-		if request.POST.get("delete_replays"):
-			user.delete_replay_data = True
-		user.delete_reason = request.POST.get("delete_reason")
-		user.save()
+		delete_request, _ = AccountDeleteRequest.objects.get_or_create(user=request.user)
+		delete_request.reason = request.POST.get("delete_reason")
+		delete_request.delete_replay_data = bool(request.POST.get("delete_replays"))
+		delete_request.save()
 		logout(self.request)
 		return redirect(reverse("home"))

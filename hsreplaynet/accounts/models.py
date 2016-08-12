@@ -33,6 +33,14 @@ class User(AbstractUser):
 		"Default replay visibility",
 		enum=Visibility, default=Visibility.Public
 	)
-	delete_account_request = models.DateTimeField(null=True, blank=True)
+
+
+class AccountDeleteRequest(models.Model):
+	user = models.OneToOneField(User)
+	reason = models.TextField(blank=True)
 	delete_replay_data = models.BooleanField(default=False)
-	delete_reason = models.TextField(blank=True)
+	created = models.DateTimeField(auto_now_add=True)
+	updated = models.DateTimeField(auto_now=True)
+
+	def __str__(self):
+		return "Delete request for %s" % (self.user)
