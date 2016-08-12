@@ -19,6 +19,7 @@ urlpatterns = [
 	url(r"^account/", include("hsreplaynet.accounts.urls")),
 	url(r"^games/", include("hsreplaynet.games.urls")),
 	url(r"^pages/", include("django.contrib.flatpages.urls")),
+	url(r"^scenarios/", include("hsreplaynet.scenarios.urls")),
 	url(r"^uploads/", include("hsreplaynet.uploads.urls")),
 
 	# Direct link to replays
