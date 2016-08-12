@@ -102,20 +102,11 @@ class Card(models.Model):
 
 
 class DeckManager(models.Manager):
-	def random_deck_list_of_size(self, size):
-		card_class = random.randint(2, 10)  # enums.CardClass
-		result = []
-		for i in range(size):
-			candidate_card = Card.objects.random(card_class=card_class)
-			if candidate_card:
-				result.append(candidate_card.id)
-		return result
-
 	def get_or_create_from_id_list(self, id_list):
 		digest = generate_digest_from_deck_list(id_list)
 		existing_deck = Deck.objects.filter(digest=digest).first()
 		if existing_deck:
-			return (existing_deck, False)
+			return existing_deck, False
 
 		deck = Deck.objects.create(digest=digest)
 
@@ -133,7 +124,7 @@ class DeckManager(models.Manager):
 				include.save()
 
 		deck.save()
-		return (deck, True)
+		return deck, True
 
 
 def generate_digest_from_deck_list(id_list):
@@ -156,11 +147,8 @@ class Deck(models.Model):
 	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-	def __str__(self):
-		return "[" + ",".join(map(str, self.include_set.all())) + "]"
-
 	def __repr__(self):
-		return str(self)
+		return "[" + ",".join(map(str, self.include_set.all())) + "]"
 
 	def __iter__(self):
 		# sorted() is stable, so sort alphabetically first and then by mana cost
@@ -169,7 +157,7 @@ class Deck(models.Model):
 		return mana_sorted.__iter__()
 
 	def save(self, *args, **kwargs):
-		EMPTY_DECK_DIGEST = 'd41d8cd98f00b204e9800998ecf8427e'
+		EMPTY_DECK_DIGEST = "d41d8cd98f00b204e9800998ecf8427e"
 		if self.digest != EMPTY_DECK_DIGEST and self.include_set.count() == 0:
 			# A client has set a digest by hand, so don't recalculate it.
 			return super(Deck, self).save(*args, **kwargs)
@@ -191,20 +179,6 @@ class Deck(models.Model):
 		The number of cards in the deck.
 		"""
 		return sum(i.count for i in self.include_set.all())
-
-	def cards_of(self, cost=None, attack=None, health=None):
-		result = self.cards
-
-		if cost:
-			result = result.filter(cost=cost)
-
-		if attack:
-			result = result.filter(attack=attack)
-
-		if health:
-			result = result.filter(health=health)
-
-		return result.all()
 
 
 class Include(models.Model):

@@ -13,7 +13,7 @@ import django
 # This block properly bootstraps Django for running inside the AWS Lambda Runtime.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hsreplaynet.settings")
 django.setup()
-from django.conf import settings
+from django.conf import settings  # noqa
 
 
 class TracingIdAwareFormatter(logging.Formatter):
@@ -35,7 +35,5 @@ lambdas_logger = logging.getLogger("hsreplaynet")
 lambdas_logger.addHandler(_handler)
 lambdas_logger.setLevel(logging.DEBUG)
 
-#logging.getLogger("boto").setLevel(logging.WARN)
-
 # Make sure django.setup() has already been invoked to import handlers
-from hsreplaynet.lambdas.uploads import *
+from hsreplaynet.lambdas.uploads import *  # noqa

@@ -2,7 +2,6 @@ from enum import IntEnum
 import re
 import json
 from datetime import datetime
-from django.core.files.storage import default_storage
 from django.db import models
 from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
@@ -43,16 +42,18 @@ class RawUploadState(IntEnum):
 
 
 class RawUpload(object):
-	"""Represents a raw upload in S3."""
+	"""
+	Represents a raw upload in S3.
+	"""
 
-	RAW_LOG_KEY_PATTERN = r"raw/(?P<ts>\d{4}/\d{2}/\d{2}/\d{2}/\d{2})/(?P<shortid>\w{22})\.power.log"
+	RAW_LOG_KEY_PATTERN = r"raw/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.power.log"
 	RAW_TIMESTAMP_FORMAT = "%Y/%m/%d/%H/%M"
 
-	FAILED_LOG_KEY_PATTERN = r"failed/(?P<shortid>\w{22})/(?P<ts>\d{4}-\d{2}-\d{2}-\d{2}-\d{2})\.power.log"
+	FAILED_LOG_KEY_PATTERN = r"failed/(?P<shortid>\w{22})/(?P<ts>[\d-]+)\.power.log"
 	FAILED_TIMESTAMP_FORMAT = "%Y-%m-%d-%H-%M"
 
 	def __init__(self, bucket, key):
-		self._bucket = bucket
+		self.bucket = bucket
 		self._log_key = key
 
 		if key.startswith("raw"):
@@ -80,7 +81,9 @@ class RawUpload(object):
 			self._shortid = fields["shortid"]
 			self._timestamp = datetime.strptime(fields["ts"], RawUpload.FAILED_TIMESTAMP_FORMAT)
 
-			self._descriptor_key = self._create_failed_descriptor_key(fields["ts"], fields["shortid"])
+			self._descriptor_key = self._create_failed_descriptor_key(
+				fields["ts"], fields["shortid"],
+			)
 			self._error_key = self._create_failed_error_key(fields["ts"], fields["shortid"])
 
 		else:
@@ -98,6 +101,9 @@ class RawUpload(object):
 		# Code paths that are aware this is an update can override this to use "put"
 		self.upload_http_method = "post"
 
+	def __repr__(self):
+		return "<RawUpload %s::%s>" % (self.bucket, self.shortid)
+
 	def _create_raw_descriptor_key(self, ts_string, shortid):
 		return "raw/%s/%s.descriptor.json" % (ts_string, shortid)
 
@@ -111,7 +117,6 @@ class RawUpload(object):
 		return "failed/%s/%s.power.log" % (shortid, ts_string)
 
 	def make_failed(self, reason):
-
 		if self._upload_event_location_populated:
 			# Always revert our temporary copy of the log to the uploads location
 			aws.S3.delete_object(
@@ -124,8 +129,10 @@ class RawUpload(object):
 		ts_string = self.timestamp.strftime(RawUpload.FAILED_TIMESTAMP_FORMAT)
 
 		if self._state == RawUploadState.FAILED:
-			# This RawUpload started out in the /failed directory, so there is no need to move things there.
-			# However, we do still need to update the error message in case the failure was for a different reason.
+			# This RawUpload started out in the /failed directory,
+			# so there is no need to move things there.
+			# However, we do still need to update the error message
+			# in casethe failure was for a different reason.
 			self._create_or_update_error_messages(reason, ts_string)
 		else:
 
@@ -198,7 +205,6 @@ class RawUpload(object):
 		self._upload_event_location_populated = True
 
 	def delete(self):
-
 		if self.state == RawUploadState.NEW:
 			aws.S3.delete_objects(
 				Bucket=self.bucket,
@@ -210,7 +216,11 @@ class RawUpload(object):
 			aws.S3.delete_objects(
 				Bucket=self.bucket,
 				Delete={
-					"Objects": [{"Key": self.log_key}, {"Key": self.descriptor_key}, {"Key": self.error_key}]
+					"Objects": [
+						{"Key": self.log_key},
+						{"Key": self.descriptor_key},
+						{"Key": self.error_key}
+					]
 				}
 			)
 		else:
@@ -232,20 +242,15 @@ class RawUpload(object):
 	@property
 	def sns_message(self):
 		return {
-			"bucket" : self.bucket,
-			"log_key" : self.log_key,
+			"bucket": self.bucket,
+			"log_key": self.log_key,
 			# This is included to make retrieving the tracing ID easier.
-			"shortid" : self.shortid,
+			"shortid": self.shortid,
 		}
-
 
 	@property
 	def state(self):
 		return self._state
-
-	@property
-	def bucket(self):
-		return self._bucket
 
 	@property
 	def log_key(self):
@@ -297,7 +302,7 @@ class RawUpload(object):
 		return aws.S3.generate_presigned_url(
 			"get_object",
 			Params={
-				"Bucket": self._bucket,
+				"Bucket": self.bucket,
 				"Key": key
 			},
 			ExpiresIn=60 * 60 * 24,
@@ -311,9 +316,6 @@ class RawUpload(object):
 	@property
 	def timestamp(self):
 		return self._timestamp
-
-	def __str__(self):
-		return "%s:%s:%s:%s" % (self.shortid, self.timestamp.isoformat(), self.bucket, self.log_key)
 
 
 def _generate_upload_path(instance, filename):

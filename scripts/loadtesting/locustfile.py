@@ -43,7 +43,7 @@ Then open the web console to start the test: http://127.0.0.1:8089
 When this is run headlessly by Jenkins it can be executed via the following command:
 
 $ locust --host=https://upload.hsreplay.net --no-web
-  --clients=63 --hatch-rate=3 --num-request=189 --print-stats
+--clients=63 --hatch-rate=3 --num-request=189 --print-stats
 
 --num-request tells the test when to shutdown and report back to Jenkins.
 Setting it to 3 * NUM_LOCUSTS, ensures the test achieves a steady state
@@ -52,16 +52,19 @@ before it exits.
 --print-stats is optional but provides more useful debugging info to the console.
 """
 import os
-import patch_gevent
-from locust import HttpLocust, ResponseError, TaskSet, task
 import requests
+import patch_gevent  # noqa
+from locust import HttpLocust, ResponseError, TaskSet, task
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 DATA_DIR = os.path.join(BASE_DIR, "data", "hsreplay-test-data")
 
-SHORT_REPLAY = open(os.path.join(DATA_DIR, "examples", "short.log")).read()  # 4 minute game
-MEDIUM_REPLAY = open(os.path.join(DATA_DIR, "examples", "medium.log")).read()  # 9 minute game
-LARGE_REPLAY = open(os.path.join(DATA_DIR, "examples", "large.log")).read()  # 31 minute game
+# 4 minute game
+SHORT_REPLAY = open(os.path.join(DATA_DIR, "examples", "short.log")).read()
+# 9 minute game
+MEDIUM_REPLAY = open(os.path.join(DATA_DIR, "examples", "medium.log")).read()
+# 31 minute game
+LARGE_REPLAY = open(os.path.join(DATA_DIR, "examples", "large.log")).read()
 
 
 class UploadBehavior(TaskSet):
@@ -86,24 +89,22 @@ class UploadBehavior(TaskSet):
 
 	def request_upload_token(self):
 		headers = {"X-Api-Key": self.api_key}
-		with self.client.post(self.api_token_url, headers=headers, catch_response=True) as response:
+		with self.client.post(
+			self.api_token_url, headers=headers, catch_response=True
+		) as response:
 			data = response.json()
 			if "key" not in data:
 				raise ResponseError("Could not request a new upload token")
 			return data["key"]
 
 	def post_replay(self, name, data):
-		extra = {
-			"timeout": None,
-			"name": name,
-		}
 		metadata = {
-				"match_start": "2016-05-10T17:10:06.4923855+02:00",
-				"build": 12574,
-				"test_data": True
+			"match_start": "2016-05-10T17:10:06.4923855+02:00",
+			"build": 12574,
+			"test_data": True
 		}
 
-		request_one_headers =  {
+		request_one_headers = {
 			"Authorization": "Token %s" % (self.token),
 			"X-Api-Key": self.api_key,
 		}
@@ -113,18 +114,19 @@ class UploadBehavior(TaskSet):
 		}
 
 		if self.is_live:
-			response_one = requests.post(self.api_endpoint,
-											 json=metadata,
-											 headers=request_one_headers,
-											 ).json()
+			# Use requests so that this call does not get
+			# counted against the total number of requests.
+			response_one = requests.post(
+				self.api_endpoint,
+				json=metadata,
+				headers=request_one_headers,
+			).json()
 
-
-			# Use requests so that this call does not get counted against the total number of requests.
-			response_two = self.client.put(response_one["put_url"],
-											data=data,
-											headers=request_two_headers,
-											)
-
+			self.client.put(
+				response_one["put_url"],
+				data=data,
+				headers=request_two_headers,
+			)
 
 	@task(6)
 	def short_replay(self):
@@ -143,5 +145,5 @@ class ReplayUploadClient(HttpLocust):
 	task_set = UploadBehavior
 	# The amount of time each client waits between
 	# upload is randomly between the min and max range.
-	min_wait = 0 # 0 Seconds
-	max_wait = 2000 # 2 Seconds
+	min_wait = 0  # 0 Seconds
+	max_wait = 2000  # 2 Seconds

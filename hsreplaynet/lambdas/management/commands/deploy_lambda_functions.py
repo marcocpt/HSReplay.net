@@ -8,11 +8,13 @@ from hsreplaynet.utils.instrumentation import get_lambda_descriptors
 class Command(BaseCommand):
 	def add_arguments(self, parser):
 		parser.add_argument("module", help="The comma separated modules to inspect")
-		parser.add_argument("artifact", default="hsreplay.zip", help="The path to the lambdas zip artifact")
+		parser.add_argument(
+			"artifact", default="hsreplay.zip", help="The path to the lambdas zip artifact"
+		)
 
 	def handle(self, *args, **options):
 		for module_name in options["module"].split(","):
-			module = importlib.import_module(module_name)
+			importlib.import_module(module_name)
 
 		descriptors = get_lambda_descriptors()
 		if not descriptors:
@@ -47,29 +49,29 @@ class Command(BaseCommand):
 					self.stdout.write("Lambda exists - will update.")
 
 					LAMBDA.update_function_configuration(
-						FunctionName = descriptor["name"],
-						Role = execution_role_arn,
-						Handler = descriptor["handler"],
-						Timeout = descriptor["cpu_seconds"],
-						MemorySize = descriptor["memory"],
+						FunctionName=descriptor["name"],
+						Role=execution_role_arn,
+						Handler=descriptor["handler"],
+						Timeout=descriptor["cpu_seconds"],
+						MemorySize=descriptor["memory"],
 					)
 
 					LAMBDA.update_function_code(
-						FunctionName = descriptor["name"],
-						ZipFile = code_payload_bytes,
-						Publish = True
+						FunctionName=descriptor["name"],
+						ZipFile=code_payload_bytes,
+						Publish=True,
 					)
 
 				else:
 					self.stdout.write("New Lambda - will create.")
 
-					result = LAMBDA.create_function(
-						FunctionName = descriptor["name"],
-						Runtime = "python2.7",
-						Role = execution_role_arn,
-						Handler = descriptor["handler"],
-						Code = {"ZipFile":code_payload_bytes},
-						Timeout = descriptor["cpu_seconds"],
-						MemorySize = descriptor["memory"],
-						Publish = True
+					LAMBDA.create_function(
+						FunctionName=descriptor["name"],
+						Runtime="python2.7",
+						Role=execution_role_arn,
+						Handler=descriptor["handler"],
+						Code={"ZipFile": code_payload_bytes},
+						Timeout=descriptor["cpu_seconds"],
+						MemorySize=descriptor["memory"],
+						Publish=True,
 					)

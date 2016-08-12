@@ -14,7 +14,9 @@ from .models import AuthToken, APIKey
 from .permissions import APIKeyPermission, IsOwnerOrReadOnly
 
 
-class WriteOnlyOnceViewSet(CreateModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet):
+class WriteOnlyOnceViewSet(
+	CreateModelMixin, UpdateModelMixin, RetrieveModelMixin, GenericViewSet
+):
 	pass
 
 

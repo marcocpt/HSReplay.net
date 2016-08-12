@@ -53,7 +53,7 @@ class Command(BaseCommand):
 
 			total_deleted_uploads_count += len(uploads)
 			uploads.delete()
-		
+
 		self.stdout.write("Total replays deleted: %s" % total_deleted_replays_count)
 		self.stdout.write("Total uploads deleted: %s" % total_deleted_uploads_count)
 		self.stdout.write("Deleting %i tokens" % (tokens.count()))

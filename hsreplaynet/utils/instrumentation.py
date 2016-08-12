@@ -1,7 +1,6 @@
 import json
 import os
 import time
-import re
 from datetime import datetime
 from contextlib import contextmanager
 from functools import wraps
@@ -64,11 +63,13 @@ def get_lambda_descriptors():
 
 
 def build_cloudwatch_url(log_group_name, log_stream_name):
-	template = "https://console.aws.amazon.com/cloudwatch/home?region=%s#logEvent:group=%s;stream=%s;start=%s"
-	return template % (settings.AWS_DEFAULT_REGION,
-					   log_group_name,
-					   log_stream_name,
-					   datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+	baseurl = "https://console.aws.amazon.com/cloudwatch/home"
+	tpl = "?region=%s#logEvent:group=%s;stream=%s;start=%s"
+	return baseurl + tpl % (
+		settings.AWS_DEFAULT_REGION,
+		log_group_name,
+		log_stream_name,
+		datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
 	)
 
 
@@ -86,10 +87,10 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 		- Capturing metadata to facilicate deployment
 
 	Args:
-	    cpu_seconds - The maximum seconds the function should be allowed to run before it is terminated. Default: 60
-	    memory - The number of MB allocated to the lambda at runtime. Default: 128
-	    name - The name for the Lambda on AWS. Default: func.__name__
-	    handler - The entry point for the function. Default: handlers.<func.__name__>
+	- cpu_seconds - The seconds the function can run before it is terminated. Default: 60
+	- memory - The number of MB allocated to the lambda at runtime. Default: 128
+	- name - The name for the Lambda on AWS. Default: func.__name__
+	- handler - The entry point for the function. Default: handlers.<func.__name__>
 	"""
 
 	def inner_lambda_handler(func):
@@ -110,12 +111,14 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 			if sentry:
 				# Provide additional metadata to sentry in case the exception
 				# gets trapped and reported within the function.
+				cloudwatch_url = build_cloudwatch_url(
+					context.log_group_name, context.log_stream_name
+				)
 				sentry.user_context({
-					"aws_log_group_name": getattr(context, "log_group_name"),
-					"aws_log_stream_name": getattr(context, "log_stream_name"),
-					"aws_function_name": getattr(context, "function_name"),
-					"aws_cloudwatch_url": build_cloudwatch_url(getattr(context, "log_group_name"),
-															   getattr(context, "log_stream_name")),
+					"aws_log_group_name": context.log_group_name,
+					"aws_log_stream_name": context.log_stream_name,
+					"aws_function_name": context.function_name,
+					"aws_cloudwatch_url": cloudwatch_url,
 					"papertrail_url": build_papertrail_url(tracing_id),
 					"tracing_id": tracing_id
 				})
@@ -124,7 +127,6 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 				measurement = "%s_duration_ms" % (func.__name__)
 				with influx_timer(measurement, timestamp=now()):
 					return func(event, context)
-
 			except Exception as e:
 				logger.exception("Got an exception: %r", e)
 				if sentry:

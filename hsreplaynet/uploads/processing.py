@@ -25,8 +25,8 @@ def queue_raw_uploads_for_processing():
 		- Notify S3 to resume triggering lambda upon log upload
 		- Invoke this function to queue for processing any logs uploaded during the deploy
 
-	This method is not intended to requeue uploads that have previously failed. For that see the
-	requeue_failed_* family of methods.
+	This method is not intended to requeue uploads that have previously failed.
+	For that see the requeue_failed_* family of methods.
 	"""
 
 	logger.info("Starting - Queue all raw uploads for processing")
@@ -82,7 +82,7 @@ def requeue_failed_raw_logs_uploaded_after(cutoff):
 	Requeue all failed raw logs that were uploaded more recently than the provided timestamp.
 
 	Args:
-	    cutoff - Will requeue failed uploads more recent than this datetime
+	- cutoff - Will requeue failed uploads more recent than this datetime
 	"""
 	prefix = "failed"
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):

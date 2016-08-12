@@ -12,6 +12,7 @@ except AttributeError:
 
 OldSSLSocket = __ssl__.SSLSocket
 
+
 class NewSSLSocket(OldSSLSocket):
 	"""
 	Fix SSLSocket constructor.
@@ -51,4 +52,3 @@ def new_sslwrap(
 if not hasattr(_ssl, "sslwrap"):
 	_ssl.sslwrap = new_sslwrap
 	__ssl__.SSLSocket = NewSSLSocket
-

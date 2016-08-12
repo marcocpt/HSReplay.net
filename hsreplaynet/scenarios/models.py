@@ -2,8 +2,9 @@ from collections import defaultdict
 from enum import IntEnum
 from django.db import models
 from hsreplaynet.utils.fields import IntEnumField
-from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
+from hsreplaynet.games.models import GameReplay
 from hearthstone.enums import PlayState
+
 
 class AdventureMode(IntEnum):
 	# From ADVENTURE_MODE.xml
@@ -83,6 +84,9 @@ class Scenario(models.Model):
 		"OPPONENT_NAME", "COMPLETED_DESCRIPTION", "PLAYER1_DECK_ID",
 	]
 
+	def __str__(self):
+		return self.name or self.note_desc
+
 	@staticmethod
 	def ai_deck_list(scenario_id):
 		""" Return the AIs card list as determined across all games played."""
@@ -90,7 +94,8 @@ class Scenario(models.Model):
 
 		# Only examine this many games to make it perform faster
 		sample_size = 20
-		for replay in GameReplay.objects.filter(global_game__scenario_id=scenario_id).all()[:sample_size]:
+		replays = GameReplay.objects.filter(global_game__scenario_id=scenario_id)[:sample_size]
+		for replay in replays:
 			for include in replay.opposing_player.deck_list.include_set.all():
 				card = include.card
 				current_count = deck[card]
@@ -126,20 +131,22 @@ class Scenario(models.Model):
 			...
 		]
 
-		The top level list elements are sorted by the deck with the most wins, and the "fastest_wins" element is sorted
-		in order of the wins which took the least number of turns.
+		The top level list elements are sorted by the deck with the most wins,
+		and the "fastest_wins" element is sorted in order of the wins which
+		took the least number of turns.
 		"""
 
-		replays_with_complete_decks = []
+		complete_replays = []
 		for replay in GameReplay.objects.filter(global_game__scenario_id=scenario_id).all():
 			if replay.friendly_player.final_state == PlayState.WON:
 				if replay.friendly_player.deck_list.size() == 30:
-					replays_with_complete_decks.append(replay)
+					complete_replays.append(replay)
 
 		all_decks = defaultdict(dict)
 
-		# Sort all the examples by match start so that the first example of a win is selected if there are many.
-		for replay in sorted(replays_with_complete_decks, key=lambda r: r.global_game.match_start):
+		# Sort all the examples by match start so that the first example
+		# of a win is selected if there are many.
+		for replay in sorted(complete_replays, key=lambda r: r.global_game.match_start):
 
 			current_winning_deck = all_decks[replay.friendly_player.deck_list]
 			if "num_wins" in current_winning_deck:
@@ -157,7 +164,7 @@ class Scenario(models.Model):
 
 		result = []
 
-		for deck,meta in sorted(all_decks.items(), key=lambda t: t[1]["num_wins"], reverse=True):
+		for deck, meta in sorted(all_decks.items(), key=lambda t: t[1]["num_wins"], reverse=True):
 			current_result = {
 				"deck": deck,
 				"num_wins": meta["num_wins"],
@@ -170,7 +177,3 @@ class Scenario(models.Model):
 			result.append(current_result)
 
 		return result
-
-
-	def __str__(self):
-		return self.name or self.note_desc

@@ -16,7 +16,6 @@ except ImportError:
 
 def get_sns_topic_arn_from_name(name):
 	response = SNS.list_topics()
-	topics = response["Topics"]
 
 	for topic in response["Topics"]:
 		if topic["TopicArn"].split(":")[-1] == name:
@@ -28,29 +27,19 @@ def enable_processing_raw_uploads():
 	S3.put_bucket_notification_configuration(
 		Bucket=settings.S3_RAW_LOG_UPLOAD_BUCKET,
 		NotificationConfiguration={
-			"LambdaFunctionConfigurations": [
-				{
-					"LambdaFunctionArn": processing_lambda["Configuration"]["FunctionArn"],
-					"Events": [
-						"s3:ObjectCreated:*"
-					],
-					"Id": "TriggerLambdaOnLogCreate",
-					"Filter": {
-						"Key": {
-							"FilterRules": [
-								{
-									"Name": "suffix",
-									"Value": "power.log"
-								},
-								{
-									"Name": "prefix",
-									"Value": "raw"
-                            	},
-							]
-						}
+			"LambdaFunctionConfigurations": [{
+				"LambdaFunctionArn": processing_lambda["Configuration"]["FunctionArn"],
+				"Events": ["s3:ObjectCreated:*"],
+				"Id": "TriggerLambdaOnLogCreate",
+				"Filter": {
+					"Key": {
+						"FilterRules": [
+							{"Name": "suffix", "Value": "power.log"},
+							{"Name": "prefix", "Value": "raw"},
+						]
 					}
 				}
-			]
+			}]
 		}
 	)
 
@@ -73,10 +62,7 @@ def publish_sns_message(topic, message):
 
 
 def list_all_objects_in(bucket, prefix=None):
-	list_response = S3.list_objects_v2(
-		Bucket=bucket,
-		Prefix=prefix,
-	)
+	list_response = S3.list_objects_v2(Bucket=bucket, Prefix=prefix)
 	if list_response["KeyCount"] > 0:
 		objects = list_response["Contents"]
 		while objects:

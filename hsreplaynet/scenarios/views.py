@@ -4,7 +4,6 @@ from .models import Scenario
 
 
 class ScenarioDetailsView(View):
-
 	def get(self, request, scenario_id):
 		context = {
 			"ai_deck_list": Scenario.ai_deck_list(scenario_id),
@@ -12,4 +11,3 @@ class ScenarioDetailsView(View):
 		}
 
 		return render(request, "scenarios/scenario_details.html", context)
-

@@ -5,7 +5,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import UploadEventViewSet
 from hsreplaynet.uploads.models import (
-	UploadEvent, UploadEventType, RawUpload, RawUploadState, _generate_upload_key
+	UploadEvent, UploadEventType, RawUpload, _generate_upload_key
 )
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
@@ -94,7 +94,9 @@ def process_raw_upload(raw_upload):
 	}
 
 	path = descriptor["event"]["path"]
-	request = emulate_api_request(raw_upload.upload_http_method, path, upload_metadata, headers)
+	request = emulate_api_request(
+		raw_upload.upload_http_method, path, upload_metadata, headers
+	)
 
 	try:
 		result = create_upload_event_from_request(request)

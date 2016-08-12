@@ -20,7 +20,6 @@ def test_upload(upload_event, upload_context, monkeypatch):
 			return ts
 	monkeypatch.setattr(uploaders, "get_timestamp", mock_get_timestamp)
 
-	auth_token = upload_event["headers"]["Authorization"].split()[1]
 	expected_descriptor_key = "raw/%s/%s.descriptor.json" % (ts_path, shortid)
 
 	# Mock out S3

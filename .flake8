@@ -1,0 +1,4 @@
+[flake8]
+ignore = W191,E702
+max-line-length = 92
+exclude = build/, migrations/, node_modules/, settings.py

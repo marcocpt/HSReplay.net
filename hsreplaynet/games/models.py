@@ -124,30 +124,31 @@ class GlobalGamePlayer(models.Model):
 	)
 
 	player_id = PlayerIDField(null=True, blank=True)
-	account_hi = models.BigIntegerField("Account Hi",
-		blank=True, null=True,
+	account_hi = models.BigIntegerField(
+		"Account Hi", blank=True, null=True,
 		help_text="The region value from account hilo"
 	)
-	account_lo = models.BigIntegerField("Account Lo",
-		blank=True, null=True,
+	account_lo = models.BigIntegerField(
+		"Account Lo", blank=True, null=True,
 		help_text="The account ID value from account hilo"
 	)
-	is_ai = models.BooleanField("Is AI",
-		default=False,
+	is_ai = models.BooleanField(
+		"Is AI", default=False,
 		help_text="Whether the player is an AI.",
 	)
-	is_first = models.BooleanField("Is first player",
+	is_first = models.BooleanField(
+		"Is first player",
 		help_text="Whether the player is the first player",
 	)
 
 	hero = models.ForeignKey(Card, on_delete=models.PROTECT)
-	hero_premium = models.BooleanField("Hero Premium",
-		default=False,
+	hero_premium = models.BooleanField(
+		"Hero Premium", default=False,
 		help_text="Whether the player's initial hero is golden."
 	)
 
-	final_state = IntEnumField("Final State",
-		enum=PlayState, default=PlayState.INVALID,
+	final_state = IntEnumField(
+		"Final State", enum=PlayState, default=PlayState.INVALID,
 	)
 
 	deck_list = models.ForeignKey(
@@ -157,22 +158,18 @@ class GlobalGamePlayer(models.Model):
 
 	# Game type metadata
 
-	rank = models.SmallIntegerField("Rank",
-		null=True, blank=True,
+	rank = models.SmallIntegerField(
+		"Rank", null=True, blank=True,
 		help_text="1 through 25, or 0 for legend.",
 	)
-	legend_rank = models.PositiveIntegerField("Legend rank",
-		null=True, blank=True,
-	)
-	stars = models.PositiveSmallIntegerField("Stars",
-		null=True, blank=True,
-	)
-	wins = models.PositiveIntegerField("Wins",
-		null=True, blank=True,
+	legend_rank = models.PositiveIntegerField(null=True, blank=True)
+	stars = models.PositiveSmallIntegerField(null=True, blank=True)
+	wins = models.PositiveIntegerField(
+		"Wins", null=True, blank=True,
 		help_text="Number of wins in the current game mode (eg. ladder season, arena key...)",
 	)
-	losses = models.PositiveIntegerField("Losses",
-		null=True, blank=True,
+	losses = models.PositiveIntegerField(
+		"Losses", null=True, blank=True,
 		help_text="Number of losses in the current game mode (current season)",
 	)
 	deck_id = models.IntegerField("Deck ID", null=True, blank=True)

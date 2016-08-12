@@ -142,14 +142,18 @@ class UploadEventSerializer(serializers.Serializer):
 	format = serializers.IntegerField(required=False, write_only=True)
 	build = serializers.IntegerField(write_only=True)
 	match_start = serializers.DateTimeField(write_only=True)
-	friendly_player = serializers.IntegerField(required=False, min_value=1, max_value=2, write_only=True)
+	friendly_player = serializers.IntegerField(
+		required=False, min_value=1, max_value=2, write_only=True
+	)
 
 	queue_time = serializers.IntegerField(required=False, min_value=1, write_only=True)
 	spectator_mode = serializers.BooleanField(default=False, write_only=True)
 	reconnecting = serializers.BooleanField(default=False, write_only=True)
 	resumable = serializers.BooleanField(required=False, write_only=True)
 	server_ip = serializers.IPAddressField(required=False, write_only=True)
-	server_port = serializers.IntegerField(required=False, min_value=1, max_value=65535, write_only=True)
+	server_port = serializers.IntegerField(
+		required=False, min_value=1, max_value=65535, write_only=True
+	)
 	server_version = serializers.IntegerField(required=False, min_value=1, write_only=True)
 	client_handle = serializers.IntegerField(required=False, min_value=0, write_only=True)
 	game_handle = serializers.IntegerField(required=False, min_value=1, write_only=True)
