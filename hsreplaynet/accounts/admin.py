@@ -12,5 +12,6 @@ class AccountClaimAdmin(admin.ModelAdmin):
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
 	change_form_template = "loginas/change_form.html"
+	fieldsets = ()
 	list_display = ("username", "date_joined", "last_login", "delete_account_request")
 	list_filter = BaseUserAdmin.list_filter + ("is_fake", )
