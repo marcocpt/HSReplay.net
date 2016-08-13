@@ -5,7 +5,6 @@ from django.utils.six import string_types
 from rest_framework import serializers
 from hsreplaynet.accounts.models import User
 from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
-from hsreplaynet.stats import models as stats_models
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils import get_client_ip
 from .models import AuthToken, APIKey
@@ -71,47 +70,6 @@ class APIKeySerializer(serializers.HyperlinkedModelSerializer):
 		fields = ("full_name", "email", "website", "api_key")
 
 
-class StatsMetaSerializer(serializers.HyperlinkedModelSerializer):
-	class Meta:
-		model = stats_models.StatsMeta
-
-
-class PlayerStatsSerializer(serializers.HyperlinkedModelSerializer):
-	meta = serializers.ReadOnlyField()
-
-	class Meta:
-		model = stats_models.PlayerStats
-
-
-class ArenaDraftStatsSerializer(serializers.HyperlinkedModelSerializer):
-	meta = serializers.ReadOnlyField()
-
-	class Meta:
-		model = stats_models.ArenaDraftStats
-
-
-class BrawlSeasonStatsSerializer(serializers.HyperlinkedModelSerializer):
-	meta = serializers.ReadOnlyField()
-
-	class Meta:
-		model = stats_models.BrawlSeasonStats
-
-
-class RankedSeasonStatsSerializer(serializers.HyperlinkedModelSerializer):
-	meta = serializers.ReadOnlyField()
-
-	class Meta:
-		model = stats_models.RankedSeasonStats
-
-
-class SnapshotStatsSerializer(serializers.Serializer):
-	meta = StatsMetaSerializer()
-	player_stats = PlayerStatsSerializer()
-	arena_draft_stats = ArenaDraftStatsSerializer(required=False)
-	brawl_season_stats = BrawlSeasonStatsSerializer(required=False)
-	ranked_season_stats = RankedSeasonStatsSerializer(required=False)
-
-
 class GameSerializer(serializers.Serializer):
 	url = serializers.ReadOnlyField(source="get_absolute_url")
 
@@ -134,7 +92,6 @@ class UploadEventSerializer(serializers.Serializer):
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
-	stats = SnapshotStatsSerializer(required=False)
 	test_data = serializers.BooleanField(default=False)
 
 	file = SmartFileField(write_only=True)

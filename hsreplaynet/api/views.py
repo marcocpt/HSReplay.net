@@ -91,9 +91,3 @@ class GameReplayList(ListAPIView):
 		if username:
 			queryset = queryset.filter(user__username=username)
 		return queryset
-
-
-class CreateStatsSnapshotView(CreateAPIView):
-	authentication_classes = (AuthTokenAuthentication, )
-	permission_classes = (RequireAuthToken, )
-	serializer_class = serializers.SnapshotStatsSerializer

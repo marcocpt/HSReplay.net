@@ -13,6 +13,5 @@ urlpatterns = [
 	url(r"^v1/games/$", views.GameReplayList.as_view()),
 	url(r"^v1/games/(?P<shortid>.+)/$", views.GameReplayDetail.as_view()),
 	url(r"^v1/claim_account/", views.CreateAccountClaimView.as_view()),
-	url(r"^v1/stats/", views.CreateStatsSnapshotView.as_view()),
 	url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
