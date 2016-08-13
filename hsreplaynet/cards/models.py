@@ -4,6 +4,87 @@ from django.db import models
 from hearthstone import enums
 from hsreplaynet.utils.fields import IntEnumField
 
+### WORK-IN-PROGRESS - START ###
+
+# The following 3 models ArchType, RaceAffiliation, CanonicalDeck are a work in progress.
+# They should not be merged into the master branch until they are finalized.
+
+
+class ArchTypeManager(models.Manager):
+	"""A Manager for ArchTypes.
+
+	This manager provides methods for classifying decks into ArchTypes. It optionally may encapsulate
+	call outs to external resources so that a single classifier may be shared across Lambdas.
+	"""
+
+	def classify_archtype_for_deck(self, deck, deck_name = None, player_class = None, as_of = None):
+		"""Use our classifier to determine an ArchType for the provided deck
+
+		:param deck: A Deck which can contain between 0 and N cards.
+		:param deck_name: An optional unofficial deck name given to the deck which may potentially be useful for
+		reinforcement training of certain classifier types.
+		:param player_class: An optional enums.CardClass to help classify a deck of all neutral cards
+		:param as_of: An optional datetime.Date so that historical replays can be classified based on the ArchTypes
+		in play at the time of the as_of date.
+		:return: An ArchType instance or None if one cannot be determined
+		"""
+		pass
+
+
+class ArchType(models.Model):
+	"""ArchTypes identify decks with minor card variations that all share the same strategy
+	as members of a single category.
+
+	E.g. 'Freeze Mage', 'Miracle Rogue', 'Pirate Warrior', 'Zoolock', 'Control Priest'
+	"""
+	id = models.BigAutoField(primary_key=True)
+	objects = ArchTypeManager()
+	name = models.CharField(max_length=250)
+	player_class = IntEnumField(enum=enums.CardClass, default=enums.CardClass.INVALID)
+
+	# Categories - an ArchType may fall into multiple categories
+	aggro = models.BooleanField()
+	combo = models.BooleanField()
+	control = models.BooleanField()
+	fatigue = models.BooleanField()
+	midrange = models.BooleanField()
+	ramp = models.BooleanField()
+	tempo = models.BooleanField()
+	token = models.BooleanField()
+
+	def canonical_deck(self, as_of = None):
+		if as_of is None:
+			canonical = CanonicalDeck.objects.filter(archtype=self, current=True).first()
+			if canonical:
+				return canonical.deck
+		else:
+			canonical = CanonicalDeck.objects.filter(archtype=self, as_of__lte=as_of).order_by('-as_of').first()
+			if canonical:
+				return canonical.deck
+		return None
+
+
+class RaceAffiliation(models.Model):
+	"""An ArchType may have between 0 and N race affiliations, e.g. A Dragon Murloc Paladin"""
+	id = models.BigAutoField(primary_key=True)
+	archtype = models.ForeignKey(ArchType, related_name="race_affiliations")
+	race = IntEnumField(enum=enums.Race, default=enums.Race.INVALID)
+
+
+class CanonicalDeck(models.Model):
+	"""Each ArchType must have 1 and only 1 "current" CanonicalList
+
+	The canonical list for an ArchType tends to evolve incrementally over time and can evolve
+	dramatically when new card sets are released.
+	"""
+	id = models.BigAutoField(primary_key=True)
+	archtype = models.ForeignKey(ArchType, related_name="canonical_deck_lists")
+	deck = models.ForeignKey(Deck)
+	as_of = models.DateField()
+	current = models.BooleanField()
+
+### WORK-IN-PROGRESS - END ###
+
 
 class CardManager(models.Manager):
 	def random(self, cost=None, collectible=True, card_class=None):
