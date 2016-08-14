@@ -73,32 +73,33 @@ def process_raw_upload(raw_upload):
 	logger.info("SOURCE: %s/%s" % (raw_upload.bucket, raw_upload.log_key))
 	logger.info("DESTINATION: %s/%s" % (new_bucket, new_key))
 
-	raw_upload.prepare_upload_event_log_location(new_bucket, new_key)
-
-	# Then we build the request and send it to DRF
-	# If "file" is a string, DRF will interpret as a S3 Key
-	upload_metadata = descriptor["upload_metadata"]
-	upload_metadata["shortid"] = descriptor["shortid"]
-	upload_metadata["file"] = new_key
-	upload_metadata["type"] = int(UploadEventType.POWER_LOG)
-
-	gateway_headers = descriptor["gateway_headers"]
-
-	logger.info("Authorization Header: %s" % gateway_headers["Authorization"])
-
-	headers = {
-		"HTTP_X_FORWARDED_FOR": descriptor["source_ip"],
-		"HTTP_AUTHORIZATION": gateway_headers["Authorization"],
-		"HTTP_X_API_KEY": gateway_headers["X-Api-Key"],
-		"format": "json",
-	}
-
-	path = descriptor["event"]["path"]
-	request = emulate_api_request(
-		raw_upload.upload_http_method, path, upload_metadata, headers
-	)
-
 	try:
+		raw_upload.prepare_upload_event_log_location(new_bucket, new_key)
+
+		# Then we build the request and send it to DRF
+		# If "file" is a string, DRF will interpret as a S3 Key
+		upload_metadata = descriptor["upload_metadata"]
+		upload_metadata["shortid"] = descriptor["shortid"]
+		upload_metadata["file"] = new_key
+		upload_metadata["type"] = int(UploadEventType.POWER_LOG)
+
+		gateway_headers = descriptor["gateway_headers"]
+
+		logger.info("Authorization Header: %s" % gateway_headers["Authorization"])
+
+		headers = {
+			"HTTP_X_FORWARDED_FOR": descriptor["source_ip"],
+			"HTTP_AUTHORIZATION": gateway_headers["Authorization"],
+			"HTTP_X_API_KEY": gateway_headers["X-Api-Key"],
+			"format": "json",
+		}
+
+		path = descriptor["event"]["path"]
+		request = emulate_api_request(
+			raw_upload.upload_http_method, path, upload_metadata, headers
+		)
+
+
 		result = create_upload_event_from_request(request)
 	except Exception as e:
 		logger.info("Create Upload Event Failed!!")
