@@ -1,16 +1,11 @@
 from django.conf import settings
 from django.conf.urls import include, url
-from django.contrib import admin
 from django.views.generic import TemplateView
 from .games.views import ReplayDetailView
 
 
 urlpatterns = [
 	url(r"^$", TemplateView.as_view(template_name="home.html"), name="home"),
-	url(r"^admin/", include(admin.site.urls)),
-	url(r"^admin/", include("loginas.urls")),
-	url(r"^admin/rq/", include("django_rq_dashboard.urls")),
-	url(r"^admin/s3/", include("cloud_browser.urls_admin")),
 	url(r"^api/", include("hsreplaynet.api.urls")),
 	url(r"^account/", include("allauth.urls")),
 	url(r"^account/", include("hsreplaynet.accounts.urls")),
@@ -24,8 +19,9 @@ urlpatterns = [
 
 if not settings.ENV_LAMBDA:
 	from django.contrib.flatpages.views import flatpage
-	# Do not register flatpages on Lambda as they are not installed
+	# Do not register admin/flatpages on Lambda as they are not installed
 	urlpatterns += [
+		url(r"^admin/", include("hsreplaynet.admin.urls")),
 		url(r"^about/privacy/$", flatpage, {"url": "/about/privacy/"}, name="privacy_policy"),
 		url(r"^about/tos/$", flatpage, {"url": "/about/tos/"}, name="terms_of_service"),
 		url(r"^pages/", include("django.contrib.flatpages.urls")),
