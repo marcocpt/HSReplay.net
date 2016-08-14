@@ -210,7 +210,7 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
-USE_I18N = True
+USE_I18N = False
 USE_L10N = True
 LANGUAGE_CODE = "en-us"
 
