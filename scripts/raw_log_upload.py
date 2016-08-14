@@ -2,6 +2,7 @@
 This command line tool is intended to simulate HDT uploading a raw log to the web server.
 """
 import argparse
+import json
 import os
 import requests
 from datetime import datetime
@@ -27,7 +28,7 @@ request_one_headers = {
 }
 
 if args.metadata_path:
-	metadata = open(args.metadata_path).read()
+	metadata = json.loads(open(args.metadata_path).read())
 else:
 	metadata = {
 		"build": 13740,
