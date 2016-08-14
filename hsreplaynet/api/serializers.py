@@ -134,7 +134,7 @@ class UploadEventSerializer(serializers.Serializer):
 			upload_ip=get_client_ip(request),
 		)
 		if "shortid" in data:
-			ret.shortid = data["shortid"]
+			ret.shortid = data.pop("shortid")
 		ret.metadata = json.dumps(data, cls=DjangoJSONEncoder)
 		ret.save()
 
