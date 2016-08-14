@@ -1,0 +1,89 @@
+digraph {
+	label = "Replay upload processing pipeline"
+
+	// API gateway
+	upload_api[label="upload.hsreplay.net", shape="box"]
+	api_gateway[label="API Gateway", shape="box", style="rounded"]
+
+	// Lambdas
+	authorization_lambda[label="Authorization Lambda", shape="box", style="rounded"]
+	create_upload_lambda[label="Upload Creation Lambda", shape="box", style="rounded"]
+	processing_lambda[label="Upload Processing Lambda", shape="box", style="rounded"]
+	subgraph {
+		rank = same
+		processing_lambda; parse_upload_event;
+	}
+	sns_topic[label="SNS Topic", shape="box"]
+
+	parse_upload_event[label="Parse log file"]
+	validate_parser[label="Validate uploaded file"]
+
+	// Exceptions
+	ParsingError[label="HTTP 400\nParsing Error", shape="diamond"]
+	AuthorizationError[label="HTTP 403\nAuthorization Error", shape="diamond"]
+	ValidationError[label="HTTP 400\nValidation Error", shape="diamond"]
+
+	upload_api -> api_gateway
+	api_gateway -> authorization_lambda[label="HTTP Invocation"]
+	authorization_lambda -> AuthorizationError[label="Invalid token/API key?"]
+	authorization_lambda -> api_gateway[label="Policy success"]
+	api_gateway -> create_upload_lambda[label="Authorized"]
+
+	create_upload_lambda -> ValidationError[label="Invalid JSON data?"]
+	create_upload_lambda -> sns_topic[label="Publish"]
+	sns_topic -> processing_lambda[label="Subscribe"]
+
+	processing_lambda -> parse_upload_event
+
+	// Parsing logic
+
+	parse_upload_event -> ParsingError[label="Raised an error?"]
+	parse_upload_event -> validate_parser
+	validate_parser -> get_global_game[label="Reprocessing?"]
+	validate_parser -> find_or_create_global_game[label="Eligible for unification?"]
+	validate_parser -> create_global_game
+
+	// GlobalGame unification
+	find_or_create_global_game[label="Look for existing GlobalGame"]
+	get_global_game[label="Use existing GlobalGame"]
+	create_global_game[label="Create new GlobalGame"]
+	subgraph {
+		rank = same
+		get_global_game; create_global_game;
+	}
+
+	find_or_create_global_game -> get_global_game[label="Found"]
+	find_or_create_global_game -> create_global_game[label="Not found"]
+	find_or_create_global_game -> ValidationError[label="Found multiples"]
+
+	// GameReplay deduplication
+	find_or_create_replay[label="Look for existing GameReplay"]
+	create_replay[label="Create new GameReplay"]
+	get_replay[label="Use existing GameReplay"]
+	subgraph {
+		rank = same
+		get_replay; create_replay;
+	}
+
+	get_global_game -> find_or_create_replay
+	create_global_game -> create_replay
+
+	find_or_create_replay -> create_replay[label="Not found"]
+	find_or_create_replay -> get_replay[label="Found"]
+
+	// GlobalGamePlayer handling
+	update_global_players[label="Update existing players"]
+	create_global_players[label="Create new players"]
+
+	get_replay -> update_global_players
+	create_replay -> update_global_players[label="Unified/Deduplicated?"]
+	create_replay -> create_global_players
+
+	update_global_players -> update_replay
+	create_global_players -> update_replay
+
+	update_replay[label="Update GameReplay data"]
+	return_replay[label="Return GameReplay", shape="diamond", style="rounded"]
+
+	update_replay -> return_replay[label="DB save"]
+}
