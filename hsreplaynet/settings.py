@@ -41,7 +41,6 @@ SECRET_KEY = "be8^qa&f2fut7_1%q@x2%nkw5u=-r6-rwj8c^+)5m-6e^!zags"
 
 
 INSTALLED_APPS = [
-	"django.contrib.admin",
 	"django.contrib.auth",
 	"django.contrib.contenttypes",
 	"django.contrib.sessions",
@@ -62,6 +61,7 @@ INSTALLED_APPS = [
 
 if not ENV_LAMBDA:
 	INSTALLED_APPS += [
+		"django.contrib.admin",
 		"django.contrib.flatpages",
 		"allauth",
 		"allauth.account",
@@ -72,6 +72,7 @@ if not ENV_LAMBDA:
 		"loginas",
 		"cloud_browser",
 		"webpack_loader",
+		"hsreplaynet.admin",
 	]
 
 if ENV_PROD:
