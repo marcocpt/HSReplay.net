@@ -228,7 +228,8 @@ class GameReplay(models.Model):
 		AuthToken, on_delete=models.SET_NULL, null=True, blank=True, related_name="replays"
 	)
 	user = models.ForeignKey(
-		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+		settings.AUTH_USER_MODEL,
+		on_delete=models.SET_NULL, null=True, blank=True, related_name="replays"
 	)
 	global_game = models.ForeignKey(
 		GlobalGame, on_delete=models.CASCADE, related_name="replays",

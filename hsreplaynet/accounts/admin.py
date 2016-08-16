@@ -23,8 +23,15 @@ class AccountDeleteRequestAdmin(admin.ModelAdmin):
 		return self.user.last_login
 	last_login.short_description = "User's last login"
 
+	def token_count(self):
+		return self.user.auth_tokens.count()
+
+	def replay_count(self):
+		return self.user.replays.count()
+
 	list_display = (
-		"__str__", "user", "delete_replay_data", "created", "updated", last_login
+		"__str__", "user", "delete_replay_data", "created", "updated",
+		last_login, token_count, replay_count
 	)
 	list_filter = ("delete_replay_data", )
 	date_hierarchy = "created"
