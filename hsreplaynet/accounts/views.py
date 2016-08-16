@@ -6,6 +6,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView, View
+from allauth.socialaccount.models import SocialAccount
 from hsreplaynet.games.models import GameReplay
 from hsreplaynet.utils import get_uuid_object_or_404
 from .models import AccountClaim, AccountDeleteRequest
@@ -45,3 +46,26 @@ class DeleteAccountView(LoginRequiredMixin, TemplateView):
 		delete_request.save()
 		logout(self.request)
 		return redirect(reverse("home"))
+
+
+class MakePrimaryView(LoginRequiredMixin, View):
+	def post(self, request):
+		account = request.POST.get("account")
+		try:
+			socacc = SocialAccount.objects.get(id=account)
+		except SocialAccount.DoesNotExist:
+			return self.redirect()
+		if socacc.user != request.user:
+			# return HttpResponseForbidden("%r does not belong to you." % (socacc))
+			return self.redirect()
+
+		if socacc.provider != "battlenet":
+			raise NotImplementedError("Making non-battlenet account primary is not implemented")
+
+		request.user.username = socacc.extra_data.get("battletag", request.user.username)
+		request.user.save()
+		return self.redirect()
+
+	def redirect(self):
+		# Do not identify errors to avoid leaking metadata
+		return redirect(reverse("socialaccount_connections"))
