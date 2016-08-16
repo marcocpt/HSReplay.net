@@ -5,10 +5,15 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import UploadEventViewSet
 from hsreplaynet.uploads.models import (
-	UploadEvent, UploadEventType, RawUpload, _generate_upload_key
+	UploadEvent, UploadEventType, RawUpload, RawUploadConfigurationError, _generate_upload_key
 )
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
+
+try:
+	from botocore.exceptions import ClientError
+except ImportError:
+	pass
 
 
 def emulate_api_request(method, path, data, headers):
@@ -32,7 +37,16 @@ def process_s3_create_handler(event, context):
 	s3_event = event["Records"][0]["s3"]
 	raw_upload = RawUpload.from_s3_event(s3_event)
 	logger.info("Processing a RawUpload from an S3 event: %s", str(raw_upload))
-	process_raw_upload(raw_upload)
+	try:
+		process_raw_upload(raw_upload)
+	except RawUploadConfigurationError as e:
+		logger.info(str(e))
+
+		# This is thrown when the object is in the failed bucket
+		# but the RawUpload gets initialed with a raw/... key
+		# This only occurs if this is S3's second attempt to notify lambda
+		# We cannot disable the S3 notification retry behavior
+		# So we supress this exception as a work around, so we don't get a 3rd attempt.
 
 
 @instrumentation.lambda_handler(name="ProcessRawUploadSnsHandlerV1")

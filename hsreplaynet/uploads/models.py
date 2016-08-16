@@ -9,6 +9,11 @@ from django.urls import reverse
 from hsreplaynet.utils.fields import IntEnumField, ShortUUIDField
 from hsreplaynet.utils import aws
 
+try:
+	from botocore.exceptions import ClientError
+except ImportError:
+	pass
+
 
 class UploadEventType(IntEnum):
 	POWER_LOG = 1
@@ -39,6 +44,10 @@ class UploadEventStatus(IntEnum):
 class RawUploadState(IntEnum):
 	NEW = 0
 	FAILED = 1
+
+
+class RawUploadConfigurationError(Exception):
+	pass
 
 
 class RawUpload(object):
@@ -115,6 +124,19 @@ class RawUpload(object):
 
 	def _create_failed_log_key(self, ts_string, shortid):
 		return "failed/%s/%s.power.log" % (shortid, ts_string)
+
+	@property
+	def is_present_in_failed_bucket(self):
+		ts_string = self.timestamp.strftime(RawUpload.FAILED_TIMESTAMP_FORMAT)
+		try:
+			obj = aws.S3.head_object(
+				Bucket=self.bucket,
+				Key=self._create_failed_log_key(ts_string, self.shortid)
+			)
+		except Exception:
+			return False
+		else:
+			return True
 
 	def make_failed(self, reason):
 		if self._upload_event_location_populated:
@@ -295,8 +317,19 @@ class RawUpload(object):
 		return self._signed_url_for(self._error_key)
 
 	def _get_object(self, key):
-		obj = aws.S3.get_object(Bucket=self.bucket, Key=key)
-		return json.loads(obj["Body"].read().decode("utf8"))
+		try:
+			obj = aws.S3.get_object(Bucket=self.bucket, Key=key)
+		except ClientError:
+			is_new_upload = self.state == RawUploadState.NEW
+			is_in_failed = self.is_present_in_failed_bucket
+
+			if is_new_upload and is_in_failed:
+				msg = "The RawUpload was initialed as NEW but is actually located in /failed"
+				raise RawUploadConfigurationError(msg)
+			else:
+				raise
+		else:
+			return json.loads(obj["Body"].read().decode("utf8"))
 
 	def _signed_url_for(self, key):
 		return aws.S3.generate_presigned_url(
