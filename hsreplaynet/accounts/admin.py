@@ -19,7 +19,13 @@ class AccountClaimAdmin(admin.ModelAdmin):
 
 @admin.register(AccountDeleteRequest)
 class AccountDeleteRequestAdmin(admin.ModelAdmin):
-	list_display = ("__str__", "user", "created", "updated", "delete_replay_data")
+	def last_login(self):
+		return self.user.last_login
+	last_login.short_description = "User's last login"
+
+	list_display = (
+		"__str__", "user", "delete_replay_data", "created", "updated", last_login
+	)
 	list_filter = ("delete_replay_data", )
 	date_hierarchy = "created"
 	raw_id_fields = ("user", )
