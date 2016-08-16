@@ -30,6 +30,17 @@
 						<input type="submit" value="Remove"/>
 					</form>
 				</td>
+				<td>
+					{% if base_account.extra_data.battletag != request.user.username %}
+					<form action="{% url 'socialaccount_make_primary' %}" method="POST">
+						{% csrf_token %}
+						<input type="hidden" name="account" value="{{ base_account.id }}"/>
+						<input type="submit" value="Make primary"/>
+					</form>
+					{% else %}
+						&#10004; Primary account
+					{% endif %}
+				</td>
 			</tr>
 			{% endwith %}
 		{% endfor %}
