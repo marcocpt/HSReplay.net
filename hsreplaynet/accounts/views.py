@@ -12,6 +12,10 @@ from hsreplaynet.utils import get_uuid_object_or_404
 from .models import AccountClaim, AccountDeleteRequest
 
 
+class EditAccountView(LoginRequiredMixin, TemplateView):
+	template_name = "account/edit.html"
+
+
 class ClaimAccountView(LoginRequiredMixin, View):
 	def get(self, request, id):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
