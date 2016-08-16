@@ -135,6 +135,9 @@ export default class JoustEmbedder extends EventEmitter {
 			this.emit("swap", newSwap);
 		});
 
+		// autoplay
+		launcher.startPaused(false);
+
 		// initialize joust
 		launcher.fromUrl(target.getAttribute("data-replayurl"));
 	}
