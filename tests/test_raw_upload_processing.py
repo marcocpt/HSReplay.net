@@ -95,7 +95,7 @@ class MockRawUpload(object):
 
 	@property
 	def upload_http_method(self):
-		return "post"
+		return "put"
 
 	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key):
 		self._upload_event_log_bucket = upload_event_bucket
@@ -117,22 +117,34 @@ upload_regression_suite = pytest.mark.skipif(
 @upload_regression_suite
 @pytest.mark.django_db
 def test_upload_regression_suite(hsreplaynet_card_db):
+
 	if os.path.exists(UPLOAD_SUITE):
 		for shortid in os.listdir(UPLOAD_SUITE):
 			raw_upload = MockRawUpload(os.path.join(UPLOAD_SUITE, shortid), default_storage)
-			process_raw_upload(raw_upload)
 
-			# Begin asserting correctness
-			created_upload_event = UploadEvent.objects.get(shortid=raw_upload.shortid)
-			assert str(created_upload_event.token.key) == str(raw_upload.auth_token.key)
-			assert created_upload_event.upload_ip == raw_upload.source_ip
+			# Run first as a create
+			do_process_raw_upload(raw_upload, is_reprocessing=False)
 
-			replay = created_upload_event.game
+			# Then run as a reprocess
+			do_process_raw_upload(raw_upload, is_reprocessing=True)
+	else:
 
-			validate_fuzzy_date_match(raw_upload.timestamp, replay.global_game.match_start)
-			validate_player_data(raw_upload, replay, 1)
-			validate_player_data(raw_upload, replay, 2)
+		assert False, "Upload Suite Does Not Exist On Disk"
 
+
+def do_process_raw_upload(raw_upload, is_reprocessing):
+		process_raw_upload(raw_upload, is_reprocessing)
+
+		# Begin asserting correctness
+		created_upload_event = UploadEvent.objects.get(shortid=raw_upload.shortid)
+		assert str(created_upload_event.token.key) == str(raw_upload.auth_token.key)
+		assert created_upload_event.upload_ip == raw_upload.source_ip
+
+		replay = created_upload_event.game
+
+		validate_fuzzy_date_match(raw_upload.timestamp, replay.global_game.match_start)
+		validate_player_data(raw_upload, replay, 1)
+		validate_player_data(raw_upload, replay, 2)
 
 def validate_fuzzy_date_match(upload_date, replay_date):
 	assert upload_date.year == replay_date.year

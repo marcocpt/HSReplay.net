@@ -106,9 +106,9 @@ class RawUpload(object):
 		self._descriptor = None
 		self._error = None
 
-		# Always, use "post" by default.
-		# Code paths that are aware this is an update can override this to use "put"
-		self.upload_http_method = "post"
+		# Always use "put" by default.
+		# If you use "post" a new UploadEvent will be created
+		self.upload_http_method = "put"
 
 	def __repr__(self):
 		return "<RawUpload %s::%s>" % (self.bucket, self.shortid)
@@ -377,21 +377,21 @@ class UploadEvent(models.Model):
 		"api.APIKey", on_delete=models.SET_NULL,
 		null=True, blank=True, related_name="uploads"
 	)
-	type = IntEnumField(enum=UploadEventType)
+	type = IntEnumField(enum=UploadEventType, default=UploadEventType.POWER_LOG)
 	game = models.ForeignKey(
 		"games.GameReplay", on_delete=models.SET_NULL,
 		null=True, blank=True, related_name="uploads"
 	)
 	created = models.DateTimeField(auto_now_add=True)
-	upload_ip = models.GenericIPAddressField()
+	upload_ip = models.GenericIPAddressField(null=True)
 	status = IntEnumField(enum=UploadEventStatus, default=UploadEventStatus.UNKNOWN)
 	tainted = models.BooleanField(default=False)
 	error = models.TextField(blank=True)
 	traceback = models.TextField(blank=True)
 	test_data = models.BooleanField(default=False)
 
-	metadata = models.TextField()
-	file = models.FileField(upload_to=_generate_upload_path)
+	metadata = models.TextField(blank=True)
+	file = models.FileField(upload_to=_generate_upload_path, null=True)
 
 	def __str__(self):
 		return self.shortid

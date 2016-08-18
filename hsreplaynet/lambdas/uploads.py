@@ -10,10 +10,6 @@ from hsreplaynet.uploads.models import (
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
 
-try:
-	from botocore.exceptions import ClientError
-except ImportError:
-	pass
 
 
 def emulate_api_request(method, path, data, headers):
@@ -60,15 +56,17 @@ def process_raw_upload_sns_handler(event, context):
 	raw_upload = RawUpload.from_sns_message(message)
 
 	existing = UploadEvent.objects.filter(shortid=raw_upload.shortid)
+	is_reprocessing = False
+
 	if existing.count():
 		# This will make DRF update the existing UploadEvent
-		raw_upload.upload_http_method = "put"
+		is_reprocessing = True
 
 	logger.info("Processing a RawUpload from an SNS message: %s", str(raw_upload))
-	process_raw_upload(raw_upload)
+	process_raw_upload(raw_upload, is_reprocessing)
 
 
-def process_raw_upload(raw_upload):
+def process_raw_upload(raw_upload, is_reprocessing=False):
 	"""A method for processing a raw upload in S3.
 
 	This will usually be invoked by process_s3_create_handler, however
@@ -76,6 +74,18 @@ def process_raw_upload(raw_upload):
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_raw_upload")
 	logger.info("Starting processing for RawUpload: %s", str(raw_upload))
+
+	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid, type=1)
+
+	if not created and not is_reprocessing:
+		logger.info("Invocation is an instance of double_put. Exiting Early.")
+		instrumentation.influx_metric("raw_log_double_put", {
+			"count": 1,
+			"shortid": raw_upload.shortid,
+			"key": raw_upload.log_key
+		})
+
+		return
 
 	descriptor = raw_upload.descriptor
 
@@ -112,7 +122,6 @@ def process_raw_upload(raw_upload):
 		request = emulate_api_request(
 			raw_upload.upload_http_method, path, upload_metadata, headers
 		)
-
 
 		result = create_upload_event_from_request(request)
 	except Exception as e:
