@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% load web_extras %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Scenarios{% endblock %}
+
+{% block fullcontent %}
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<ul>
+					{% for scenario in scenarios %}
+						<li><a href="{% url 'scenario_details_view' scenario.id %}">{{ scenario.name }}</a></li>
+					{% endfor %}
+				</ul>
+			</div>
+		</div>
+	</div>
+{% endblock %}
