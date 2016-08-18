@@ -29,6 +29,10 @@ class User(AbstractUser):
 	is_fake = models.BooleanField(default=False)
 
 	# Profile fields
+	locale = models.CharField(
+		max_length=8, default="enUS",
+		help_text="The user's preferred Hearthstone locale for display"
+	)
 	default_replay_visibility = IntEnumField(
 		"Default replay visibility",
 		enum=Visibility, default=Visibility.Public
