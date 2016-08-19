@@ -147,6 +147,9 @@ class Deck(models.Model):
 	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+	def __str__(self):
+		return repr(self)
+
 	def __repr__(self):
 		return "[" + ",".join(map(str, self.include_set.all())) + "]"
 
