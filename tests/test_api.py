@@ -43,6 +43,9 @@ def test_auth_token_request(client, settings):
 	token = out["key"]
 	assert token
 	assert out["user"] is None  # user should be empty for fake users
+	user = User.objects.get(username=token)
+	assert user.auth_tokens.count() == 1
+	assert str(user.auth_tokens.first().key) == token
 
 	# GET (listing tokens) should error
 	response = client.get(url)
@@ -70,8 +73,8 @@ def test_auth_token_request(client, settings):
 	assert response.url == "/account/login/?next=%s" % (url)
 
 	# Mock a user from the Battle.net API
-	user = User.objects.create_user("Test#1234", "", "")
-	client.force_login(user, backend=settings.AUTHENTICATION_BACKENDS[0])
+	real_user = User.objects.create_user("Test#1234", "", "")
+	client.force_login(real_user, backend=settings.AUTHENTICATION_BACKENDS[0])
 	response = client.get(url)
 	assert response.status_code == 302
 	assert response.url == "/games/mine/"
@@ -80,3 +83,4 @@ def test_auth_token_request(client, settings):
 	token = AuthToken.objects.get(key=token)
 	assert token
 	assert str(token.creation_apikey.api_key) == api_key
+	assert token.user == real_user
