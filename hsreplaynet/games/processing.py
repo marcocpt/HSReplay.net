@@ -7,7 +7,7 @@ from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
 from hearthstone.enums import CardType, GameTag
 from hsreplay.dumper import parse_log
-from hsreplaynet.cards.models import Card, Deck
+from hsreplaynet.cards.models import Card, CardList
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.utils.instrumentation import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
@@ -248,7 +248,7 @@ def create_global_players(global_game, game_tree, meta):
 		decklist = player_meta.get("deck")
 		if not decklist:
 			decklist = [c.card_id for c in player.initial_deck if c.card_id]
-		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
+		deck, _ = CardList.objects.get_or_create_from_id_list(decklist)
 		final_state = player.tags.get(GameTag.PLAYSTATE, 0)
 
 		name, real_name = get_player_names(player)

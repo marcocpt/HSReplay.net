@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Card, Deck, Include
+from .models import Card, CardList, Include
 
 
 @admin.register(Card)
@@ -26,7 +26,7 @@ class IncludeInline(admin.TabularInline):
 	extra = 15
 
 
-@admin.register(Deck)
+@admin.register(CardList)
 class DeckAdmin(admin.ModelAdmin):
 	date_hierarchy = "created"
 	inlines = (IncludeInline, )

@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 ('count', models.IntegerField(default=1)),
                 ('card', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cards.Card')),
-                ('deck', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='cards.Deck')),
+                ('deck', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='...models.CardList')),
             ],
         ),
         migrations.AddField(

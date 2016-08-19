@@ -8,7 +8,7 @@ from django.dispatch.dispatcher import receiver
 from django.urls import reverse
 from hearthstone.enums import BnetGameType, FormatType, PlayState
 from hsreplaynet.api.models import AuthToken
-from hsreplaynet.cards.models import Card, Deck
+from hsreplaynet.cards.models import Card, CardList
 from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 
@@ -152,7 +152,7 @@ class GlobalGamePlayer(models.Model):
 	)
 
 	deck_list = models.ForeignKey(
-		Deck, on_delete=models.PROTECT,
+		CardList, on_delete=models.PROTECT,
 		help_text="As much as is known of the player's starting deck list."
 	)
 

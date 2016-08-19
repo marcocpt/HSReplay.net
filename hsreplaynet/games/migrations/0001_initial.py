@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                 ('losses', models.PositiveIntegerField(blank=True, help_text='Number of losses in the current game mode (current season)', null=True, verbose_name='Losses')),
                 ('deck_id', models.IntegerField(blank=True, null=True, verbose_name='Deck ID')),
                 ('cardback_id', models.IntegerField(blank=True, null=True, verbose_name='Cardback ID')),
-                ('deck_list', models.ForeignKey(help_text="As much as is known of the player's starting deck list.", on_delete=django.db.models.deletion.PROTECT, to='cards.Deck')),
+                ('deck_list', models.ForeignKey(help_text="As much as is known of the player's starting deck list.", on_delete=django.db.models.deletion.PROTECT, to='......cards.models.CardList')),
                 ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='players', to='games.GlobalGame')),
                 ('hero', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cards.Card')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),

@@ -1,12 +1,15 @@
 import hashlib
 import random
+from enum import IntEnum
 from django.db import models
 from hearthstone import enums
 from hsreplaynet.utils.fields import IntEnumField
+from hsreplaynet.accounts.models import User
+from hsreplaynet.api.models import APIKey
 
 ### WORK-IN-PROGRESS - START ###
 
-# The following 3 models ArchType, RaceAffiliation, CanonicalDeck are a work in progress.
+# The following 3 models ArchType, RaceAffiliation, CanonicalList are a work in progress.
 # They should not be merged into the master branch until they are finalized.
 
 
@@ -17,14 +20,12 @@ class ArchTypeManager(models.Manager):
 	call outs to external resources so that a single classifier may be shared across Lambdas.
 	"""
 
-	def classify_archtype_for_deck(self, deck, deck_name = None, player_class = None, as_of = None):
+	def classify_archtype_for_deck(self, card_list, player_class = None, as_of = None):
 		"""Use our classifier to determine an ArchType for the provided deck
 
-		:param deck: A Deck which can contain between 0 and N cards.
-		:param deck_name: An optional unofficial deck name given to the deck which may potentially be useful for
-		reinforcement training of certain classifier types.
+		:param card_list: A CardList which can contain between 0 and N cards.
 		:param player_class: An optional enums.CardClass to help classify a deck of all neutral cards
-		:param as_of: An optional datetime.Date so that historical replays can be classified based on the ArchTypes
+		:param as_of: An optional datetime.Datetime so that historical replays can be classified based on the ArchTypes
 		in play at the time of the as_of date.
 		:return: An ArchType instance or None if one cannot be determined
 		"""
@@ -54,11 +55,11 @@ class ArchType(models.Model):
 
 	def canonical_deck(self, as_of = None):
 		if as_of is None:
-			canonical = CanonicalDeck.objects.filter(archtype=self, current=True).first()
+			canonical = CanonicalList.objects.filter(archtype=self, current=True).first()
 			if canonical:
 				return canonical.deck
 		else:
-			canonical = CanonicalDeck.objects.filter(archtype=self, as_of__lte=as_of).order_by('-as_of').first()
+			canonical = CanonicalList.objects.filter(archtype=self, as_of__lte=as_of).order_by('-as_of').first()
 			if canonical:
 				return canonical.deck
 		return None
@@ -71,7 +72,7 @@ class RaceAffiliation(models.Model):
 	race = IntEnumField(enum=enums.Race, default=enums.Race.INVALID)
 
 
-class CanonicalDeck(models.Model):
+class CanonicalList(models.Model):
 	"""Each ArchType must have 1 and only 1 "current" CanonicalList
 
 	The canonical list for an ArchType tends to evolve incrementally over time and can evolve
@@ -79,8 +80,8 @@ class CanonicalDeck(models.Model):
 	"""
 	id = models.BigAutoField(primary_key=True)
 	archtype = models.ForeignKey(ArchType, related_name="canonical_deck_lists")
-	deck = models.ForeignKey(Deck)
-	as_of = models.DateField()
+	card_list = models.ForeignKey(CardList)
+	as_of = models.DateTimeField()
 	current = models.BooleanField()
 
 ### WORK-IN-PROGRESS - END ###
@@ -182,14 +183,14 @@ class Card(models.Model):
 		return self.name
 
 
-class DeckManager(models.Manager):
+class CardListManager(models.Manager):
 	def get_or_create_from_id_list(self, id_list):
 		digest = generate_digest_from_deck_list(id_list)
-		existing_deck = Deck.objects.filter(digest=digest).first()
+		existing_deck = CardList.objects.filter(digest=digest).first()
 		if existing_deck:
 			return existing_deck, False
 
-		deck = Deck.objects.create(digest=digest)
+		deck = CardList.objects.create(digest=digest)
 
 		for card_id in id_list:
 			include, created = deck.include_set.get_or_create(
@@ -215,7 +216,47 @@ def generate_digest_from_deck_list(id_list):
 	return m.hexdigest()
 
 
+class DeckSource(IntEnum):
+	UNKNOWN = 0
+	HSREPLAYNET = 1
+	API = 2
+
+
 class Deck(models.Model):
+	"""
+	Represents an instance of a CardList owned by a player.
+	"""
+	id = models.BigAutoField(primary_key=True)
+	owner = models.ForeignKey(User, null=True)
+	# We use 0 to represent the UNKNOWN DeckType
+	type = IntEnumField(enums.DeckType, default=0)
+	player_class = IntEnumField(enums.CardClass)
+	region = IntEnumField(enums.BnetRegion)
+	hearthstone_id = models.BigIntegerField(
+		null=True,
+		help_text="The deck's ID in Hearthstone's collection manager."
+	)
+	source = IntEnumField(DeckSource, help_text="The source of the initial version")
+	source_url = models.URLField(blank=True)
+	source_api_key = models.ForeignKey(APIKey)
+
+
+class DeckVersion(models.Model):
+	"""
+	Represents an instance of a CardList owned by a player.
+	"""
+	id = models.BigAutoField(primary_key=True)
+	created = models.DateTimeField(auto_now_add=True)
+	version_id = models.IntegerField()
+	name = models.CharField(max_length=255)
+	deck = models.ForeignKey(Deck, related_name="versions")
+	card_list = models.ForeignKey(CardList)
+	cardback_id = models.IntegerField()
+	hero = models.ForeignKey(Card)
+	format = IntEnumField(enums.FormatType)
+
+
+class CardList(models.Model):
 	"""
 	Represents an abstract collection of cards.
 
@@ -223,7 +264,7 @@ class Deck(models.Model):
 	mana cost and then alphabetical within cards of equal cost.
 	"""
 	id = models.BigAutoField(primary_key=True)
-	objects = DeckManager()
+	objects = CardListManager()
 	cards = models.ManyToManyField(Card, through="Include")
 	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -241,10 +282,10 @@ class Deck(models.Model):
 		EMPTY_DECK_DIGEST = "d41d8cd98f00b204e9800998ecf8427e"
 		if self.digest != EMPTY_DECK_DIGEST and self.include_set.count() == 0:
 			# A client has set a digest by hand, so don't recalculate it.
-			return super(Deck, self).save(*args, **kwargs)
+			return super(CardList, self).save(*args, **kwargs)
 		else:
 			self.digest = generate_digest_from_deck_list(self.card_id_list())
-			return super(Deck, self).save(*args, **kwargs)
+			return super(CardList, self).save(*args, **kwargs)
 
 	def card_id_list(self):
 		result = []
@@ -265,7 +306,7 @@ class Deck(models.Model):
 
 class Include(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	deck = models.ForeignKey(Deck, on_delete=models.CASCADE)
+	deck = models.ForeignKey(CardList, on_delete=models.CASCADE)
 	card = models.ForeignKey(Card, on_delete=models.PROTECT)
 	count = models.IntegerField(default=1)
 
