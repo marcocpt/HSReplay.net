@@ -6,14 +6,21 @@
 {% block title %}Scenarios{% endblock %}
 
 {% block fullcontent %}
-	<div class="container">
-		<div class="row">
-			<div class="col-md-12">
-				<ul>
-					{% for scenario in scenarios %}
-						<li><a href="{% url 'scenario_details_view' scenario.id %}">{{ scenario.name }}</a></li>
-					{% endfor %}
-				</ul>
+	<div class="page-header">
+		<div class="container">
+			<h1>Scenarios</h1>
+		</div>
+	</div>
+	<div class="content">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<ul>
+						{% for scenario in scenarios %}
+							<li><a href="{% url 'scenario_details_view' scenario.id %}">{{ scenario.name|default:"<em>Unknown scenario</em>" }}</a></li>
+						{% endfor %}
+					</ul>
+				</div>
 			</div>
 		</div>
 	</div>

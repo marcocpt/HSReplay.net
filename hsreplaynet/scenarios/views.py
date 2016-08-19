@@ -15,6 +15,7 @@ class ScenarioListView(View):
 class ScenarioDetailsView(View):
 	def get(self, request, scenario_id):
 		context = {
+			"scenario": Scenario.objects.get(pk=scenario_id),
 			"ai_deck_list": Scenario.ai_deck_list(scenario_id),
 			"winning_decks": Scenario.winning_decks(scenario_id)
 		}

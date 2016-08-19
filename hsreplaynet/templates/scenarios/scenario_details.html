@@ -3,43 +3,51 @@
 {% load web_extras %}
 {% load render_bundle from webpack_loader %}
 
-{% block title %}Scenario Details{% endblock %}
+{% block title %}{{ scenario.name|default:"Scenario Details" }}{% endblock %}
 
 {% block fullcontent %}
+	<div class="page-header">
+		<div class="container">
+			<h1>{{ scenario.name|default:"<em>Unknown scenario</em>" }}</h1>
+		</div>
+	</div>
 
-	<div class="container">
+	<div class="content">
 
-		<div class="row">
-			<div class="col-md-12">
-            <h2>AI Opponent's Deck List</h2>
-                <ul>
-                {% for card in ai_deck_list %}
-                    <li>{{ card.name }}</li>
-                {% endfor %}
-                </ul>
-            </div>
-        </div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+				<h2>AI Opponent's Deck List</h2>
+					<ul>
+					{% for card in ai_deck_list %}
+						<li>{{ card.name }}</li>
+					{% endfor %}
+					</ul>
+				</div>
+			</div>
 
-        {% for winning_deck in winning_decks %}
-        <p>Number Of Wins: {{ winning_deck.num_wins }}</p>
-        <div class="row">
-			<div class="col-md-6">
-                <ul>
-                    {% for include in winning_deck.deck.include_set.all %}
-                        <li>{{ include.card.name }} x {{ include.count }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-			<div class="col-md-6">
-                <ul>
-                    {% for replay in winning_deck.fastest_wins %}
-                        <li><a href="{{ replay.get_absolute_url }}">{{ replay.pretty_name }} - {{ replay.global_game.num_turns }} Turns</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <hr>
-        {% endfor %}
-    </div>
+			{% for winning_deck in winning_decks %}
+			<p>Number Of Wins: {{ winning_deck.num_wins }}</p>
+			<div class="row">
+				<div class="col-md-6">
+					<ul>
+						{% for include in winning_deck.deck.include_set.all %}
+							<li>{{ include.card.name }} x {{ include.count }}</li>
+						{% endfor %}
+					</ul>
+				</div>
+				<div class="col-md-6">
+					<ul>
+						{% for replay in winning_deck.fastest_wins %}
+							<li><a href="{{ replay.get_absolute_url }}">{{ replay.pretty_name }} - {{ replay.global_game.num_turns }} Turns</a></li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+			<hr>
+			{% endfor %}
+		</div>
+
+	</div>
 
 {% endblock %}
