@@ -49,7 +49,7 @@ $(document).ready(function() {
 			JoustExtra.setup({
 				hearthstonejson: "{% setting 'HEARTHSTONEJSON_URL' %}"
 			});
-			Joust.viewer("joust-promo-container")
+			Joust.launcher("joust-promo-container")
 				.metadata(JoustExtra.metadata)
 				.assets("{% joust_static 'assets/' %}")
 				.cardArt("{% setting 'HEARTHSTONE_ART_URL' %}")
