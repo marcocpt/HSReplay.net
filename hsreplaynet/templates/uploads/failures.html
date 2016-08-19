@@ -1,45 +1,51 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block head %}
-	{{ block.super }}
-{% endblock %}
+{% block title %}Upload Failures{% endblock %}
 
-{% block content %}
-	{% if results %}
-		<pre id="reprocess-results">{{ results }}</pre>
-	{% endif %}
-
-	<div class="container">
-		{% for failure in failures %}
-		<div class="row">
-			<div class="col-md-4">
-			<ul>
-				<li><strong>{{ failure.shortid }}</strong> ({{ failure.state.name }})</li>
-				<li>{{ failure.timestamp }}</li>
-				<li><a href="{{ failure.descriptor_url }}" target="_blank">descriptor</a></li>
-				<li><a href="{{ failure.log_url }}" target="_blank">log</a></li>
-				<li><a href="{{ failure.error_url }}" target="_blank">errors</a></li>
-				<li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}" target="_blank">papertrail</a></li>
-				<li><a href="{% url 'admin:uploads_uploadevent_changelist' %}?shortid={{ failure.shortid }}">Admin</a>
-
-				<form action="" method="POST">
-					{% csrf_token %}
-					<input type="hidden" name="failure_shortid" value="{{ failure.shortid }}"/>
-					<input type="submit" value="Reprocess"/>
-				</form>
-				<form action="" method="POST">
-					{% csrf_token %}
-					<input type="hidden" name="deleted_shortid" value="{{ failure.shortid }}"/>
-					<input type="submit" value="Delete"/>
-				</form>
-			</ul>
-			</div>
-			<div class="col-md-8">
-				<pre>{{ failure.error_str }}</pre>
-			</div>
+{% block fullcontent %}
+	<div class="page-header">
+		<div class="container">
+			<h1>Upload Failures</h1>
 		</div>
-		<hr>
-		{% endfor %}
+	</div>
+
+	<div class="content">
+		{% if results %}
+			<pre id="reprocess-results">{{ results }}</pre>
+		{% endif %}
+
+		<div class="container">
+			{% for failure in failures %}
+			<div class="row">
+				<div class="col-md-4">
+				<ul>
+					<li><strong>{{ failure.shortid }}</strong> ({{ failure.state.name }})</li>
+					<li>{{ failure.timestamp }}</li>
+					<li><a href="{{ failure.descriptor_url }}" target="_blank">descriptor</a></li>
+					<li><a href="{{ failure.log_url }}" target="_blank">log</a></li>
+					<li><a href="{{ failure.error_url }}" target="_blank">errors</a></li>
+					<li><a href="https://papertrailapp.com/systems/Lambda/events?q={{ failure.shortid }}" target="_blank">papertrail</a></li>
+					<li><a href="{% url 'admin:uploads_uploadevent_changelist' %}?shortid={{ failure.shortid }}">Admin</a>
+
+					<form action="" method="POST">
+						{% csrf_token %}
+						<input type="hidden" name="failure_shortid" value="{{ failure.shortid }}"/>
+						<input type="submit" value="Reprocess"/>
+					</form>
+					<form action="" method="POST">
+						{% csrf_token %}
+						<input type="hidden" name="deleted_shortid" value="{{ failure.shortid }}"/>
+						<input type="submit" value="Delete"/>
+					</form>
+				</ul>
+				</div>
+				<div class="col-md-8">
+					<pre>{{ failure.error_str }}</pre>
+				</div>
+			</div>
+			<hr>
+			{% endfor %}
+		</div>
 	</div>
 {% endblock %}
