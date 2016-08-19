@@ -78,8 +78,13 @@ export default class MetaDataManager {
 			}
 		}, () => {
 			if(build === "latest") {
-				// completely failed
-				return;
+				if(this.locale == "enUS") {
+					// completely failed
+					return;
+				}
+				else {
+					this.locale = "enUS";
+				}
 			}
 			// fallback to latest
 			this.fallback = true;
