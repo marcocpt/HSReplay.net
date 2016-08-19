@@ -22,7 +22,21 @@ export default class LocalStorageBackend implements StorageBackend {
 		if (!this._available()) {
 			return;
 		}
-		localStorage[key] = JSON.stringify(value);
+		let compressed = JSON.stringify(value);
+		do {
+			try {
+				localStorage.setItem(key, compressed);
+				break;
+			}
+			catch (e) {
+				try {
+					localStorage.removeItem(localStorage.key(0));
+				}
+				catch (e) {
+					break;
+				}
+			}
+		} while (localStorage.length);
 	}
 
 	public get(key: string): any {
