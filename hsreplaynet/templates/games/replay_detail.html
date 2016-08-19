@@ -23,7 +23,7 @@
 	<div class="row full_height">
 		<div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
 			<div class="full_height">
-				<div id="joust-container" class="full_height" data-replayurl="{{ replay.replay_xml.url }}"></div>
+				<div id="joust-container" class="full_height" data-replayurl="{{ replay.replay_xml.url }}"{% if user.is_authenticated %} data-locale="{{ user.locale }}"{% endif %}></div>
 			</div>
 		</div>
 	</div>

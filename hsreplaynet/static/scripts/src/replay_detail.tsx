@@ -6,6 +6,11 @@ import JoustEmbedder from "./JoustEmbedder";
 
 let embedder = new JoustEmbedder();
 
+var container = document.getElementById("joust-container");
+if (container.hasAttribute("data-locale")) {
+	embedder.locale = container.getAttribute("data-locale");
+}
+
 // shared url decoding
 if (location.hash) {
 	var ret = location.hash.match(/turn=(\d+)(a|b)/);
@@ -22,9 +27,7 @@ if (location.hash) {
 	}
 }
 
-embedder.embed(
-	document.getElementById("joust-container")
-);
+embedder.embed(container);
 
 function renderShareDialog() {
 	ReactDOM.render(
