@@ -4,7 +4,11 @@ import {StorageBackend} from "./StorageBackend";
 export default class LocalStorageBackend implements StorageBackend {
 
 	private _available(): boolean {
-		return typeof(Storage) !== "undefined";
+		try {
+			return "localStorage" in window && window["localStorage"] !== null;
+		} catch (e) {
+			return false;
+		}
 	}
 
 	public has(key: string): boolean {
