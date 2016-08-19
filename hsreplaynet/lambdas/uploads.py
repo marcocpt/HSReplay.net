@@ -11,7 +11,6 @@ from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
 
 
-
 def emulate_api_request(method, path, data, headers):
 	"""
 	Emulates an API request from the API gateway's data.
@@ -32,7 +31,7 @@ def process_s3_create_handler(event, context):
 
 	s3_event = event["Records"][0]["s3"]
 	raw_upload = RawUpload.from_s3_event(s3_event)
-	logger.info("Processing a RawUpload from an S3 event: %s", str(raw_upload))
+	logger.info("Processing a RawUpload from an S3 event: %r", raw_upload)
 	try:
 		process_raw_upload(raw_upload)
 	except RawUploadConfigurationError as e:
@@ -62,7 +61,7 @@ def process_raw_upload_sns_handler(event, context):
 		# This will make DRF update the existing UploadEvent
 		is_reprocessing = True
 
-	logger.info("Processing a RawUpload from an SNS message: %s", str(raw_upload))
+	logger.info("Processing a RawUpload from SNS: %r with is_reprocessing=%s", raw_upload, is_reprocessing)
 	process_raw_upload(raw_upload, is_reprocessing)
 
 
@@ -73,7 +72,7 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 	it can also be invoked when a raw upload is queued for reprocessing via SNS.
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_raw_upload")
-	logger.info("Starting processing for RawUpload: %s", str(raw_upload))
+	logger.info("Processing %r with is_reprocessing=%s", raw_upload, is_reprocessing)
 
 	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid, type=1)
 
@@ -130,7 +129,7 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 		# If DRF fails: delete the copy of the log to not leave orphans around.
 		# Then move the failed upload into the failed location for easier inspection.
 		raw_upload.make_failed(str(e))
-		logger.info("RawUpload has been marked failed: %s", str(raw_upload))
+		logger.info("RawUpload has been marked failed: %r", raw_upload)
 
 		raise
 	else:

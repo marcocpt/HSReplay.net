@@ -111,7 +111,7 @@ class RawUpload(object):
 		self.upload_http_method = "put"
 
 	def __repr__(self):
-		return "<RawUpload %s::%s>" % (self.bucket, self.shortid)
+		return "<RawUpload %s:%s:%s>" % (self.shortid, self.bucket, self.log_key)
 
 	def _create_raw_descriptor_key(self, ts_string, shortid):
 		return "raw/%s/%s.descriptor.json" % (ts_string, shortid)
