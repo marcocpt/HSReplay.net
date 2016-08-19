@@ -267,7 +267,7 @@ REST_FRAMEWORK = {
 
 # Custom site settings
 
-HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download-hsreplay/"
+HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download-hsreplay/?utm_source=hsreplay.net&utm_campaign=download"
 
 
 # Used for compiling SCSS
