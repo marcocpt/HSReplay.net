@@ -16,6 +16,12 @@
 	</style>
 {% endblock %}
 
+{% block opengraph %}
+	{{ block.super }}
+	<meta property="og:title" content="{{ replay.pretty_name_spoilerfree }}" />
+	<meta property="og:url" content="{{ canonical_url }}" />
+{% endblock %}
+
 {% block title %}{{ replay.pretty_name_spoilerfree }}{% endblock title %}
 
 {% block fullcontent %}
@@ -36,7 +42,7 @@
 			<div class="row">
 				<div class="col-lg-3 col-lg-push-9 col-xs-12">
 					<h2>Share</h2>
-					<div id="share-game-dialog" data-url="{{ request.scheme }}://{{ request.get_host }}{{ replay.get_absolute_url }}"></div>
+					<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
 				</div>
 				<div class="col-lg-3 col-lg-pull-3 col-xs-12">
 					<h2>Details</h2>
