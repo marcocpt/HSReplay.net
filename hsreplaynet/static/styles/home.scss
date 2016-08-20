@@ -59,14 +59,19 @@ header h2 {
 
 .front-feature {
 	clear: both;
-}
-
-.front-feature + .front-feature {
-	padding-top: 2em;
+	margin: 2em 0;
 }
 
 .front-feature h2 {
 	font-size: 1.5em;
+}
+
+.front-feature + .front-feature, .front-feature + .clearfix + .front-feature {
+	margin-top: 4em;
+}
+
+.front-feature figcaption h2 {
+	margin-top: 0;
 }
 
 .front-feature > figcaption p {
@@ -86,7 +91,6 @@ header h2 {
 
 #how-it-works {
 	clear: both;
-	margin-top: 4em;
 	text-align: center;
 }
 
@@ -133,7 +137,8 @@ ul.home-steps > li {
 	}
 
 	ul.home-steps > li:last-child {
-		margin-bottom: 1em;
+		padding-bottom: 0;
+		margin-bottom: 0;
 		border-bottom-color: transparent;
 	}
 }
