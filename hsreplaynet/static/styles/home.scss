@@ -141,6 +141,11 @@ ul.home-steps > li {
 		margin-bottom: 0;
 		border-bottom-color: transparent;
 	}
+
+	.promo-button, .promo-button-outline {
+		margin-top: 10px;
+		width: 80%;
+	}
 }
 
 @media (min-width: 768px) {
