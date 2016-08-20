@@ -79,6 +79,7 @@
 								Find your best play and easily link it to all your friends.
 							</p>
 						</figcaption>
+						<div class="clearfix"></div>
 					</figure>
 
 					<figure class="front-feature flip">
@@ -90,6 +91,7 @@
 								Follow your progress to legend with wins and losses visible at a glance.
 							</p>
 						</figcaption>
+						<div class="clearfix"></div>
 					</figure>
 				</div>
 			</div>
@@ -98,16 +100,16 @@
 
 	<article id="how-it-works">
 		<div class="container">
-			<h2 class="text-center">How it works:</h2>
+			<h2 class="text-center">How it works</h2>
 			<ul class="row home-steps">
 				<li class="col-sm-6">
-					<h3>Step 1</h3>
-					<p><a href="{% setting 'HDT_DOWNLOAD_URL' %}" class="promo-button">Download HDT</a></p>
+					<h3>Step 1:</h3>
+					<p><a href="{% setting 'HDT_DOWNLOAD_URL' %}" class="promo-button-outline text-uppercase">Download HDT</a></p>
 					<p>Hearthstone Deck Tracker runs while you're in Hearthstone.<br />
 					It will automatically upload your matches as you play them.</p>
 				</li>
 				<li class="col-sm-6">
-					<h3>Step 2</h3>
+					<h3>Step 2:</h3>
 					<p><a href="https://battle.net/account/download/?show=hearthstone&style=hearthstone" class="promo-button-outline text-uppercase">Play Hearthstone</a></p>
 					<p>Your full match history will always stay private.<br />
 					Share individual games with your friends and show off your craziest plays!</p>
@@ -121,7 +123,7 @@
 			<h2>You're all set!</h2>
 			<p class="front-pad"><a href="{% url 'my_replays' %}" class="promo-button hero-button">View your replays</a></p>
 		{% else %}
-			<h2>Let's go!</h2>
+			<h2>Let's get started:</h2>
 			<div class="front-pad">{% include 'login_button.html' %}</div>
 		{% endif %}
 	</article>
@@ -135,7 +137,7 @@
 						<dt>How do I sign in?</dt>
 						<dd>Click on the "Log in with Battle.net" button and we'll send you to Battle.net. HSReplay.net does not have access to your password.</dd>
 						<dt>Do I need to sign in?</dt>
-						<dd>Not at all! Just download Hearthstone Deck Tracker and use it to upload and share your replays. You can then connect your replays to your Battle.net account at any time.</dd>
+						<dd>Not at all! Just <a href="{% setting 'HDT_DOWNLOAD_URL' %}">download Hearthstone Deck Tracker</a> and use it to upload and share your replays. You can then connect your replays to your Battle.net account at any time.</dd>
 						<dt>How do I share a replay?</dt>
 						<dd>Simply send the link to your friends. You can also use the "Share" dialog on the replay page, where you can even set the specific turn to link to.</dd>
 					</dl>
