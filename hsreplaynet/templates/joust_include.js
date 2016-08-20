@@ -6,7 +6,7 @@ var joust_required = [
 	"{% joust_static 'joust.js' %}",
 	"{% static 'scripts/joust-extra.js' %}",
 	"{% static 'fonts/belwefs_extrabold_macroman/stylesheet.css' %}",
-	"{% static 'fonts/belwefs_extrabold_macroman/stylesheet.css' %}",
+	"{% static 'fonts/franklingothicfs_mediumcondensed_macroman/stylesheet.css' %}",
 ];
 
 $(document).ready(function() {
