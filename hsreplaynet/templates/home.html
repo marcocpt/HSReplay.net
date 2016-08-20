@@ -16,6 +16,11 @@
 {% endif %}
 {% endblock %}
 
+{% block opengraph %}
+	{{ block.super }}
+	<meta property="og:title" content="HSReplay.net" />
+{% endblock %}
+
 {% block content %}
 <div id="joust-lightbox">
 	<div id="joust-promo-container"></div>

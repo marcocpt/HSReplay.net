@@ -14,4 +14,7 @@ class MyReplaysView(LoginRequiredMixin, View):
 class ReplayDetailView(View):
 	def get(self, request, id):
 		replay = get_object_or_404(GameReplay.objects.live(), shortid=id)
-		return render(request, "games/replay_detail.html", {"replay": replay})
+		return render(request, "games/replay_detail.html", {
+			"replay": replay,
+			"canonical_url": "%s://%s%s" % (request.scheme, request.get_host(), replay.get_absolute_url())
+		})
