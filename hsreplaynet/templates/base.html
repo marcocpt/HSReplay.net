@@ -33,16 +33,18 @@
 			<a href="/"><img src="{% static 'images/logo.png' %}" id="navbar-logo" alt="HSReplay"/><h1>HSReplay</h1></a>
 			<ul>
 			{% if user.is_authenticated %}
-				<li class="nav-replays"><a href="{% url 'my_replays' %}">My Replays</a></li>
+				<li><a href="{% url 'my_replays' %}">My Replays</a></li>
 				{% if user.is_staff %}
-					<li class="nav-admin"><a href="{% url 'admin:index' %}">Admin</a></li>
-				{% endif %}
+					<li><a href="{% url 'scenario_list_view' %}">Scenarios</a></li>
+					<li><a href="{% url 'failures_list' %}">Upload Failures</a></li>
+					<li><a href="{% url 'admin:index' %}">Admin</a></li>
+			{% endif %}
 			{% endif %}
 			</ul>
 
 			<ul class="right">
 			{% if user.is_authenticated %}
-				<li class="dropdown">
+				<li>
 					<a href="{% url 'account_edit' %}">
 						<img src="{% static 'images/bnet.png' %}"/>
 						<span>{{ user.username }}</span>
