@@ -112,6 +112,9 @@ class GlobalGame(models.Model):
 	def num_own_turns(self):
 		return ceil(self.num_turns / 2)
 
+	def get_replay_for_global_player(self, global_player):
+		return self.replays.filter(friendly_player_id=global_player.player_id).first()
+
 
 class GlobalGamePlayer(models.Model):
 	id = models.BigAutoField(primary_key=True)
@@ -392,6 +395,16 @@ class GameReplay(models.Model):
 		if self.disconnected:
 			ret.append("hsreplay-invalid")
 		return " ".join(ret)
+
+	def related_replays(self, num=3):
+		"""
+		Returns RelatedReplayRecommendation objects similar to this one.
+
+		The criteria used to generate the recommendations may vary across game types.
+		"""
+		from hsreplaynet.games.recommendations import recommend_related_replays
+
+		return recommend_related_replays(self, num)
 
 
 class PendingReplayOwnership(models.Model):
