@@ -39,8 +39,6 @@ def test_upload(upload_event, upload_context, monkeypatch):
 	descriptor_object_bytes = actual_put_args["Body"]
 	descriptor = json.loads(descriptor_object_bytes.decode("utf8"))
 
-	assert "descriptor_url" in result
-	assert result["descriptor_url"] == "[A SIGNED URL]"
 	assert "put_url" in result
 	assert result["put_url"] == "[A SIGNED URL]"
 
