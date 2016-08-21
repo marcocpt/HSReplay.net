@@ -29,7 +29,7 @@ declare module "joust" {
 
 		cardArt(url: string|((cardId: string) => string)): Launcher;
 
-		metadata(query: (build: number|null, cb: (cards: any[]) => void) => void): Launcher;
+		metadataSource(metadateSource: (build: number|"latest", locale: string) => string): Launcher;
 
 		setOptions(opts: any): Launcher;
 
