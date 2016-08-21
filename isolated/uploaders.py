@@ -91,20 +91,6 @@ def generate_log_upload_address_handler(event, context):
 		Bucket=S3_RAW_LOG_UPLOAD_BUCKET
 	)
 
-	descriptor_read_expiration = 60 * 60 * 24 * 7
-	# 7 days so clients can debug missing replays
-	# Authorization errors and other messages will be written back to the descriptor
-	presigned_descriptor_url = S3.generate_presigned_url(
-		"get_object",
-		Params={
-			"Bucket": S3_RAW_LOG_UPLOAD_BUCKET,
-			"Key": s3_descriptor_key
-		},
-		ExpiresIn=descriptor_read_expiration,
-		HttpMethod="GET"
-	)
-	logger.info("Presigned Descriptor URL:\n%s" % presigned_descriptor_url)
-
 	log_put_expiration = 60 * 60 * 24
 	# Only one day, since if it hasn't been used by then it's unlikely to be used.
 	presigned_put_url = S3.generate_presigned_url(
@@ -120,7 +106,6 @@ def generate_log_upload_address_handler(event, context):
 	logger.info("Presigned Put URL:\n%s" % presigned_put_url)
 
 	return {
-		"descriptor_url": presigned_descriptor_url,
 		"put_url": presigned_put_url,
 		"upload_shortid": shortid,  # Deprecated (Beta, 2016-08-06)
 		"shortid": shortid,
