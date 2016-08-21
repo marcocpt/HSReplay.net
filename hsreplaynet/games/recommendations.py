@@ -48,9 +48,8 @@ class FriendlyDeckMatchGenerator(RecommendationGenerator):
 
 	def generate(self):
 		deck = self.source_replay.friendly_player.deck_list
-		game = self.source_replay.global_game
 		account_lo = self.source_replay.friendly_player.account_lo
-		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(game=game, account_lo=account_lo):
+		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo):
 			related_replay = player.game.get_replay_for_global_player(player)
 			if related_replay and related_replay.visibility == Visibility.Public:
 				self.recommendations.append(related_replay)
@@ -61,9 +60,8 @@ class OpponentDeckMatchGenerator(RecommendationGenerator):
 
 	def generate(self):
 		deck = self.source_replay.opposing_player.deck_list
-		game = self.source_replay.global_game
 		account_lo = self.source_replay.friendly_player.account_lo
-		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(game=game, account_lo=account_lo):
+		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo):
 			related_replay = player.game.get_replay_for_global_player(player)
 			if related_replay and related_replay.visibility == Visibility.Public:
 				self.recommendations.append(related_replay)
