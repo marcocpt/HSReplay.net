@@ -5,15 +5,21 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.views.generic import TemplateView, View
+from django.views.generic import TemplateView, UpdateView, View
 from allauth.socialaccount.models import SocialAccount
 from hsreplaynet.games.models import GameReplay
 from hsreplaynet.utils import get_uuid_object_or_404
-from .models import AccountClaim, AccountDeleteRequest
+from .models import AccountClaim, AccountDeleteRequest, User
 
 
-class EditAccountView(LoginRequiredMixin, TemplateView):
+class EditAccountView(LoginRequiredMixin, UpdateView):
 	template_name = "account/edit.html"
+	model = User
+	fields = ["default_replay_visibility"]
+	success_url = "/account/"
+
+	def get_object(self, queryset=None):
+		return self.request.user
 
 
 class ClaimAccountView(LoginRequiredMixin, View):
