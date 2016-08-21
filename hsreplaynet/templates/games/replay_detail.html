@@ -49,6 +49,14 @@
 					<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
 				</div>
 				<div class="col-lg-3 col-lg-pull-3 col-xs-12">
+					<h3>Related games</h3>
+					<ul>
+					{% for recommendation in replay.related_replays %}
+						<li><a href="{{ recommendation.replay.get_absolute_url }}">{{ recommendation.replay }}</a></li>
+					{% empty %}
+						<li>No similar games found!</li>
+					{% endfor %}
+					</ul>
 					<h2>Details</h2>
 					<ul>
 						<li>Patch {{ gg.build }}</li>
@@ -85,6 +93,9 @@
 		</div>
 	</div>
 </div>
+
+
 <script src="{% joust_static 'joust.js' %}"></script>
 {% render_bundle "replay_detail" %}
+
 {% endblock %}
