@@ -10,17 +10,33 @@
 	</p>
 
 	<h4>API access</h4>
-	<p>
 	{% with user.auth_tokens.all as tokens %}
-
-	{% if tokens.count == 0 %}
-		You do not have any upload client associated with your account.
-		<a href="{% setting 'HDT_DOWNLOAD_URL' %}">Download Hearthstone Deck Tracker</a> and
-		claim your account from there!
-	{% elif tokens.count == 1 %}
-		You have <strong>1</strong> upload client associated with your account.
+	{% if not tokens.count %}
+		<p>
+			You do not have any upload client associated with your account.
+			<a href="{% setting 'HDT_DOWNLOAD_URL' %}">Download Hearthstone Deck Tracker</a> and
+			claim your account from there!
+		</p>
 	{% else %}
-		You have <strong>{{ tokens.count }}</strong> upload clients associated with your account.
+		<p>The following tokens can be used to upload your games. Keep them private!</p>
+		<table class="table table-bordered">
+			<thead>
+				<th>Token</th>
+				<th>Created by</th>
+				<th>Created on</th>
+			</thead>
+		{% for token in tokens %}
+			<tr>
+				<td>{{ token }}</td>
+				{% if token.creation_apikey.website %}
+					<td><a href="{{ token.creation_apikey.website }}">{{ token.creation_apikey }}</a></td>
+				{% else %}
+					<td>{{ token.creation_apikey }}</td>
+				{% endif %}
+				<td>{{ token.created }}</th>
+			</tr>
+		{% endfor %}
+		</table>
 	{% endif %}
 
 	{% endwith %}
