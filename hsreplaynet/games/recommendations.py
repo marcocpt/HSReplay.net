@@ -49,7 +49,8 @@ class FriendlyDeckMatchGenerator(RecommendationGenerator):
 	def generate(self):
 		deck = self.source_replay.friendly_player.deck_list
 		game = self.source_replay.global_game
-		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(game=game):
+		account_lo = self.source_replay.friendly_player.account_lo
+		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(game=game, account_lo=account_lo):
 			related_replay = player.game.get_replay_for_global_player(player)
 			if related_replay and related_replay.visibility == Visibility.Public:
 				self.recommendations.append(related_replay)
@@ -61,7 +62,8 @@ class OpponentDeckMatchGenerator(RecommendationGenerator):
 	def generate(self):
 		deck = self.source_replay.opposing_player.deck_list
 		game = self.source_replay.global_game
-		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(game=game):
+		account_lo = self.source_replay.friendly_player.account_lo
+		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(game=game, account_lo=account_lo):
 			related_replay = player.game.get_replay_for_global_player(player)
 			if related_replay and related_replay.visibility == Visibility.Public:
 				self.recommendations.append(related_replay)
@@ -69,13 +71,14 @@ class OpponentDeckMatchGenerator(RecommendationGenerator):
 # Generators are evaluated in order
 # Thus the ordering in the lists determine which recommendations get higher priority
 GENERATORS = {
+	BnetGameType.BGT_UNKNOWN: [FriendlyDeckMatchGenerator],
 	BnetGameType.BGT_FRIENDS: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
 	BnetGameType.BGT_RANKED_STANDARD: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
 	BnetGameType.BGT_ARENA: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
-	BnetGameType.BGT_VS_AI: [],
+	BnetGameType.BGT_VS_AI: [FriendlyDeckMatchGenerator],
 	BnetGameType.BGT_CASUAL_STANDARD: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
 	BnetGameType.BGT_TAVERNBRAWL_PVP: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
-	BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI: [],
+	BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI: [FriendlyDeckMatchGenerator],
 	BnetGameType.BGT_TAVERNBRAWL_2P_COOP: [],
 	BnetGameType.BGT_RANKED_WILD: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
 	BnetGameType.BGT_CASUAL_WILD: [FriendlyDeckMatchGenerator, OpponentDeckMatchGenerator],
