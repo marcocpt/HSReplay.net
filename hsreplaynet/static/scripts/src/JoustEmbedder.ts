@@ -2,8 +2,6 @@ import * as Joust from "joust";
 import Raven from "raven-js";
 import {joustAsset, cardArt} from "./helpers";
 import {EventEmitter} from "events";
-import MetaDataManager from "./metadata/MetaDataManager";
-import LocalStorageBackend from "./metadata/LocalStorageBackend";
 import MetricsReporter from "./metrics/MetricsReporter";
 import BatchingMiddleware from "./metrics/BatchingMiddleware";
 import InfluxMetricsBackend from "./metrics/InfluxMetricsBackend";
@@ -56,25 +54,8 @@ export default class JoustEmbedder extends EventEmitter {
 		launcher.assets((asset: string) => joustAsset(asset));
 		launcher.cardArt((cardId: string) => cardArt(cardId));
 
-		// setup metadata
-		let metaFlags = {
-			has_build: null,
-			cached: null,
-			fetched: null,
-			fallback: null,
-		};
-		let manager = new MetaDataManager((build: number|"latest", locale: string): string => {
-			return HEARTHSTONEJSON_URL.replace(/%\(build\)s/, "" + build).replace(/%\(locale\)s/, locale);
-		}, new LocalStorageBackend(), this.locale);
-		launcher.metadata((build: number|null, cb: (data: any[]) => void): void => {
-			metaFlags.has_build = !!(+build);
-			manager.get(+build || "latest", (data: any[]): void => {
-				metaFlags.cached = manager.cached;
-				metaFlags.fetched = manager.fetched;
-				metaFlags.fallback = manager.fallback;
-				cb(data);
-			});
-		});
+		// setup metadata source
+		launcher.metadataSource((build, locale) => HEARTHSTONEJSON_URL.replace(/%\(build\)s/, "" + build).replace(/%\(locale\)s/, locale));
 
 		// setup influx
 		let endpoint = INFLUX_DATABASE_JOUST;
@@ -86,15 +67,6 @@ export default class JoustEmbedder extends EventEmitter {
 				}
 				tags["release"] = release;
 				tags["locale"] = this.locale;
-				switch (series) {
-					case "metadata":
-						let flags = Object.keys(metaFlags);
-						for (let i = 0; i < flags.length; i++) {
-							let flag = flags[i];
-							tags[flag] = metaFlags[flag];
-						}
-						break;
-				}
 				metrics.writePoint(series, values, tags);
 			};
 			metrics = new MetricsReporter(
