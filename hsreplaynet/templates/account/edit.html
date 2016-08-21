@@ -3,13 +3,29 @@
 {% load web_extras %}
 
 {% block content %}
-
 	<h1>Your account</h1>
 	<p>
 		Signed in as <img src="{% static 'images/bnet.png' %}"/> <strong>{{ user }}</strong>.
 	</p>
 
-	<h4>API access</h4>
+	<h2>Privacy</h2>
+	<form action="" method="POST">
+		<p>
+			By default, your replays are <strong>Public</strong>.
+			They may appear in listings such as <em>Related games</em>.
+		</p>
+		<p>
+			You can set the default visibility to be <strong>Unlisted</strong>
+			to prevent future games from showing up in such listings.<br/>
+			Anyone you share the link to will still be able to view them!
+		</p>
+		{% csrf_token %}
+		{{ form.as_p }}
+		<input type="submit" value="Save"/>
+	</form>
+	<hr/>
+
+	<h2>API access</h2>
 	{% with user.auth_tokens.all as tokens %}
 	{% if not tokens.count %}
 		<p>
