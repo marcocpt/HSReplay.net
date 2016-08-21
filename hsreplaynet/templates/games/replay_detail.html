@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block description %}
-		<meta name="description" content="Watch a game of Hearthstone between {% for player in replay.global_game.players.all %}{% if not forloop.first %} and {% endif %}{{ player.name }}{% if player.name|stringformat:"s" != player.hero|stringformat:"s" %} (as {{ player.hero }}){% endif %}{% endfor %} in your browser."/>
+	<meta name="description" content="{{ replay.generate_description }}"/>
 {% endblock %}
 
 {% block title %}{{ replay.pretty_name_spoilerfree }}{% endblock title %}

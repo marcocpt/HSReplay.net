@@ -318,6 +318,15 @@ class GameReplay(models.Model):
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.shortid})
 
+	def generate_description(self):
+		tpl = "Watch a game of Hearthstone between %s (%s) and %s (%s) in your browser."
+		players = self.global_game.players.all()
+		player1, player2 = players[0], players[1]
+		return tpl % (
+			player1, player1.hero.card_class.name.capitalize(),
+			player2, player2.hero.card_class.name.capitalize()
+		)
+
 	def player(self, number):
 		for player in self.global_game.players.all():
 			if player.player_id == number:
