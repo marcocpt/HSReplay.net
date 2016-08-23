@@ -31,19 +31,13 @@ def queue_raw_uploads_for_processing():
 
 	logger.info("Starting - Queue all raw uploads for processing")
 
-	topic_arn = aws.get_sns_topic_arn_from_name(settings.SNS_PROCESS_RAW_LOG_UPOAD_TOPIC)
-
-	if topic_arn is None:
-		raise Exception("A Topic for queueing raw uploads is not configured.")
-
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix="raw"):
 		key = object["Key"]
 		if key.endswith("power.log"):  # Don't queue the descriptor files, just the logs.
 
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 			logger.info("About to queue: %s" % str(raw_upload))
-
-			aws.publish_sns_message(topic_arn, raw_upload.sns_message)
+			publish_upload_to_processing_stream(raw_upload)
 
 
 def check_for_failed_raw_upload_with_id(shortid):
