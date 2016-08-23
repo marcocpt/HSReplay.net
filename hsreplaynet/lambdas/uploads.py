@@ -29,6 +29,10 @@ def process_replay_upload_stream_handler(event, context):
 	A handler that consumes records from an AWS Kinesis stream.
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_replay_upload_stream_handler")
+	logger.info("*** Event Data ***")
+	for k,v in event.items():
+		logger.info("%s: %s" % (k, v))
+
 	kinesis_event = event["Records"][0]["kinesis"]
 	raw_upload = RawUpload.from_kinesis_event(kinesis_event)
 
