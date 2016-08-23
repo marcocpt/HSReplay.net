@@ -66,6 +66,9 @@ def generate_log_upload_address_handler(event, context):
 
 	upload_metadata = json.loads(b64decode(event.pop("body")).decode("utf8"))
 
+	if not isinstance(upload_metadata, dict):
+		raise Exception("Meta data is not a valid JSON dictionary.")
+
 	descriptor = {
 		"gateway_headers": gateway_headers,
 		"shortid": shortid,
