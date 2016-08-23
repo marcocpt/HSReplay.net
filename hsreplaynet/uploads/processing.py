@@ -87,7 +87,7 @@ def requeue_failed_raw_logs_uploaded_after(cutoff):
 	prefix = "failed"
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):
 		if raw_upload.timestamp >= cutoff:
-			_publish_requeue_message_for_failed_raw_log(raw_upload)
+			publish_upload_to_processing_stream(raw_upload)
 
 
 def _requeue_failed_raw_uploads_by_prefix(prefix):
@@ -100,16 +100,6 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 		results.append(result)
 
 	return results
-
-
-def _publish_requeue_message_for_failed_raw_log(raw_upload):
-
-	topic_arn = aws.get_sns_topic_arn_from_name(settings.SNS_PROCESS_RAW_LOG_UPOAD_TOPIC)
-
-	if topic_arn is None:
-		raise Exception("A Topic for queueing raw uploads is not configured.")
-
-	return aws.publish_sns_message(topic_arn, raw_upload.sns_message)
 
 
 def publish_upload_to_processing_stream(raw_upload):
