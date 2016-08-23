@@ -1,7 +1,7 @@
 import importlib
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from hsreplaynet.utils.aws import LAMBDA, IAM
+from hsreplaynet.utils.aws import LAMBDA, IAM, get_kinesis_stream_arn_from_name
 from hsreplaynet.utils.instrumentation import get_lambda_descriptors
 
 
@@ -75,3 +75,67 @@ class Command(BaseCommand):
 						MemorySize=descriptor["memory"],
 						Publish=True,
 					)
+
+				if descriptor["stream_name"]:
+					# This lambda would like to be registered as a listener on a kinesis stream
+					self.stdout.write("Applying event source mapping for stream: %s" % descriptor["stream_name"])
+					batch_size = descriptor["stream_batch_size"]
+					stream_name = descriptor["stream_name"]
+					target_event_source = get_kinesis_stream_arn_from_name(stream_name)
+
+					event_source_list = LAMBDA.list_event_source_mappings(
+						FunctionName=descriptor["name"]
+					)
+
+					if event_source_list["EventSourceMappings"]:
+						# We need to update the existing mappings
+						# First we need to remove any stale event source mappings.
+						# Then we need to look for an existing match and update it.
+						# Finally if we didn't update an existing match, we need to create a new mapping.
+
+						# So long as we don't DELETE an in-use mapping it will not loose its place in the stream.
+
+						update_existing_mapping_success = False
+
+						for mapping in event_source_list["EventSourceMappings"]:
+
+							mapping_uuid = mapping["UUID"]
+							mapping_event_source = mapping["EventSourceArn"]
+							mapping_batch_size = mapping["BatchSize"]
+
+							if mapping_event_source != target_event_source:
+								# Delete this event source, it's stale.
+								self.stdout.write("Deleting stale mapping for event source: %s" % mapping_event_source)
+								LAMBDA.delete_event_source_mapping(UUID=mapping_uuid)
+							else:
+								update_existing_mapping_success = True
+
+								if mapping_batch_size != batch_size:
+									# The batch size is the only thing that might have changed
+									self.stdout.write("Updating existing stream batch size from %s to %s" % (
+										mapping_batch_size,
+										batch_size
+									))
+									LAMBDA.update_event_source_mapping(UUID=mapping_uuid, BatchSize=mapping_batch_size)
+								else:
+									# Nothing has changed.
+									self.stdout.write("No changes required.")
+
+						if not update_existing_mapping_success:
+							# We didn't find an existing mapping to update, so we still must create one
+							self.stdout.write("Creating new mapping for event source: %s" % target_event_source)
+							LAMBDA.create_event_source_mapping(
+								EventSourceArn=target_event_source,
+								FunctionName=descriptor["name"],
+								BatchSize=batch_size,
+								StartingPosition='TRIM_HORIZON'
+							)
+					else:
+						# No mappings currently exist, so we need to create a new mapping
+						self.stdout.write("Creating new mapping for event source: %s" % target_event_source)
+						LAMBDA.create_event_source_mapping(
+							EventSourceArn=target_event_source,
+							FunctionName=descriptor["name"],
+							BatchSize=batch_size,
+							StartingPosition='TRIM_HORIZON'
+						)
