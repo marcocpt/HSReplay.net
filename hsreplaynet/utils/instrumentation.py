@@ -83,20 +83,29 @@ def build_papertrail_url(tracing_id):
 	return "https://papertrailapp.com/systems/Lambda/events?q=%s" % tracing_id
 
 
-def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None, stream_name=None, stream_batch_size=1):
+def lambda_handler(cpu_seconds=60,
+				   memory=128,
+				   name=None,
+				   handler=None,
+				   stream_name=None,
+				   stream_batch_size=1,
+				   trap_exceptions=True):
 	"""Indicates the decorated function is a AWS Lambda handler.
 
 	The following standard lifecycle services are provided:
 		- Sentry reporting for all Exceptions that propagate
 		- Capturing a standard set of metrics for Influx
 		- Making sure all connections to the DB are closed
-		- Capturing metadata to facilicate deployment
+		- Capturing metadata to facilitate deployment
 
 	Args:
 	- cpu_seconds - The seconds the function can run before it is terminated. Default: 60
 	- memory - The number of MB allocated to the lambda at runtime. Default: 128
 	- name - The name for the Lambda on AWS. Default: func.__name__
 	- handler - The entry point for the function. Default: handlers.<func.__name__>
+	- stream_name - The kinesis stream this lambda will listen on
+	- stream_batch_size - How many records per invocation it will consume from kinesis
+	- trap_exceptions - Trapping exceptions will prevent Lambda from retrying on failure
 	"""
 
 	def inner_lambda_handler(func):
@@ -142,7 +151,9 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None, stream_n
 					sentry.captureException()
 				else:
 					logger.info("Sentry is not available.")
-				raise
+
+				if not trap_exceptions:
+					raise
 			finally:
 				from django.db import connection
 				connection.close()
