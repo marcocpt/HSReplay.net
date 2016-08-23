@@ -1,6 +1,7 @@
 from enum import IntEnum
 import re
 import json
+import base64
 from datetime import datetime
 from django.db import models
 from django.dispatch.dispatcher import receiver
@@ -254,6 +255,32 @@ class RawUpload(object):
 		key = event["object"]["key"]
 
 		return RawUpload(bucket, key)
+
+	@staticmethod
+	def from_kinesis_event(kinesis_event):
+		#Kinesis returns the record bytes data base64 encoded
+		payload = base64.b64decode(kinesis_event["data"])
+		json_str = payload.decode("utf8")
+		data = json.loads(json_str)
+
+		return RawUpload(data["bucket"], data["log_key"])
+
+	@property
+	def kinesis_data(self):
+		data = {
+				"bucket": self.bucket,
+				"log_key": self.log_key,
+		}
+		json_str = json.dumps(data)
+		payload = json_str.encode("utf8")
+		# Kinesis will base64 encode the payload bytes for us.
+		# However, when we read the record back we will have to decode from base64 ourselves
+		return payload
+
+	@property
+	def kinesis_partition_key(self):
+		# The partition key is also used as the tracing ID
+		return self.shortid
 
 	@staticmethod
 	def from_sns_message(msg):

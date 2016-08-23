@@ -96,7 +96,9 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	"""
 	results = []
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):
-		result = _publish_requeue_message_for_failed_raw_log(raw_upload)
+		# result = _publish_requeue_message_for_failed_raw_log(raw_upload)
+		# Transitioning over to reprocessing via kinesis streams
+		result = publish_upload_to_processing_stream(raw_upload)
 		results.append(result)
 
 	return results
@@ -110,6 +112,14 @@ def _publish_requeue_message_for_failed_raw_log(raw_upload):
 		raise Exception("A Topic for queueing raw uploads is not configured.")
 
 	return aws.publish_sns_message(topic_arn, raw_upload.sns_message)
+
+
+def publish_upload_to_processing_stream(raw_upload):
+	return aws.KINESIS.put_record(
+		StreamName=settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME,
+		Data=raw_upload.kinesis_data,
+		PartitionKey=raw_upload.kinesis_partition_key,
+	)
 
 
 def queue_upload_event_for_processing(upload_event_id):
