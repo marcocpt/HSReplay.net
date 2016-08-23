@@ -96,8 +96,6 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	"""
 	results = []
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):
-		# result = _publish_requeue_message_for_failed_raw_log(raw_upload)
-		# Transitioning over to reprocessing via kinesis streams
 		result = publish_upload_to_processing_stream(raw_upload)
 		results.append(result)
 

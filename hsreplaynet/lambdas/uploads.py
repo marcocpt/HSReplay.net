@@ -32,7 +32,16 @@ def process_replay_upload_stream_handler(event, context):
 	kinesis_event = event["Records"][0]["kinesis"]
 	raw_upload = RawUpload.from_kinesis_event(kinesis_event)
 
-	logger.info("Processing a RawUpload from Kinesis: %r", raw_upload)
+
+	existing = UploadEvent.objects.filter(shortid=raw_upload.shortid)
+	is_reprocessing = False
+
+	if existing.count():
+		# This will make DRF update the existing UploadEvent
+		is_reprocessing = True
+
+	logger.info("Processing a RawUpload from Kinesis: %r with is_reprocessing=%s", raw_upload, is_reprocessing)
+	process_raw_upload(raw_upload, is_reprocessing)
 
 
 @instrumentation.lambda_handler(name="ProcessS3CreateObjectV1")
