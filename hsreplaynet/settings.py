@@ -178,6 +178,7 @@ S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
 SNS_PROCESS_RAW_LOG_UPOAD_TOPIC = "process_s3_raw_upload"
 SNS_PROCESS_UPLOAD_EVENT_TOPIC = "process_upload_event"
+KINESIS_UPLOAD_PROCESSING_STREAM_NAME = "replay-upload-processing-stream"
 
 JOUST_STATIC_URL = STATIC_URL + "joust/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"

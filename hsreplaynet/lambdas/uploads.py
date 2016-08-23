@@ -30,9 +30,9 @@ def process_replay_upload_stream_handler(event, context):
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_replay_upload_stream_handler")
 	kinesis_event = event["Records"][0]["kinesis"]
+	raw_upload = RawUpload.from_kinesis_event(kinesis_event)
 
-	payload=base64.b64decode(kinesis_event["data"])
-	logger.info("Decoded payload: " + payload)
+	logger.info("Processing a RawUpload from Kinesis: %r", raw_upload)
 
 
 @instrumentation.lambda_handler(name="ProcessS3CreateObjectV1")
