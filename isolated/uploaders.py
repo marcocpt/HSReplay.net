@@ -39,6 +39,10 @@ def get_shortid():
 	return shortuuid.uuid()
 
 
+def get_upload_url(shortid):
+	return "https://hsreplay.net/uploads/upload/%s/" % (shortid)
+
+
 def get_auth_token(headers):
 	if "Authorization" not in headers:
 		raise Exception("The Authorization Header is required.")
@@ -112,4 +116,5 @@ def generate_log_upload_address_handler(event, context):
 		"put_url": presigned_put_url,
 		"upload_shortid": shortid,  # Deprecated (Beta, 2016-08-06)
 		"shortid": shortid,
+		"url": get_upload_url(shortid),
 	}

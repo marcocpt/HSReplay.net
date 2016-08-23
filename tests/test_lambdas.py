@@ -17,7 +17,7 @@ def test_upload(upload_event, upload_context, monkeypatch):
 	monkeypatch.setattr(uploaders, "get_shortid", mock_get_shortid)
 
 	def mock_get_timestamp():
-			return ts
+		return ts
 	monkeypatch.setattr(uploaders, "get_timestamp", mock_get_timestamp)
 
 	expected_descriptor_key = "raw/%s/%s.descriptor.json" % (ts_path, shortid)
@@ -42,9 +42,14 @@ def test_upload(upload_event, upload_context, monkeypatch):
 	assert "put_url" in result
 	assert result["put_url"] == "[A SIGNED URL]"
 
-	assert "upload_shortid" in result
+	assert "shortid" in result
 	# Ensure the shortID returned is also saved to use on the upload event
 	assert descriptor["shortid"] == result["upload_shortid"]
+
+	assert result["url"] == "https://hsreplay.net/uploads/upload/%s/" % (result["shortid"])
+
+	# Deprecated
+	assert result["shortid"] == result["upload_shortid"]
 
 
 def test_process_s3_object(s3_create_object_event, upload_context, monkeypatch):
