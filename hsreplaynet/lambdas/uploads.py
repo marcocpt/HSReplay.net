@@ -1,5 +1,6 @@
 import json
 import logging
+import base64
 from django.conf import settings
 from django.contrib.sessions.middleware import SessionMiddleware
 from rest_framework.test import APIRequestFactory
@@ -20,6 +21,18 @@ def emulate_api_request(method, path, data, headers):
 	request = method_factory(path, data, **headers)
 	SessionMiddleware().process_request(request)
 	return request
+
+
+@instrumentation.lambda_handler(stream_name="replay-upload-processing-stream")
+def process_replay_upload_stream_handler(event, context):
+	"""
+	A handler that consumes records from an AWS Kinesis stream.
+	"""
+	logger = logging.getLogger("hsreplaynet.lambdas.process_replay_upload_stream_handler")
+	kinesis_event = event["Records"][0]["kinesis"]
+
+	payload=base64.b64decode(kinesis_event["data"])
+	logger.info("Decoded payload: " + payload)
 
 
 @instrumentation.lambda_handler(name="ProcessS3CreateObjectV1")

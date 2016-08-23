@@ -7,11 +7,13 @@ try:
 	SNS = boto3.client("sns")
 	LAMBDA = boto3.client("lambda")
 	IAM = boto3.client("iam")
+	KINESIS = boto3.client('kinesis')
 except ImportError:
 	S3 = None
 	SNS = None
 	LAMBDA = None
 	IAM = None
+	KINESIS = None
 
 
 def get_sns_topic_arn_from_name(name):
@@ -20,6 +22,14 @@ def get_sns_topic_arn_from_name(name):
 	for topic in response["Topics"]:
 		if topic["TopicArn"].split(":")[-1] == name:
 			return topic["TopicArn"]
+
+
+def get_kinesis_stream_arn_from_name(name):
+	stream = KINESIS.describe_stream(
+		StreamName=name,
+	)
+	if stream:
+		return stream["StreamDescription"]["StreamARN"]
 
 
 def enable_processing_raw_uploads():

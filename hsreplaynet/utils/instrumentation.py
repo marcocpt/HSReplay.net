@@ -50,6 +50,12 @@ def get_tracing_id(event):
 		s3_event = event_data['s3']
 		raw_upload = RawUpload.from_s3_event(s3_event)
 		return raw_upload.shortid
+
+	elif "kinesis" in event_data:
+		kinesis_event = event_data['kinesis']
+		# We always use the shortid as the partitionKey in kinesis streams
+		return kinesis_event["partitionKey"]
+
 	else:
 
 		return UNKNOWN_ID
@@ -77,7 +83,7 @@ def build_papertrail_url(tracing_id):
 	return "https://papertrailapp.com/systems/Lambda/events?q=%s" % tracing_id
 
 
-def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
+def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None, stream_name=None, stream_batch_size=1):
 	"""Indicates the decorated function is a AWS Lambda handler.
 
 	The following standard lifecycle services are provided:
@@ -101,7 +107,9 @@ def lambda_handler(cpu_seconds=60, memory=128, name=None, handler=None):
 			"memory": memory,
 			"cpu_seconds": cpu_seconds,
 			"name": name if name else func.__name__,
-			"handler": handler if handler else "handlers.%s" % func.__name__
+			"handler": handler if handler else "handlers.%s" % func.__name__,
+			"stream_name": stream_name if stream_name else None,
+			"stream_batch_size": stream_batch_size
 		})
 
 		@wraps(func)
