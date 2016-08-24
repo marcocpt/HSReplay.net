@@ -83,13 +83,10 @@ def build_papertrail_url(tracing_id):
 	return "https://papertrailapp.com/systems/Lambda/events?q=%s" % tracing_id
 
 
-def lambda_handler(cpu_seconds=60,
-				   memory=128,
-				   name=None,
-				   handler=None,
-				   stream_name=None,
-				   stream_batch_size=1,
-				   trap_exceptions=True):
+def lambda_handler(
+	cpu_seconds=60, memory=128, name=None, handler=None,
+	stream_name=None, stream_batch_size=1, trap_exceptions=True
+):
 	"""Indicates the decorated function is a AWS Lambda handler.
 
 	The following standard lifecycle services are provided:

@@ -10,11 +10,6 @@ from django.urls import reverse
 from hsreplaynet.utils.fields import IntEnumField, ShortUUIDField
 from hsreplaynet.utils import aws
 
-try:
-	from botocore.exceptions import ClientError
-except ImportError:
-	pass
-
 
 class UploadEventStatus(IntEnum):
 	UNKNOWN = 0
@@ -90,22 +85,22 @@ class RawUpload(object):
 	def _create_raw_descriptor_key(self, ts_string, shortid):
 		return "raw/%s/%s.descriptor.json" % (ts_string, shortid)
 
-	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key, upload_event_descriptor):
-		self._upload_event_log_bucket = upload_event_bucket
-		self._upload_event_log_key = upload_event_key
-		self._upload_event_descriptor_key = upload_event_descriptor
+	def prepare_upload_event_log_location(self, bucket, key, descriptor):
+		self._upload_event_log_bucket = bucket
+		self._upload_event_log_key = key
+		self._upload_event_descriptor_key = descriptor
 
 		log_copy_source = "%s/%s" % (self.bucket, self.log_key)
 		aws.S3.copy_object(
-			Bucket=upload_event_bucket,
-			Key=upload_event_key,
+			Bucket=bucket,
+			Key=key,
 			CopySource=log_copy_source,
 		)
 
 		descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
 		aws.S3.copy_object(
-			Bucket=upload_event_bucket,
-			Key=upload_event_descriptor,
+			Bucket=bucket,
+			Key=descriptor,
 			CopySource=descriptor_copy_source,
 		)
 
@@ -120,7 +115,7 @@ class RawUpload(object):
 				}
 			)
 		else:
-			raise NotImplementedError("Delete is not supported for state: %s" % self.state.name)
+			raise NotImplementedError("Delete is not supported for state %r" % (self.state))
 
 	@staticmethod
 	def from_s3_event(event):
@@ -138,7 +133,7 @@ class RawUpload(object):
 
 	@staticmethod
 	def from_kinesis_event(kinesis_event):
-		#Kinesis returns the record bytes data base64 encoded
+		# Kinesis returns the record bytes data base64 encoded
 		payload = base64.b64decode(kinesis_event["data"])
 		json_str = payload.decode("utf8")
 		data = json.loads(json_str)
@@ -148,8 +143,8 @@ class RawUpload(object):
 	@property
 	def kinesis_data(self):
 		data = {
-				"bucket": self.bucket,
-				"log_key": self.log_key,
+			"bucket": self.bucket,
+			"log_key": self.log_key,
 		}
 		json_str = json.dumps(data)
 		payload = json_str.encode("utf8")
@@ -265,7 +260,11 @@ class UploadEvent(models.Model):
 
 	@property
 	def is_processing(self):
-		return self.status in (UploadEventStatus.UNKNOWN, UploadEventStatus.PROCESSING)
+		return self.status in (
+			UploadEventStatus.UNKNOWN,
+			UploadEventStatus.PROCESSING,
+			UploadEventStatus.VALIDATING,
+		)
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"shortid": self.shortid})
