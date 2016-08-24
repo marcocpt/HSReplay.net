@@ -5,9 +5,9 @@ from base64 import b64encode
 
 def pytest_addoption(parser):
 	parser.addoption(
-		"--upload_regression_suite",
+		"--all",
 		action="store_true",
-		help="run the lambdas upload regression suite"
+		help="run slower tests not enabled by default"
 	)
 
 

@@ -110,8 +110,8 @@ class MockRawUpload(object):
 
 
 upload_regression_suite = pytest.mark.skipif(
-	not pytest.config.getoption("--upload_regression_suite"),
-	reason="need --upload_regression_suite option to run"
+	not pytest.config.getoption("--all"),
+	reason="need --all option to run"
 )
 
 
