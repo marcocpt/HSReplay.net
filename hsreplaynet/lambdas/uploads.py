@@ -40,7 +40,9 @@ def process_s3_create_handler(event, context):
 
 
 def process_raw_upload(raw_upload, reprocessing=False):
-	"""Generic processing logic for raw log files."""
+	"""
+	Generic processing logic for raw log files.
+	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_raw_upload")
 
 	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid)
@@ -69,7 +71,6 @@ def process_raw_upload(raw_upload, reprocessing=False):
 
 	try:
 		header = gateway_headers["Authorization"]
-		logger.info("Authorization Header: %s", header)
 		token = AuthToken.get_token_from_header(header)
 
 		if not token:
@@ -87,6 +88,7 @@ def process_raw_upload(raw_upload, reprocessing=False):
 	obj.descriptor = new_descriptor_key
 	obj.upload_ip = descriptor["source_ip"]
 	obj.status = UploadEventStatus.VALIDATING
+	obj.user_agent = gateway_headers.get("User-Agent", "")[:100]
 
 	if obj.token.test_data:
 		# For test_data tokens all UploadEvents are test_data = True
