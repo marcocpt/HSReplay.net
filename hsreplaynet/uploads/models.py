@@ -24,6 +24,7 @@ class UploadEventStatus(IntEnum):
 	SUCCESS = 4
 	UNSUPPORTED = 5
 	VALIDATION_ERROR = 6
+	VALIDATING = 7
 
 
 class RawUploadState(IntEnum):
@@ -125,6 +126,8 @@ class RawUpload(object):
 
 	def make_failed(self, reason):
 		if self._upload_event_location_populated:
+			# TODO: Do we need to revert the descriptor.json
+
 			# Always revert our temporary copy of the log to the uploads location
 			aws.S3.delete_object(
 				Bucket=self._upload_event_log_bucket,
@@ -198,15 +201,22 @@ class RawUpload(object):
 
 		self._error_key = failed_error_key
 
-	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key):
+	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key, upload_event_descriptor):
 		self._upload_event_log_bucket = upload_event_bucket
 		self._upload_event_log_key = upload_event_key
 
-		copy_source = "%s/%s" % (self.bucket, self.log_key)
+		log_copy_source = "%s/%s" % (self.bucket, self.log_key)
 		aws.S3.copy_object(
 			Bucket=upload_event_bucket,
 			Key=upload_event_key,
-			CopySource=copy_source,
+			CopySource=log_copy_source,
+		)
+
+		descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
+		aws.S3.copy_object(
+			Bucket=upload_event_bucket,
+			Key=upload_event_descriptor,
+			CopySource=descriptor_copy_source,
 		)
 
 		self._upload_event_location_populated = True
