@@ -51,13 +51,7 @@ class UploadEventViewSet(WriteOnlyOnceViewSet):
 	permission_classes = (RequireAuthToken, APIKeyPermission)
 	queryset = UploadEvent.objects.all()
 	serializer_class = serializers.UploadEventSerializer
-
-	def update(self, request, *args, **kwargs):
-		self._shortid = request.data["shortid"]
-		return super(UploadEventViewSet, self).update(request, *args, **kwargs)
-
-	def get_object(self):
-		return UploadEvent.objects.get(shortid=self._shortid)
+	lookup_field = "shortid"
 
 
 class GameReplayDetail(RetrieveDestroyAPIView):

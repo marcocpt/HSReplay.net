@@ -5,8 +5,6 @@ from django.utils.six import string_types
 from rest_framework import serializers
 from hsreplaynet.accounts.models import User
 from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
-from hsreplaynet.uploads.models import UploadEvent
-from hsreplaynet.utils import get_client_ip
 from .models import AuthToken, APIKey
 
 
@@ -87,13 +85,12 @@ class PlayerSerializer(serializers.Serializer):
 
 class UploadEventSerializer(serializers.Serializer):
 	id = serializers.UUIDField(read_only=True)
-	shortid = serializers.CharField(required=False)
+	shortid = serializers.CharField(read_only=True)
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
 	test_data = serializers.BooleanField(default=False)
 
-	file = SmartFileField(write_only=True)
 	game_type = serializers.IntegerField(default=0, write_only=True)
 	format = serializers.IntegerField(required=False, write_only=True)
 	build = serializers.IntegerField(write_only=True)
@@ -121,35 +118,13 @@ class UploadEventSerializer(serializers.Serializer):
 	player1 = PlayerSerializer(required=False, write_only=True)
 	player2 = PlayerSerializer(required=False, write_only=True)
 
-	def create(self, data):
-		request = self.context["request"]
+	class Meta:
+		lookup_field = "shortid"
 
-		ret = UploadEvent(
-			file=data.pop("file"),
-			token=request.auth_token,
-			api_key=request.api_key,
-			test_data=data.pop("test_data"),
-			upload_ip=get_client_ip(request),
-		)
-		if "shortid" in data:
-			ret.shortid = data.pop("shortid")
-		ret.metadata = json.dumps(data, cls=DjangoJSONEncoder)
-		ret.save()
-
-		return ret
-
-	def update(self, event, data):
-		request = self.context["request"]
-
-		event.file = data.pop("file")
-		event.token = request.auth_token
-		event.api_key = request.api_key
-		event.test_data = data.pop("test_data")
-		event.upload_ip = get_client_ip(request)
-		event.metadata = json.dumps(data, cls=DjangoJSONEncoder)
-		event.save()
-
-		return event
+	def update(self, instance, validated_data):
+		instance.metadata = json.dumps(validated_data, cls=DjangoJSONEncoder)
+		instance.save()
+		return instance
 
 
 class GlobalGamePlayerSerializer(serializers.ModelSerializer):
