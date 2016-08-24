@@ -32,6 +32,14 @@ def get_kinesis_stream_arn_from_name(name):
 		return stream["StreamDescription"]["StreamARN"]
 
 
+def publish_raw_upload_to_processing_stream(raw_upload):
+	return KINESIS.put_record(
+		StreamName=settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME,
+		Data=raw_upload.kinesis_data,
+		PartitionKey=raw_upload.kinesis_partition_key,
+	)
+
+
 def enable_processing_raw_uploads():
 	processing_lambda = LAMBDA.get_function(FunctionName="ProcessS3CreateObjectV1")
 	S3.put_bucket_notification_configuration(

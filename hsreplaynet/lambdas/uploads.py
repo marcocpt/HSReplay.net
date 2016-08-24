@@ -9,7 +9,7 @@ from hsreplaynet.uploads.models import (
 	UploadEvent, UploadEventType, RawUpload, RawUploadConfigurationError, _generate_upload_key
 )
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
-from hsreplaynet.utils import instrumentation
+from hsreplaynet.utils import instrumentation, aws
 
 
 def emulate_api_request(method, path, data, headers):
@@ -48,7 +48,21 @@ def process_replay_upload_stream_handler(event, context):
 	process_raw_upload(raw_upload, is_reprocessing)
 
 
-@instrumentation.lambda_handler(name="ProcessS3CreateObjectV1")
+@instrumentation.lambda_handler()
+def put_s3_create_in_stream_handler(event, context):
+	"""
+	A handler enqueues RawUploads to kinesis whenever a "..power.log" suffixed object is created in S3.
+	"""
+	logger = logging.getLogger("hsreplaynet.lambdas.process_s3_create_handler")
+
+	s3_event = event["Records"][0]["s3"]
+	raw_upload = RawUpload.from_s3_event(s3_event)
+	logger.info("Processing a RawUpload from an S3 event: %r", raw_upload)
+	aws.publish_raw_upload_to_processing_stream(raw_upload)
+
+
+
+@instrumentation.lambda_handler(cpu_seconds=180, name="ProcessS3CreateObjectV1")
 def process_s3_create_handler(event, context):
 	"""
 	A handler that is triggered whenever a "..power.log" suffixed object is created in S3.
@@ -163,6 +177,10 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 
 		# If DRF returns success, then we delete the raw_upload
 		raw_upload.delete()
+		# Now we begin the 3rd lambda without the indirection of SNS
+
+		upload = UploadEvent.objects.get(shortid=raw_upload.shortid)
+		upload.process()
 
 	logger.info("Processing RawUpload Complete.")
 	return result
@@ -188,7 +206,7 @@ def create_upload_event_from_request(request):
 	# Extract the upload_event from the response and queue it for processing
 	upload_event_id = response.data["id"]
 	logger.info("Created UploadEvent %r", upload_event_id)
-	queue_upload_event_for_processing(upload_event_id)
+	#queue_upload_event_for_processing(upload_event_id)
 
 	return {
 		"result_type": "SUCCESS",
@@ -210,7 +228,8 @@ def process_upload_event_handler(event, context):
 	# This should never raise DoesNotExist.
 	# If it does, the previous lambda made a terrible mistake.
 	upload = UploadEvent.objects.get(id=message["id"])
-
-	logger.info("Processing %r (%s)", upload.shortid, upload.status.name)
 	upload.process()
+	
+	logger.info("Processing %r (%s)", upload.shortid, upload.status.name)
+
 	logger.info("Status: %s", upload.status.name)
