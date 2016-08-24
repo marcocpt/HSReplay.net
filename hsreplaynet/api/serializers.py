@@ -88,7 +88,6 @@ class PlayerSerializer(serializers.Serializer):
 class UploadEventSerializer(serializers.Serializer):
 	id = serializers.UUIDField(read_only=True)
 	shortid = serializers.CharField(required=False)
-	type = serializers.IntegerField()
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
@@ -129,7 +128,6 @@ class UploadEventSerializer(serializers.Serializer):
 			file=data.pop("file"),
 			token=request.auth_token,
 			api_key=request.api_key,
-			type=data.pop("type"),
 			test_data=data.pop("test_data"),
 			upload_ip=get_client_ip(request),
 		)
@@ -146,7 +144,6 @@ class UploadEventSerializer(serializers.Serializer):
 		event.file = data.pop("file")
 		event.token = request.auth_token
 		event.api_key = request.api_key
-		event.type = data.pop("type")
 		event.test_data = data.pop("test_data")
 		event.upload_ip = get_client_ip(request)
 		event.metadata = json.dumps(data, cls=DjangoJSONEncoder)

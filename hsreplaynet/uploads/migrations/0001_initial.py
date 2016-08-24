@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 ('shortid', hsreplaynet.utils.fields.ShortUUIDField(blank=True, editable=False, max_length=22, unique=True, verbose_name='Short ID')),
-                ('type', hsreplaynet.utils.fields.IntEnumField(choices=[(1, 'POWER_LOG'), (2, 'OUTPUT_TXT'), (3, 'HSREPLAY_XML')], validators=[hsreplaynet.utils.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventType)])),
+                ('type', hsreplaynet.utils.fields.IntEnumField(choices=[(1, 'POWER_LOG'), (2, 'OUTPUT_TXT'), (3, 'HSREPLAY_XML')])),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('upload_ip', models.GenericIPAddressField()),
                 ('status', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'UNKNOWN'), (1, 'PROCESSING'), (2, 'SERVER_ERROR'), (3, 'PARSING_ERROR'), (4, 'SUCCESS'), (5, 'UNSUPPORTED'), (6, 'VALIDATION_ERROR')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventStatus)])),

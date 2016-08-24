@@ -15,10 +15,10 @@ class UploadEventAdmin(admin.ModelAdmin):
 	actions = (queue_for_reprocessing, )
 	date_hierarchy = "created"
 	list_display = (
-		"__str__", "status", "tainted", "type", urlify("token"),
+		"__str__", "status", "tainted", urlify("token"),
 		urlify("game"), "upload_ip", "created", "file",
 	)
-	list_filter = ("type", "status", "tainted")
+	list_filter = ("status", "tainted")
 	raw_id_fields = ("token", "game")
 	readonly_fields = ("created", )
 	search_fields = ("shortid", )
