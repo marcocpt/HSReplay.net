@@ -122,6 +122,9 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 
 	obj.save()
 
+	# If we get here, now everything is in the DB.
+	raw_upload.delete()
+
 	serializer = UploadEventSerializer(obj, data=upload_metadata)
 	if serializer.is_valid():
 		serializer.save()
@@ -131,5 +134,4 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 		obj.status = UploadEventStatus.VALIDATION_ERROR
 		obj.save()
 
-	# If we get here, now everything is in the DB.
-	raw_upload.delete()
+
