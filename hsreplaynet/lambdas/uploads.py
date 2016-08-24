@@ -6,7 +6,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import UploadEventViewSet
 from hsreplaynet.uploads.models import (
-	UploadEvent, UploadEventType, RawUpload, RawUploadConfigurationError, _generate_upload_key
+	UploadEvent, RawUpload, RawUploadConfigurationError, _generate_upload_key
 )
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation, aws
@@ -114,7 +114,7 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 	logger = logging.getLogger("hsreplaynet.lambdas.process_raw_upload")
 	logger.info("Processing %r with is_reprocessing=%s", raw_upload, is_reprocessing)
 
-	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid, type=1)
+	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid)
 
 	if not created and not is_reprocessing:
 		logger.info("Invocation is an instance of double_put. Exiting Early.")
@@ -128,23 +128,26 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 
 	descriptor = raw_upload.descriptor
 
-	new_key = _generate_upload_key(raw_upload.timestamp, raw_upload.shortid)
+	new_log_key = _generate_upload_key(raw_upload.timestamp, raw_upload.shortid)
 	new_bucket = settings.AWS_STORAGE_BUCKET_NAME
 
 	# First we copy the log to the proper location
 	logger.info("*** COPY RAW LOG TO NEW LOCATION ***")
 	logger.info("SOURCE: %s/%s" % (raw_upload.bucket, raw_upload.log_key))
-	logger.info("DESTINATION: %s/%s" % (new_bucket, new_key))
+	logger.info("DESTINATION: %s/%s" % (new_bucket, new_log_key))
 
 	try:
-		raw_upload.prepare_upload_event_log_location(new_bucket, new_key)
+		raw_upload.prepare_upload_event_log_location(new_bucket, new_log_key)
+
+		# SAVE 2 Goes Here
+
 
 		# Then we build the request and send it to DRF
 		# If "file" is a string, DRF will interpret as a S3 Key
 		upload_metadata = descriptor["upload_metadata"]
 		upload_metadata["shortid"] = descriptor["shortid"]
-		upload_metadata["file"] = new_key
-		upload_metadata["type"] = int(UploadEventType.POWER_LOG)
+		upload_metadata["file"] = new_log_key
+
 
 		gateway_headers = descriptor["gateway_headers"]
 
@@ -229,7 +232,7 @@ def process_upload_event_handler(event, context):
 	# If it does, the previous lambda made a terrible mistake.
 	upload = UploadEvent.objects.get(id=message["id"])
 	upload.process()
-	
+
 	logger.info("Processing %r (%s)", upload.shortid, upload.status.name)
 
 	logger.info("Status: %s", upload.status.name)

@@ -16,22 +16,6 @@ except ImportError:
 	pass
 
 
-class UploadEventType(IntEnum):
-	POWER_LOG = 1
-	OUTPUT_TXT = 2
-	HSREPLAY_XML = 3
-
-	@property
-	def extension(self):
-		if self.name == "POWER_LOG":
-			return ".power.log"
-		elif self.name == "OUTPUT_TXT":
-			return ".output.txt"
-		elif self.name == "HSREPLAY_XML":
-			return ".hsreplay.xml"
-		return ".txt"
-
-
 class UploadEventStatus(IntEnum):
 	UNKNOWN = 0
 	PROCESSING = 1
@@ -379,12 +363,16 @@ class RawUpload(object):
 
 
 def _generate_upload_path(instance, filename):
-	return _generate_upload_key(instance.created, instance.shortid)
+	return _generate_upload_key(instance.created, instance.shortid, "power.log")
 
 
-def _generate_upload_key(ts, shortid):
+def _generate_descriptor_path(instance, filename):
+	return _generate_upload_key(instance.created, instance.shortid, "descriptor.json")
+
+
+def _generate_upload_key(ts, shortid, suffix="power.log"):
 	timestamp = ts.strftime("%Y/%m/%d/%H/%M")
-	return "uploads/%s/%s.power.log" % (timestamp, shortid)
+	return "uploads/%s/%s.%s" % (timestamp, shortid, suffix)
 
 
 class UploadEvent(models.Model):
@@ -404,7 +392,6 @@ class UploadEvent(models.Model):
 		"api.APIKey", on_delete=models.SET_NULL,
 		null=True, blank=True, related_name="uploads"
 	)
-	type = IntEnumField(enum=UploadEventType, default=UploadEventType.POWER_LOG)
 	game = models.ForeignKey(
 		"games.GameReplay", on_delete=models.SET_NULL,
 		null=True, blank=True, related_name="uploads"
@@ -419,6 +406,8 @@ class UploadEvent(models.Model):
 
 	metadata = models.TextField(blank=True)
 	file = models.FileField(upload_to=_generate_upload_path, null=True)
+	descriptor = models.FileField(upload_to=_generate_descriptor_path, null=True)
+	attempts = models.TextField(blank=True)
 
 	def __str__(self):
 		return self.shortid

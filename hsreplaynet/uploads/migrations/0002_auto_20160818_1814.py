@@ -26,11 +26,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='uploadevent',
-            name='type',
-            field=hsreplaynet.utils.fields.IntEnumField(choices=[(1, 'POWER_LOG'), (2, 'OUTPUT_TXT'), (3, 'HSREPLAY_XML')], default=1, validators=[hsreplaynet.utils.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventType)]),
-        ),
-        migrations.AlterField(
-            model_name='uploadevent',
             name='upload_ip',
             field=models.GenericIPAddressField(null=True),
         ),
