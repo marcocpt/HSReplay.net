@@ -40,20 +40,6 @@ def publish_raw_upload_to_processing_stream(raw_upload):
 	)
 
 
-def publish_upload_event_to_processing_stream(upload_event):
-	data = {
-			"bucket": settings.AWS_STORAGE_BUCKET_NAME,
-			"log_key": str(upload_event.file),
-	}
-	json_str = json.dumps(data)
-	payload = json_str.encode("utf8")
-	return KINESIS.put_record(
-		StreamName=settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME,
-		Data=payload,
-		PartitionKey=upload_event.shortid,
-	)
-
-
 def enable_processing_raw_uploads():
 	processing_lambda = LAMBDA.get_function(FunctionName="ProcessS3CreateObjectV1")
 	S3.put_bucket_notification_configuration(

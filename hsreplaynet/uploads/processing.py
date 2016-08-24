@@ -95,7 +95,8 @@ def queue_upload_event_for_processing(event):
 	This method can be used to requeue UploadEvent's from the Admin panel.
 	"""
 	if settings.ENV_PROD:
-		aws.publish_upload_event_to_processing_stream(event)
+		raw_upload = RawUpload.from_upload_event(event)
+		aws.publish_raw_upload_to_processing_stream(raw_upload)
 	else:
 		logger.info("Processing UploadEvent %r locally", event)
 		event.process()

@@ -6,7 +6,6 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.dispatch.dispatcher import receiver
-from django.utils.timezone import now
 from django.urls import reverse
 from hsreplaynet.utils.fields import IntEnumField, ShortUUIDField
 from hsreplaynet.utils import aws
@@ -30,11 +29,7 @@ class UploadEventStatus(IntEnum):
 
 class RawUploadState(IntEnum):
 	NEW = 0
-	FAILED = 1
-
-
-class RawUploadConfigurationError(Exception):
-	pass
+	HAS_UPLOAD_EVENT = 1
 
 
 class RawUpload(object):
@@ -43,14 +38,13 @@ class RawUpload(object):
 	"""
 
 	RAW_LOG_KEY_PATTERN = r"raw/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.power.log"
-	RAW_TIMESTAMP_FORMAT = "%Y/%m/%d/%H/%M"
-
-	FAILED_LOG_KEY_PATTERN = r"failed/(?P<shortid>\w{22})/(?P<ts>[\d-]+)\.power.log"
-	FAILED_TIMESTAMP_FORMAT = "%Y-%m-%d-%H-%M"
+	HAS_UPLOAD_KEY_PATTERN = r"uploads/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.power.log"
+	TIMESTAMP_FORMAT = "%Y/%m/%d/%H/%M"
 
 	def __init__(self, bucket, key):
 		self.bucket = bucket
 		self._log_key = key
+		self._upload_event = None
 
 		if key.startswith("raw"):
 			self._state = RawUploadState.NEW
@@ -61,41 +55,34 @@ class RawUpload(object):
 
 			fields = match.groupdict()
 			self._shortid = fields["shortid"]
-			self._timestamp = datetime.strptime(fields["ts"], RawUpload.RAW_TIMESTAMP_FORMAT)
+			self._timestamp = datetime.strptime(fields["ts"], RawUpload.TIMESTAMP_FORMAT)
 
 			self._descriptor_key = self._create_raw_descriptor_key(fields["ts"], fields["shortid"])
-			self._error_key = None  # New RawUploads should never have an error object
 
-		elif key.startswith("failed"):
-			self._state = RawUploadState.FAILED
+		elif key.startswith("uploads"):
+			self._state = RawUploadState.HAS_UPLOAD_EVENT
 
-			match = re.match(RawUpload.FAILED_LOG_KEY_PATTERN, key)
+			match = re.match(RawUpload.HAS_UPLOAD_KEY_PATTERN, key)
 			if not match:
 				raise ValueError("Failed to extract shortid and timestamp from key.")
 
 			fields = match.groupdict()
 			self._shortid = fields["shortid"]
-			self._timestamp = datetime.strptime(fields["ts"], RawUpload.FAILED_TIMESTAMP_FORMAT)
+			self._timestamp = datetime.strptime(fields["ts"], RawUpload.TIMESTAMP_FORMAT)
 
-			self._descriptor_key = self._create_failed_descriptor_key(
-				fields["ts"], fields["shortid"],
-			)
-			self._error_key = self._create_failed_error_key(fields["ts"], fields["shortid"])
+			self._upload_event = UploadEvent.objects.get(shortid=self._shortid)
+			self._descriptor_key = str(self._upload_event.descriptor)
 
 		else:
 			raise NotImplementedError("__init__ is not supported for key pattern: %s" % key)
 
 		self._upload_event_log_bucket = None
 		self._upload_event_log_key = None
+		self._upload_event_descriptor_key = None
 		self._upload_event_location_populated = False
 
 		# These are loaded lazily from S3
 		self._descriptor = None
-		self._error = None
-
-		# Always use "put" by default.
-		# If you use "post" a new UploadEvent will be created
-		self.upload_http_method = "put"
 
 	def __repr__(self):
 		return "<RawUpload %s:%s:%s>" % (self.shortid, self.bucket, self.log_key)
@@ -103,108 +90,10 @@ class RawUpload(object):
 	def _create_raw_descriptor_key(self, ts_string, shortid):
 		return "raw/%s/%s.descriptor.json" % (ts_string, shortid)
 
-	def _create_failed_descriptor_key(self, ts_string, shortid):
-		return "failed/%s/%s.descriptor.json" % (shortid, ts_string)
-
-	def _create_failed_error_key(self, ts_string, shortid):
-		return "failed/%s/%s.error.json" % (shortid, ts_string)
-
-	def _create_failed_log_key(self, ts_string, shortid):
-		return "failed/%s/%s.power.log" % (shortid, ts_string)
-
-	@property
-	def is_present_in_failed_bucket(self):
-		ts_string = self.timestamp.strftime(RawUpload.FAILED_TIMESTAMP_FORMAT)
-		try:
-			obj = aws.S3.head_object(
-				Bucket=self.bucket,
-				Key=self._create_failed_log_key(ts_string, self.shortid)
-			)
-		except Exception:
-			return False
-		else:
-			return True
-
-	def make_failed(self, reason):
-		if self._upload_event_location_populated:
-			# TODO: Do we need to revert the descriptor.json
-
-			# Always revert our temporary copy of the log to the uploads location
-			aws.S3.delete_object(
-				Bucket=self._upload_event_log_bucket,
-				Key=self._upload_event_log_key
-			)
-
-			self._upload_event_location_populated = False
-
-		ts_string = self.timestamp.strftime(RawUpload.FAILED_TIMESTAMP_FORMAT)
-
-		if self._state == RawUploadState.FAILED:
-			# This RawUpload started out in the /failed directory,
-			# so there is no need to move things there.
-			# However, we do still need to update the error message
-			# in casethe failure was for a different reason.
-			self._create_or_update_error_messages(reason, ts_string)
-		else:
-
-			failed_log_key = self._create_failed_log_key(ts_string, self.shortid)
-			failed_log_copy_source = "%s/%s" % (self.bucket, self.log_key)
-			aws.S3.copy_object(
-				Bucket=self.bucket,
-				Key=failed_log_key,
-				CopySource=failed_log_copy_source,
-			)
-
-			failed_descriptor_key = self._create_failed_descriptor_key(ts_string, self.shortid)
-			failed_descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
-			aws.S3.copy_object(
-				Bucket=self.bucket,
-				Key=failed_descriptor_key,
-				CopySource=failed_descriptor_copy_source,
-			)
-
-			self._create_or_update_error_messages(reason, ts_string)
-
-			# Finally remove the two objects from the /raw prefix to avoid that filling up.
-			aws.S3.delete_objects(
-				Bucket=self.bucket,
-				Delete={
-					"Objects": [{"Key": self.log_key}, {"Key": self.descriptor_key}]
-				}
-			)
-
-			self._log_key = failed_log_key
-			self._descriptor_key = failed_descriptor_key
-			self._state = RawUploadState.FAILED
-
-	def _create_or_update_error_messages(self, reason, ts_string):
-		# If the upload failed previously retrieve the history of errors to append to it.
-		if self._state == RawUploadState.FAILED:
-			error_json = self.error
-		else:
-			error_json = {"attempts": []}
-
-		try:
-			current_attempt_json = json.loads(reason)
-		except Exception:
-			current_attempt_json = {"reason": reason}
-
-		current_attempt_json["failure_ts"] = now().isoformat()
-
-		error_json["attempts"].append(current_attempt_json)
-
-		failed_error_key = self._create_failed_error_key(ts_string, self.shortid)
-		aws.S3.put_object(
-			Key=failed_error_key,
-			Body=json.dumps(error_json, sort_keys=True, indent=4).encode("utf8"),
-			Bucket=self.bucket,
-		)
-
-		self._error_key = failed_error_key
-
 	def prepare_upload_event_log_location(self, upload_event_bucket, upload_event_key, upload_event_descriptor):
 		self._upload_event_log_bucket = upload_event_bucket
 		self._upload_event_log_key = upload_event_key
+		self._upload_event_descriptor_key = upload_event_descriptor
 
 		log_copy_source = "%s/%s" % (self.bucket, self.log_key)
 		aws.S3.copy_object(
@@ -230,17 +119,6 @@ class RawUpload(object):
 					"Objects": [{"Key": self.log_key}, {"Key": self.descriptor_key}]
 				}
 			)
-		elif self.state == RawUploadState.FAILED:
-			aws.S3.delete_objects(
-				Bucket=self.bucket,
-				Delete={
-					"Objects": [
-						{"Key": self.log_key},
-						{"Key": self.descriptor_key},
-						{"Key": self.error_key}
-					]
-				}
-			)
 		else:
 			raise NotImplementedError("Delete is not supported for state: %s" % self.state.name)
 
@@ -250,6 +128,13 @@ class RawUpload(object):
 		key = event["object"]["key"]
 
 		return RawUpload(bucket, key)
+
+	@staticmethod
+	def from_upload_event(event):
+		bucket = settings.AWS_STORAGE_BUCKET_NAME
+		log_key = str(event.file)
+
+		return RawUpload(bucket, log_key)
 
 	@staticmethod
 	def from_kinesis_event(kinesis_event):
@@ -304,39 +189,9 @@ class RawUpload(object):
 
 		return self._descriptor
 
-	@property
-	def error_key(self):
-		return self._error_key
-
-	@property
-	def error(self):
-		if self._error is None:
-			self._error = self._get_object(self._error_key)
-
-		return self._error
-
-	@property
-	def error_str(self):
-		return json.dumps(self.error, sort_keys=True, indent=4)
-
-	@property
-	def error_url(self):
-		return self._signed_url_for(self._error_key)
-
 	def _get_object(self, key):
-		try:
-			obj = aws.S3.get_object(Bucket=self.bucket, Key=key)
-		except ClientError:
-			is_new_upload = self.state == RawUploadState.NEW
-			is_in_failed = self.is_present_in_failed_bucket
-
-			if is_new_upload and is_in_failed:
-				msg = "The RawUpload was initialed as NEW but is actually located in /failed"
-				raise RawUploadConfigurationError(msg)
-			else:
-				raise
-		else:
-			return json.loads(obj["Body"].read().decode("utf8"))
+		obj = aws.S3.get_object(Bucket=self.bucket, Key=key)
+		return json.loads(obj["Body"].read().decode("utf8"))
 
 	def _signed_url_for(self, key):
 		return aws.S3.generate_presigned_url(
