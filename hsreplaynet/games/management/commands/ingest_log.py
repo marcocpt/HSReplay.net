@@ -2,7 +2,7 @@ import json
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
-from hsreplaynet.uploads.models import UploadEvent, UploadEventType
+from hsreplaynet.uploads.models import UploadEvent
 
 
 class Command(BaseCommand):
@@ -18,7 +18,6 @@ class Command(BaseCommand):
 			}
 
 			event = UploadEvent(
-				type=UploadEventType.POWER_LOG,
 				upload_ip="127.0.0.1",
 				metadata=json.dumps(metadata),
 			)
