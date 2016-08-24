@@ -40,6 +40,16 @@ def publish_raw_upload_to_processing_stream(raw_upload):
 	)
 
 
+def get_processing_stream_max_writes_per_second():
+	stream = KINESIS.describe_stream(
+		StreamName=settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME,
+	)
+	num_shards = len(stream["StreamDescription"]["Shards"])
+	best_case_throughput = (num_shards * 1000)
+	safety_limit = .9
+	return best_case_throughput * safety_limit
+
+
 def enable_processing_raw_uploads():
 	processing_lambda = LAMBDA.get_function(FunctionName="ProcessS3CreateObjectV1")
 	S3.put_bucket_notification_configuration(
