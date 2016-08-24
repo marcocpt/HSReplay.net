@@ -3,6 +3,7 @@ import re
 import json
 import base64
 from datetime import datetime
+from django.conf import settings
 from django.db import models
 from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
@@ -275,21 +276,6 @@ class RawUpload(object):
 	def kinesis_partition_key(self):
 		# The partition key is also used as the tracing ID
 		return self.shortid
-
-	@staticmethod
-	def from_sns_message(msg):
-		raw_upload = RawUpload(msg["bucket"], msg["log_key"])
-
-		return raw_upload
-
-	@property
-	def sns_message(self):
-		return {
-			"bucket": self.bucket,
-			"log_key": self.log_key,
-			# This is included to make retrieving the tracing ID easier.
-			"shortid": self.shortid,
-		}
 
 	@property
 	def state(self):

@@ -24,19 +24,6 @@ def process_replay_upload_stream_handler(event, context):
 	process_raw_upload(raw_upload, is_reprocessing)
 
 
-@instrumentation.lambda_handler()
-def put_s3_create_in_stream_handler(event, context):
-	"""
-	A handler enqueues RawUploads to kinesis whenever a "..power.log" suffixed object is created in S3.
-	"""
-	logger = logging.getLogger("hsreplaynet.lambdas.process_s3_create_handler")
-
-	s3_event = event["Records"][0]["s3"]
-	raw_upload = RawUpload.from_s3_event(s3_event)
-	logger.info("Processing a RawUpload from an S3 event: %r", raw_upload)
-	aws.publish_raw_upload_to_processing_stream(raw_upload)
-
-
 @instrumentation.lambda_handler(cpu_seconds=180, name="ProcessS3CreateObjectV1")
 def process_s3_create_handler(event, context):
 	"""
@@ -57,7 +44,6 @@ def process_s3_create_handler(event, context):
 		# This only occurs if this is S3's second attempt to notify lambda
 		# We cannot disable the S3 notification retry behavior
 		# So we supress this exception as a work around, so we don't get a 3rd attempt.
-
 
 
 def get_token(header):

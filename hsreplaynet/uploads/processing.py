@@ -1,15 +1,9 @@
 """
 A module for scheduling UploadEvents to be processed or reprocessed.
-
-For additional details see:
-http://boto3.readthedocs.io/en/latest/reference/services/sns.html#SNS.Client.publish
 """
 import logging
-import os
 from django.conf import settings
-from django.utils.timezone import now
-from hsreplaynet.uploads.models import UploadEvent, RawUpload
-from hsreplaynet.utils.instrumentation import error_handler, influx_metric
+from hsreplaynet.uploads.models import RawUpload
 from hsreplaynet.utils import aws
 
 logger = logging.getLogger(__file__)
@@ -96,46 +90,12 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	return results
 
 
-def queue_upload_event_for_processing(upload_event_id):
+def queue_upload_event_for_processing(event):
 	"""
-	This method is used when UploadEvents are initially created.
-	However it can also be used to requeue an UploadEvent to be
-	processed again if an error was detected downstream that has now been fixed.
+	This method can be used to requeue UploadEvent's from the Admin panel.
 	"""
 	if settings.ENV_PROD:
-		if "TRACING_REQUEST_ID" in os.environ:
-			token = os.environ["TRACING_REQUEST_ID"]
-		else:
-			# If this was re-queued manually the tracing ID may not be set yet.
-			event = UploadEvent.objects.get(id=upload_event_id)
-			token = str(event.shortid)
-
-		message = {
-			"id": upload_event_id,
-			"token": token
-		}
-
-		success = True
-		try:
-			logger.info("Submitting %r to SNS", message)
-			sns_topic_arn = aws.get_sns_topic_arn_from_name(settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC)
-			response = aws.publish_sns_message(sns_topic_arn, message)
-			logger.info("SNS Response: %s" % str(response))
-		except Exception as e:
-			logger.error("Exception raised.")
-			error_handler(e)
-			success = False
-		finally:
-			influx_metric(
-				"queue_upload_event_for_processing",
-				fields={"value": 1},
-				timestamp=now(),
-				tags={
-					"success": success,
-					"is_running_as_lambda": settings.ENV_LAMBDA,
-				}
-			)
+		aws.publish_upload_event_to_processing_stream(event)
 	else:
-		logger.info("Processing UploadEvent %r locally", upload_event_id)
-		upload = UploadEvent.objects.get(id=upload_event_id)
-		upload.process()
+		logger.info("Processing UploadEvent %r locally", event)
+		event.process()

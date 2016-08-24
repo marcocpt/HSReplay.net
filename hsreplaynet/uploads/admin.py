@@ -6,7 +6,7 @@ from .processing import queue_upload_event_for_processing
 
 def queue_for_reprocessing(admin, request, queryset):
 	for obj in queryset:
-		queue_upload_event_for_processing(str(obj.id))
+		queue_upload_event_for_processing(obj)
 queue_for_reprocessing.short_description = "Queue for reprocessing"
 
 
