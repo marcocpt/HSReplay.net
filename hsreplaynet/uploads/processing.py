@@ -37,7 +37,7 @@ def queue_raw_uploads_for_processing():
 
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 			logger.info("About to queue: %s" % str(raw_upload))
-			publish_upload_to_processing_stream(raw_upload)
+			aws.publish_raw_upload_to_processing_stream(raw_upload)
 
 
 def check_for_failed_raw_upload_with_id(shortid):
@@ -81,7 +81,7 @@ def requeue_failed_raw_logs_uploaded_after(cutoff):
 	prefix = "failed"
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):
 		if raw_upload.timestamp >= cutoff:
-			publish_upload_to_processing_stream(raw_upload)
+			aws.publish_raw_upload_to_processing_stream(raw_upload)
 
 
 def _requeue_failed_raw_uploads_by_prefix(prefix):
@@ -90,18 +90,10 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	"""
 	results = []
 	for raw_upload in _list_raw_uploads_by_prefix(prefix):
-		result = publish_upload_to_processing_stream(raw_upload)
+		result = aws.publish_raw_upload_to_processing_stream(raw_upload)
 		results.append(result)
 
 	return results
-
-
-def publish_upload_to_processing_stream(raw_upload):
-	return aws.KINESIS.put_record(
-		StreamName=settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME,
-		Data=raw_upload.kinesis_data,
-		PartitionKey=raw_upload.kinesis_partition_key,
-	)
 
 
 def queue_upload_event_for_processing(upload_event_id):
