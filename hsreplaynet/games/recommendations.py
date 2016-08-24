@@ -18,7 +18,9 @@ class RelatedReplayRecommendation:
 		self.reason = reason
 
 	def __repr__(self):
-		return "<RelatedReplayRecommendation  %s - %s>" % (self.reason.name, self.replay.pretty_name)
+		return "<RelatedReplayRecommendation %s - %s>" % (
+			self.reason.name, self.replay.pretty_name
+		)
 
 
 class RecommendationGenerator:
@@ -49,7 +51,8 @@ class FriendlyDeckMatchGenerator(RecommendationGenerator):
 	def generate(self):
 		deck = self.source_replay.friendly_player.deck_list
 		account_lo = self.source_replay.friendly_player.account_lo
-		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo):
+		players = GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo)
+		for player in players:
 			related_replay = player.game.get_replay_for_global_player(player)
 			if related_replay and related_replay.visibility == Visibility.Public:
 				self.recommendations.append(related_replay)
@@ -61,7 +64,8 @@ class OpponentDeckMatchGenerator(RecommendationGenerator):
 	def generate(self):
 		deck = self.source_replay.opposing_player.deck_list
 		account_lo = self.source_replay.friendly_player.account_lo
-		for player in GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo):
+		players = GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo)
+		for player in players:
 			related_replay = player.game.get_replay_for_global_player(player)
 			if related_replay and related_replay.visibility == Visibility.Public:
 				self.recommendations.append(related_replay)
@@ -84,11 +88,12 @@ GENERATORS = {
 
 
 def recommend_related_replays(replay, num):
-	"""Attempts to generate up to num RelatedReplayRecommendation objects"""
+	"""
+	Attempts to generate up to num RelatedReplayRecommendation objects
+	"""
 	game_type = replay.global_game.game_type
 	generators = [G(replay) for G in GENERATORS[game_type]]
 
 	if generators:
-		return list(islice(chain.from_iterable(generators),0, num))
-	else:
-		return []
+		return list(islice(chain.from_iterable(generators), 0, num))
+	return []

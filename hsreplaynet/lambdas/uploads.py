@@ -2,7 +2,9 @@ import logging
 from django.conf import settings
 from hsreplaynet.api.models import APIKey, AuthToken
 from hsreplaynet.api.serializers import UploadEventSerializer
-from hsreplaynet.uploads.models import UploadEvent, RawUpload,  UploadEventStatus, _generate_upload_key
+from hsreplaynet.uploads.models import (
+	UploadEvent, RawUpload, UploadEventStatus, _generate_upload_key
+)
 from hsreplaynet.utils import instrumentation
 
 
@@ -16,10 +18,12 @@ def process_replay_upload_stream_handler(event, context):
 	raw_upload = RawUpload.from_kinesis_event(kinesis_event)
 
 	existing = UploadEvent.objects.filter(shortid=raw_upload.shortid)
-	is_reprocessing = bool(existing)
+	reprocessing = bool(existing)
 
-	logger.info("Processing a RawUpload from Kinesis: %r with is_reprocessing=%s", raw_upload, is_reprocessing)
-	process_raw_upload(raw_upload, is_reprocessing)
+	logger.info(
+		"Processing a RawUpload from Kinesis: %r (reprocessing=%r)", raw_upload, reprocessing
+	)
+	process_raw_upload(raw_upload, reprocessing)
 
 
 @instrumentation.lambda_handler(cpu_seconds=180, name="ProcessS3CreateObjectV1")
@@ -35,13 +39,13 @@ def process_s3_create_handler(event, context):
 	process_raw_upload(raw_upload)
 
 
-def process_raw_upload(raw_upload, is_reprocessing=False):
+def process_raw_upload(raw_upload, reprocessing=False):
 	"""Generic processing logic for raw log files."""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_raw_upload")
 
 	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid)
 
-	if not created and not is_reprocessing:
+	if not created and not reprocessing:
 		logger.info("Invocation is an instance of double_put. Exiting Early.")
 		instrumentation.influx_metric("raw_log_double_put", {
 			"count": 1,
@@ -54,7 +58,9 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 	descriptor = raw_upload.descriptor
 
 	new_log_key = _generate_upload_key(raw_upload.timestamp, raw_upload.shortid)
-	new_descriptor_key = _generate_upload_key(raw_upload.timestamp, raw_upload.shortid, "descriptor.json")
+	new_descriptor_key = _generate_upload_key(
+		raw_upload.timestamp, raw_upload.shortid, "descriptor.json"
+	)
 	new_bucket = settings.AWS_STORAGE_BUCKET_NAME
 
 	raw_upload.prepare_upload_event_log_location(new_bucket, new_log_key, new_descriptor_key)
@@ -99,5 +105,3 @@ def process_raw_upload(raw_upload, is_reprocessing=False):
 		obj.error = serializer.errors
 		obj.status = UploadEventStatus.VALIDATION_ERROR
 		obj.save()
-
-

@@ -293,7 +293,7 @@ class GameReplay(models.Model):
 
 	@property
 	def pretty_name_spoilerfree(self):
-		return self.build_pretty_name(False)
+		return self.build_pretty_name(spoilers=False)
 
 	def build_pretty_name(self, spoilers=True):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")
