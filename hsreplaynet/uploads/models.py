@@ -90,19 +90,21 @@ class RawUpload(object):
 		self._upload_event_log_key = key
 		self._upload_event_descriptor_key = descriptor
 
-		log_copy_source = "%s/%s" % (self.bucket, self.log_key)
-		aws.S3.copy_object(
-			Bucket=bucket,
-			Key=key,
-			CopySource=log_copy_source,
-		)
+		if key != self.log_key:
+			log_copy_source = "%s/%s" % (self.bucket, self.log_key)
+			aws.S3.copy_object(
+				Bucket=bucket,
+				Key=key,
+				CopySource=log_copy_source,
+			)
 
-		descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
-		aws.S3.copy_object(
-			Bucket=bucket,
-			Key=descriptor,
-			CopySource=descriptor_copy_source,
-		)
+		if descriptor != self.descriptor_key:
+			descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
+			aws.S3.copy_object(
+				Bucket=bucket,
+				Key=descriptor,
+				CopySource=descriptor_copy_source,
+			)
 
 		self._upload_event_location_populated = True
 
