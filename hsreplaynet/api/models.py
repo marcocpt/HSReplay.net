@@ -22,6 +22,19 @@ class AuthToken(models.Model):
 			self.key = uuid.uuid4()
 		return super(AuthToken, self).save(*args, **kwargs)
 
+	@staticmethod
+	def get_token_from_header(header):
+		header = header.lower()
+
+		method, _, token = header.partition(" ")
+		if method != "token":
+			return
+
+		try:
+			return AuthToken.objects.get(key=token)
+		except (AuthToken.DoesNotExist, ValueError):
+			pass
+
 
 class APIKey(models.Model):
 	full_name = models.CharField(max_length=254)
