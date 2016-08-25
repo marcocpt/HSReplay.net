@@ -94,12 +94,13 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	return results
 
 
-def queue_upload_event_for_processing(event):
+def queue_upload_event_for_reprocessing(event):
 	"""
 	This method can be used to requeue UploadEvent's from the Admin panel.
 	"""
 	if settings.ENV_PROD:
 		raw_upload = RawUpload.from_upload_event(event)
+		raw_upload.attempt_reprocessing = True
 		aws.publish_raw_upload_to_processing_stream(raw_upload)
 	else:
 		logger.info("Processing UploadEvent %r locally", event)
