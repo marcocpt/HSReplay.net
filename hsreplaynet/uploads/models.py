@@ -109,6 +109,8 @@ class RawUpload(object):
 		self._upload_event_location_populated = True
 
 	def delete(self):
+		# We only perform delete on NEW raw uploads because when we get to this point we have
+		# a copy of the log and descriptor attached to the UploadEvent
 		if self.state == RawUploadState.NEW:
 			aws.S3.delete_objects(
 				Bucket=self.bucket,
@@ -116,8 +118,6 @@ class RawUpload(object):
 					"Objects": [{"Key": self.log_key}, {"Key": self.descriptor_key}]
 				}
 			)
-		else:
-			raise NotImplementedError("Delete is not supported for state %r" % (self.state))
 
 	@staticmethod
 	def from_s3_event(event):
