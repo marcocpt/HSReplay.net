@@ -79,6 +79,10 @@ class RawUpload(object):
 		# These are loaded lazily from S3
 		self._descriptor = None
 
+		# If this is changed to True before this RawUpload is sent to a kinesis stream
+		# Then the kinesis lambda will attempt to reprocess instead of exiting early
+		self.attempt_reprocessing = False
+
 	def __repr__(self):
 		return "<RawUpload %s:%s:%s>" % (self.shortid, self.bucket, self.log_key)
 
@@ -144,13 +148,19 @@ class RawUpload(object):
 		json_str = payload.decode("utf8")
 		data = json.loads(json_str)
 
-		return RawUpload(data["bucket"], data["log_key"])
+		result = RawUpload(data["bucket"], data["log_key"])
+
+		if "attempt_reprocessing" in data:
+			result.attempt_reprocessing = data["attempt_reprocessing"]
+
+		return result
 
 	@property
 	def kinesis_data(self):
 		data = {
 			"bucket": self.bucket,
 			"log_key": self.log_key,
+			"attempt_reprocessing": self.attempt_reprocessing
 		}
 		json_str = json.dumps(data)
 		payload = json_str.encode("utf8")

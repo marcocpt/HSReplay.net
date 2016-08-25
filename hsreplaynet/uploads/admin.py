@@ -1,12 +1,12 @@
 from django.contrib import admin
 from hsreplaynet.utils.admin import admin_urlify as urlify
 from .models import UploadEvent
-from .processing import queue_upload_event_for_processing
+from .processing import queue_upload_event_for_reprocessing
 
 
 def queue_for_reprocessing(admin, request, queryset):
 	for obj in queryset:
-		queue_upload_event_for_processing(obj)
+		queue_upload_event_for_reprocessing(obj)
 queue_for_reprocessing.short_description = "Queue for reprocessing"
 
 
