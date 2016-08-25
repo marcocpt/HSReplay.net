@@ -51,6 +51,10 @@ def check_for_failed_raw_upload_with_id(shortid):
 		return None
 
 
+def current_raw_upload_bucket_size():
+	return sum(1 for upload in _list_raw_uploads_by_prefix("raw"))
+
+
 def _list_raw_uploads_by_prefix(prefix):
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix=prefix):
 		key = object["Key"]

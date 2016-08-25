@@ -178,6 +178,13 @@ S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
 SNS_PROCESS_UPLOAD_EVENT_TOPIC = "process_upload_event"
 KINESIS_UPLOAD_PROCESSING_STREAM_NAME = "replay-upload-processing-stream"
+KINESIS_UPLOAD_PROCESSING_STREAM_MIN_SHARDS = 2
+KINESIS_UPLOAD_PROCESSING_STREAM_MAX_SHARDS = 32
+
+# The target maximum seconds it should take for kinesis to process a backlog of raw uploads
+# This value is used to periodically dynamically resize the stream capacity
+KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS = 600
+
 
 JOUST_STATIC_URL = STATIC_URL + "joust/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
