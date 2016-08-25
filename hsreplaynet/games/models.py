@@ -393,18 +393,6 @@ class GameReplay(models.Model):
 
 		return xml_file
 
-	@property
-	def css_classes(self):
-		ret = []
-		if self.won is not None:
-			if self.won:
-				ret.append("hsreplay-positive")
-			else:
-				ret.append("hsreplay-negative")
-		if self.disconnected:
-			ret.append("hsreplay-invalid")
-		return " ".join(ret)
-
 	def related_replays(self, num=3):
 		"""
 		Returns RelatedReplayRecommendation objects similar to this one.
