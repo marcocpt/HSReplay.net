@@ -117,7 +117,7 @@ class UploadBehavior(TaskSet):
 			# Use requests so that this call does not get
 			# counted against the total number of requests.
 			response_one = requests.post(
-				self.api_endpoint,
+				self.client.base_url + self.api_endpoint,
 				json=metadata,
 				headers=request_one_headers,
 			).json()
