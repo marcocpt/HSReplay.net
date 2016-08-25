@@ -4,13 +4,11 @@ from django.conf import settings
 try:
 	import boto3
 	S3 = boto3.client("s3")
-	SNS = boto3.client("sns")
 	LAMBDA = boto3.client("lambda")
 	IAM = boto3.client("iam")
 	KINESIS = boto3.client('kinesis')
 except ImportError:
 	S3 = None
-	SNS = None
 	LAMBDA = None
 	IAM = None
 	KINESIS = None
