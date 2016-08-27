@@ -43,9 +43,9 @@ def find_or_create_global_game(game_tree, meta):
 	format = meta.get("format", 0)
 	start_time = game_tree.start_time
 	end_time = game_tree.end_time
-	if "stats" in meta and "ranked_season_stats" in meta["stats"]:
-		ladder_season = meta["stats"]["ranked_season_stats"]["season"]
-	else:
+
+	ladder_season = meta.get("ladder_season")
+	if not ladder_season:
 		ladder_season = guess_ladder_season(end_time)
 
 	global_game = None
@@ -76,6 +76,7 @@ def find_or_create_global_game(game_tree, meta):
 		build=meta["build"],
 		match_start=start_time,
 		match_end=end_time,
+		brawl_season=meta.get("brawl_season", 0),  # TODO make it nullable
 		ladder_season=ladder_season,
 		scenario_id=meta.get("scenario_id"),
 		num_entities=len(game_tree.game.entities),
