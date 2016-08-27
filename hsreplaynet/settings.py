@@ -25,7 +25,7 @@ if (ENV_DEV or ENV_CI) and (not os.path.exists(BUILD_DIR)):
 
 if ENV_PROD:
 	DEBUG = False
-	ALLOWED_HOSTS = ["hsreplay.net", "www.hsreplay.net", "staging.hsreplay.net"]
+	ALLOWED_HOSTS = [".hsreplay.net"]
 else:
 	# SECURITY WARNING: don't run with debug turned on in production!
 	DEBUG = True
