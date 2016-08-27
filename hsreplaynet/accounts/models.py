@@ -38,6 +38,9 @@ class User(AbstractUser):
 		enum=Visibility, default=Visibility.Public
 	)
 
+	def delete_replays(self):
+		self.replays.update(is_deleted=True)
+
 
 class AccountDeleteRequest(models.Model):
 	user = models.OneToOneField(User)
@@ -48,3 +51,11 @@ class AccountDeleteRequest(models.Model):
 
 	def __str__(self):
 		return "Delete request for %s" % (self.user)
+
+	def process(self):
+		if self.user.last_login > self.updated:
+			# User logged back in since the request was filed. Request no longer valid.
+			return
+		if self.delete_replay_data:
+			self.user.delete_replays()
+		self.user.delete()

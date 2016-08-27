@@ -17,6 +17,13 @@ class AccountClaimAdmin(admin.ModelAdmin):
 	raw_id_fields = ("token", )
 
 
+def process_delete_request(admin, request, queryset):
+	for obj in queryset:
+		obj.process()
+	queryset.delete()
+process_delete_request.short_description = "Process selected delete requests"
+
+
 @admin.register(AccountDeleteRequest)
 class AccountDeleteRequestAdmin(admin.ModelAdmin):
 	def last_login(self):
@@ -29,6 +36,7 @@ class AccountDeleteRequestAdmin(admin.ModelAdmin):
 	def replay_count(self):
 		return self.user.replays.count()
 
+	actions = (process_delete_request, )
 	list_display = (
 		"__str__", "user", "delete_replay_data", "created", "updated",
 		last_login, token_count, replay_count
