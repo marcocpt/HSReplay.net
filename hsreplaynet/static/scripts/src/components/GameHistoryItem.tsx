@@ -1,7 +1,7 @@
 import * as React from "react";
 import {GlobalGamePlayer, ImageProps, CardArtProps} from "../interfaces";
 import GameHistoryPlayer from "./GameHistoryPlayer";
-import {PlayState} from "../hearthstone";
+import {PlayState, BnetGameType} from "../hearthstone";
 
 
 interface GameHistoryItemProps extends ImageProps, CardArtProps, React.ClassAttributes<GameHistoryItem> {
@@ -50,6 +50,9 @@ export default class GameHistoryItem extends React.Component<GameHistoryItemProp
 	getIcon(): JSX.Element {
 		if (this.props.disconnected) {
 			return <img src={STATIC_URL + "images/dc.png"} className="hsreplay-type" alt="Disconnected"/>;
+		}
+		if (this.props.gameType == BnetGameType.BGT_ARENA) {
+			return <img src={STATIC_URL + "images/arena-medals/Medal_Key_2.png"} className="hsreplay-type" alt="Arena"/>;
 		}
 		if (this.props.gameType == 16) {
 			return <img src={STATIC_URL + "images/brawl.png"} className="hsreplay-type" alt="Tavern Brawl"/>;
