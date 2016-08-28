@@ -175,6 +175,7 @@ if settings.INFLUX_ENABLED:
 		password=influx_settings["PASSWORD"],
 		database=influx_settings["NAME"],
 		ssl=influx_settings.get("SSL", False),
+		timeout=2,
 		# Uncomment to switch over to using UDP
 		# use_udp=True,
 		# udp_port=8089
