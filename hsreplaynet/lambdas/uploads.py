@@ -99,6 +99,12 @@ def process_raw_upload(raw_upload, reprocessing=False):
 	else:
 		logger.info("A User-Agent header was not provided.")
 
+	obj.file = new_log_key
+	obj.descriptor = new_descriptor_key
+	obj.upload_ip = descriptor["source_ip"]
+	obj.status = UploadEventStatus.VALIDATING
+	obj.user_agent = gateway_headers.get("User-Agent", "")[:100]
+
 	try:
 		header = gateway_headers["Authorization"]
 		token = AuthToken.get_token_from_header(header)
@@ -115,27 +121,28 @@ def process_raw_upload(raw_upload, reprocessing=False):
 		obj.status = UploadEventStatus.VALIDATION_ERROR
 		obj.error = e
 		obj.save()
+		logger.info("All state successfully saved to UploadEvent with id: %r", obj.id)
+
+		# If we get here, now everything is in the DB.
+		# Clear out the raw upload so it doesn't clog up the pipeline.
+		raw_upload.delete()
+		logger.info("Deleting objects from S3 succeeded.")
+		logger.info("Validation Error will be raised and we will not proceed to processing")
 		raise
+	else:
+		if "test_data" in upload_metadata or obj.token.test_data:
+			logger.info("Upload Event Is TEST DATA")
 
-	obj.file = new_log_key
-	obj.descriptor = new_descriptor_key
-	obj.upload_ip = descriptor["source_ip"]
-	obj.status = UploadEventStatus.VALIDATING
-	obj.user_agent = gateway_headers.get("User-Agent", "")[:100]
+		if obj.token.test_data:
+			# When token.test_data = True, then all UploadEvents are test_data = True
+			obj.test_data = True
 
-	if "test_data" in upload_metadata or obj.token.test_data:
-		logger.info("Upload Event Is TEST DATA")
+		obj.save()
+		logger.info("All state successfully saved to UploadEvent with id: %r", obj.id)
 
-	if obj.token.test_data:
-		# When token.test_data = True, then all UploadEvents are test_data = True
-		obj.test_data = True
-
-	obj.save()
-	logger.info("All state successfully saved to UploadEvent with id: %r", obj.id)
-
-	# If we get here, now everything is in the DB.
-	raw_upload.delete()
-	logger.info("Deleting objects from S3 succeeded")
+		# If we get here, now everything is in the DB.
+		raw_upload.delete()
+		logger.info("Deleting objects from S3 succeeded")
 
 	serializer = UploadEventSerializer(obj, data=upload_metadata)
 	if serializer.is_valid():
