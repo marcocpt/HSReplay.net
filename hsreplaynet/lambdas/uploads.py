@@ -8,7 +8,10 @@ from hsreplaynet.uploads.models import (
 from hsreplaynet.utils import instrumentation
 
 
-@instrumentation.lambda_handler(stream_name="replay-upload-processing-stream")
+@instrumentation.lambda_handler(
+	cpu_seconds=180,
+	stream_name="replay-upload-processing-stream"
+)
 def process_replay_upload_stream_handler(event, context):
 	"""
 	A handler that consumes records from an AWS Kinesis stream.
@@ -26,7 +29,10 @@ def process_replay_upload_stream_handler(event, context):
 	process_raw_upload(raw_upload, reprocessing)
 
 
-@instrumentation.lambda_handler(cpu_seconds=180, name="ProcessS3CreateObjectV1")
+@instrumentation.lambda_handler(
+	cpu_seconds=180,
+	name="ProcessS3CreateObjectV1"
+)
 def process_s3_create_handler(event, context):
 	"""
 	A handler that is triggered whenever a "..power.log" suffixed object is created in S3.
