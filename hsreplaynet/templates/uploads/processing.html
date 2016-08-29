@@ -3,7 +3,7 @@
 
 {% block head %}
 	{{ block.super }}
-	{% if upload.status < 3 %} {# Don't refresh errored replays #}
+	{% if upload.is_processing %}
 		<meta http-equiv="refresh" content="3"/>
 	{% endif %}
 {% endblock %}
