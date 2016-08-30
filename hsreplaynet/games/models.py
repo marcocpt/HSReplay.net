@@ -56,13 +56,8 @@ class GlobalGame(models.Model):
 		help_text="Hearthstone build number the game was played on."
 	)
 
-	match_start = models.DateTimeField(
-		"Match start", help_text="Must be a timezone aware datetime."
-	)
-
-	match_end = models.DateTimeField(
-		"Match end", help_text="Must be a timezone aware datetime."
-	)
+	match_start = models.DateTimeField(null=True)
+	match_end = models.DateTimeField(null=True)
 
 	game_type = IntEnumField("Game type", enum=BnetGameType, null=True, blank=True)
 	format = IntEnumField("Format type", enum=FormatType, default=FormatType.FT_UNKNOWN)
@@ -87,8 +82,8 @@ class GlobalGame(models.Model):
 	)
 
 	# The following basic stats are globally visible to all
-	num_turns = models.IntegerField()
-	num_entities = models.IntegerField()
+	num_turns = models.IntegerField(null=True, blank=True)
+	num_entities = models.IntegerField(null=True, blank=True)
 
 	class Meta:
 		ordering = ("-match_start", )
