@@ -20,10 +20,12 @@
 	{{ block.super }}
 	<meta property="og:title" content="{{ replay.pretty_name_spoilerfree }}" />
 	<meta property="og:url" content="{{ canonical_url }}" />
+	<link rel="canonical" href="{{ canonical_url }}" />
+	<link rel="me" href="https://twitter.com/hsreplaynet" />
 {% endblock %}
 
 {% block description %}
-	<meta name="description" content="{{ replay.generate_description }}"/>
+	<meta name="description" content="{{ replay.generate_description }}" />
 {% endblock %}
 
 {% block title %}{{ replay.pretty_name_spoilerfree }}{% endblock title %}
