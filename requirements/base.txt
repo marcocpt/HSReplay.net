@@ -2,8 +2,7 @@ wheel==0.29.0
 Django==1.10
 djangorestframework==3.4.1
 requests==2.10.0
-# hearthstone
-git+https://github.com/HearthSim/python-hearthstone#egg=hearthstone
+hearthstone
 aniso8601==1.1.0
 hsreplay==1.3.6
 pytz==2016.6.1
