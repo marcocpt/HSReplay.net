@@ -21,6 +21,14 @@ class UploadEventStatus(IntEnum):
 	VALIDATION_ERROR = 6
 	VALIDATING = 7
 
+	@classmethod
+	def processing_statuses(cls):
+		return [
+			cls.UNKNOWN,
+			cls.PROCESSING,
+			cls.VALIDATING,
+		]
+
 
 class RawUploadState(IntEnum):
 	NEW = 0
@@ -277,11 +285,7 @@ class UploadEvent(models.Model):
 
 	@property
 	def is_processing(self):
-		return self.status in (
-			UploadEventStatus.UNKNOWN,
-			UploadEventStatus.PROCESSING,
-			UploadEventStatus.VALIDATING,
-		)
+		return self.status in UploadEventStatus.processing_statuses()
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"shortid": self.shortid})
