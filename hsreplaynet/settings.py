@@ -177,7 +177,7 @@ else:
 S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
 KINESIS_UPLOAD_PROCESSING_STREAM_NAME = "replay-upload-processing-stream"
-KINESIS_UPLOAD_PROCESSING_STREAM_MIN_SHARDS = 2
+KINESIS_UPLOAD_PROCESSING_STREAM_MIN_SHARDS = 4
 KINESIS_UPLOAD_PROCESSING_STREAM_MAX_SHARDS = 32
 
 # The target maximum seconds it should take for kinesis to process a backlog of raw uploads
