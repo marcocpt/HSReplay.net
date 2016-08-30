@@ -4,3 +4,5 @@ django-storages==1.5.0
 enum34==1.1.6
 influxdb==2.12.0
 raven==5.23.0
+# https://urllib3.readthedocs.io/en/latest/user-guide.html#ssl-py2
+urllib3[secure]
