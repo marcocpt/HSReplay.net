@@ -34,7 +34,3 @@ INFLUX_DATABASES = {
 		"SSL": False,
 	}
 }
-
-
-# AWS SNS Settings
-SNS_PROCESS_UPLOAD_EVENT_TOPIC = ""

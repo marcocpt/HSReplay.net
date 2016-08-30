@@ -1,4 +1,3 @@
-import json
 import os
 import time
 from datetime import datetime
@@ -32,33 +31,17 @@ def get_tracing_id(event):
 	UNKNOWN_ID = "unknown-id"
 	event_data = event["Records"][0]
 
-	if "Sns" in event_data:
-		# We are in a lambda triggered via SNS
-		message = json.loads(event_data["Sns"]["Message"])
-
-		if "shortid" in message:
-			# We are in a lambda to process a raw s3 upload
-			return message["shortid"]
-		elif "token" in message:
-			# We are in a lambda for processing an upload event
-			return message["token"]
-		else:
-			return UNKNOWN_ID
-
-	elif "s3" in event_data:
+	if "s3" in event_data:
 		# We are in the process_s3_object Lambda
-		s3_event = event_data['s3']
+		s3_event = event_data["s3"]
 		raw_upload = RawUpload.from_s3_event(s3_event)
 		return raw_upload.shortid
-
 	elif "kinesis" in event_data:
-		kinesis_event = event_data['kinesis']
+		kinesis_event = event_data["kinesis"]
 		# We always use the shortid as the partitionKey in kinesis streams
 		return kinesis_event["partitionKey"]
 
-	else:
-
-		return UNKNOWN_ID
+	return UNKNOWN_ID
 
 
 _lambda_descriptors = []
