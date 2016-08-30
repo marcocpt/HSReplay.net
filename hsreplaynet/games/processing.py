@@ -5,11 +5,12 @@ import shortuuid
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 from hearthstone.enums import CardType, GameTag
 from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
-from hsreplaynet.utils.instrumentation import influx_metric
+from hsreplaynet.utils.instrumentation import influx_metric, error_handler
 from hsreplaynet.uploads.models import UploadEventStatus
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
 
@@ -149,7 +150,21 @@ def process_upload_event(upload_event):
 		if isinstance(e, GameTooShort):
 			# Do not re-raise on GameTooShort
 			return
+
+		duplicate_game_id_sentinel = "games_gamereplay_upload_token_id"
+		if isinstance(e, IntegrityError) and duplicate_game_id_sentinel in str(e):
+			# This is an instance of the duplicate_game_id defect.
+			# We report it to sentry so we can still track it's occurrences
+			error_handler(e)
+
+			# Don't re-raise to keep our processing dashboards clean
+			# This issue is fixed in HDT/1.0.5.26, so this block can be removed
+			# When new incidence of this are not appearing in sentry
+			# Most likely because the user base has migrated to a new version.
+			return
+
 		raise
+
 	else:
 		upload_event.game = replay
 		upload_event.status = UploadEventStatus.SUCCESS
