@@ -89,13 +89,11 @@ class UploadBehavior(TaskSet):
 
 	def request_upload_token(self):
 		headers = {"X-Api-Key": self.api_key}
-		with self.client.post(
-			self.api_token_url, headers=headers, catch_response=True
-		) as response:
-			data = response.json()
-			if "key" not in data:
-				raise ResponseError("Could not request a new upload token")
-			return data["key"]
+		response = requests.post(self.api_token_url, headers=headers)
+		data = response.json()
+		if "key" not in data:
+			raise ResponseError("Could not request a new upload token")
+		return data["key"]
 
 	def post_replay(self, name, data):
 		metadata = {
@@ -126,6 +124,7 @@ class UploadBehavior(TaskSet):
 				response_one["put_url"],
 				data=data,
 				headers=request_two_headers,
+				name=name
 			)
 
 	@task(6)
