@@ -1,6 +1,9 @@
 import importlib
+import time
+from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from hsreplaynet.uploads.models import UploadEvent, UploadEventStatus
 from hsreplaynet.utils.aws import LAMBDA, IAM, get_kinesis_stream_arn_from_name
 from hsreplaynet.utils.instrumentation import get_lambda_descriptors
 
@@ -10,6 +13,10 @@ class Command(BaseCommand):
 		parser.add_argument("module", help="The comma separated modules to inspect")
 		parser.add_argument(
 			"artifact", default="hsreplay.zip", help="The path to the lambdas zip artifact"
+		)
+		parser.add_argument(
+			"--wait", action="store_true",
+			help="Wait up to 30 seconds for all Uploads to finish processing"
 		)
 
 	def handle(self, *args, **options):
@@ -138,3 +145,30 @@ class Command(BaseCommand):
 						BatchSize=batch_size,
 						StartingPosition="TRIM_HORIZON"
 					)
+
+		if options["wait"]:
+			self.wait_for_complete_deployment(timeout=30)
+
+	def wait_for_complete_deployment(self, timeout):
+		"""
+		Wait up to \a timeout seconds for the deployment to finish
+		to ensure that there are no more running Lambdas before we
+		exit.
+		This is achieved by checking the amount of UploadEvent with
+		a certain status.
+		"""
+		max_time = datetime.now() + timedelta(seconds=30)
+		self.stdout.write("Waiting up to %i seconds" % (timeout))
+
+		statuses = UploadEventStatus.processing_statuses()
+
+		while True:
+			uploads = UploadEvent.objects.filter(status__in=statuses)
+			count = uploads.count()
+			if not count:
+				return
+			if datetime.now() > max_time:
+				self.stderr.write("Waited too long. Exiting.")
+				return
+			self.stdout.write("Found %i uploads... sleeping 3 seconds." % (count))
+			time.sleep(3)
