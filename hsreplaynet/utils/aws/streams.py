@@ -32,20 +32,40 @@ def fill_stream_from_iterable(iter, func):
 	pass
 
 
-def resize_upload_processing_stream():
-	"""Entry point for periodic job to tune the upload processing stream size."""
-	sla_seconds = settings.KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS
-	num_records = current_raw_upload_bucket_size()
-	processing_duration = get_avg_upload_processing_seconds()
+def resize_upload_processing_stream(num_shards=None):
+	"""Entry point for periodic job to tune the upload processing stream size.
 
-	resize_stream(
-		settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME,
-		num_records,
-		processing_duration,
-		sla_seconds,
-		settings.KINESIS_UPLOAD_PROCESSING_STREAM_MIN_SHARDS,
-		settings.KINESIS_UPLOAD_PROCESSING_STREAM_MAX_SHARDS
-	)
+	If num_shards is not provided this method will use the settings.SLA value to
+	calculate an appropriate number of shards.
+	"""
+	min_shards = settings.KINESIS_UPLOAD_PROCESSING_STREAM_MIN_SHARDS
+	max_shards = settings.KINESIS_UPLOAD_PROCESSING_STREAM_MAX_SHARDS
+	stream_name = settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME
+
+	if num_shards:
+		if num_shards == 0:
+			raise ValueError("Will not resize. num_shards must be larger than 0.")
+
+		if not is_base_two_compatible(num_shards):
+			raise ValueError("Will not resize. num_shards must be a power of 2.")
+
+		new_shards_number = min(max_shards, max(min_shards, num_shards))
+		resize_stream_to_size(stream_name, new_shards_number)
+
+	else:
+
+		sla_seconds = settings.KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS
+		num_records = current_raw_upload_bucket_size()
+		processing_duration = get_avg_upload_processing_seconds()
+
+		resize_stream(
+			stream_name,
+			num_records,
+			processing_duration,
+			sla_seconds,
+			min_shards,
+			max_shards
+		)
 
 
 def resize_stream(
