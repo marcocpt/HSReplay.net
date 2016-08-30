@@ -102,10 +102,15 @@ def resize_stream(
 
 def shards_required_for_sla(num_records, processing_duration, sla_seconds):
 	"""Calculate how many shards are required to hit the target SLA"""
-	return ceil((1.0 * num_records * processing_duration) / sla_seconds)
+	# We make sure the inputs are at least 1 to prevent this from returning 0
+	safe_num_records = max(1, num_records)
+	safe_processing_duration = max(1, processing_duration)
+	safe_sla = max(1, sla_seconds)
+	return ceil((1.0 * safe_num_records * safe_processing_duration) / safe_sla)
 
 
 def base_two_shard_target(target):
+	assert target >= 1, "Target must be greater than or equal to 1"
 	return pow(2, ceil(log(target, 2)))
 
 
