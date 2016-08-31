@@ -21,13 +21,38 @@ except ImportError:
 
 logger = logging.getLogger("hsreplaynet")
 
+KINESIS_WRITES_PER_SEC = 5
+MAX_WRITES_SAFETY_LIMIT = .8
 
-def fill_stream_from_iterable(iter, func):
+
+def publish_from_iterable_at_fixed_speed(iterable, publisher_func, times_per_second):
+	finished = False
+	while not finished:
+		try:
+			start_time = time.time()
+			for i in range(0, times_per_second):
+				publisher_func(next(iterable))
+			elapsed_time = time.time() - start_time
+			sleep_duration = 1 - elapsed_time
+			if sleep_duration > 0:
+				time.sleep(sleep_duration)
+		except StopIteration:
+			finished = True
+
+
+def fill_stream_from_iterable(stream_name, iterable, publisher_func):
 	"""
-	Invoke func on the next item from iter at the maximum throughput
-	the stream currently supports.
+	Invoke func on the next item from iter at the maximum throughput the stream supports.
 	"""
-	pass
+	stream_size = current_stream_size(stream_name)
+	max_transactions_per_sec = stream_size * KINESIS_WRITES_PER_SEC
+	target_writes_per_sec = ceil(max_transactions_per_sec * MAX_WRITES_SAFETY_LIMIT)
+	logger.info(
+		"About to fill stream %s at a target of %s writes per second" %
+		(stream_name, target_writes_per_sec)
+	)
+
+	publish_from_iterable_at_fixed_speed(iterable, publisher_func, target_writes_per_sec)
 
 
 def resize_upload_processing_stream(num_shards=None):

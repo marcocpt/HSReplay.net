@@ -5,7 +5,6 @@ import logging
 from django.conf import settings
 from hsreplaynet.uploads.models import RawUpload
 from hsreplaynet.utils import aws
-
 logger = logging.getLogger(__file__)
 
 
@@ -22,16 +21,22 @@ def queue_raw_uploads_for_processing():
 	This method is not intended to requeue uploads that have previously failed.
 	For that see the requeue_failed_* family of methods.
 	"""
-
+	from hsreplaynet.utils.aws.streams import fill_stream_from_iterable
 	logger.info("Starting - Queue all raw uploads for processing")
 
+	publisher_func = aws.publish_raw_upload_to_processing_stream
+	iterable = generate_raw_uploads_for_processing()
+	stream_name = settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME
+	fill_stream_from_iterable(stream_name, iterable, publisher_func)
+
+
+def generate_raw_uploads_for_processing():
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix="raw"):
 		key = object["Key"]
 		if key.endswith("power.log"):  # Don't queue the descriptor files, just the logs.
 
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
-			logger.info("About to queue: %s" % str(raw_upload))
-			aws.publish_raw_upload_to_processing_stream(raw_upload)
+			yield raw_upload
 
 
 def check_for_failed_raw_upload_with_id(shortid):
@@ -94,10 +99,29 @@ def _requeue_failed_raw_uploads_by_prefix(prefix):
 	return results
 
 
+def _generate_raw_uploads_from_events(events):
+	for event in events:
+		raw_upload = RawUpload.from_upload_event(event)
+		raw_upload.attempt_reprocessing = True
+		yield raw_upload
+
+
+def queue_upload_events_for_reprocessing(events):
+
+	if settings.ENV_PROD:
+		from hsreplaynet.utils.aws.streams import fill_stream_from_iterable
+		iterable = _generate_raw_uploads_from_events(events)
+		publisher_func = aws.publish_raw_upload_to_processing_stream
+		stream_name = settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME
+		fill_stream_from_iterable(stream_name, iterable, publisher_func)
+	else:
+		for event in events:
+			logger.info("Processing UploadEvent %r locally", event)
+			event.process()
+
+
 def queue_upload_event_for_reprocessing(event):
-	"""
-	This method can be used to requeue UploadEvent's from the Admin panel.
-	"""
+
 	if settings.ENV_PROD:
 		raw_upload = RawUpload.from_upload_event(event)
 		raw_upload.attempt_reprocessing = True
