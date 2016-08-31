@@ -66,7 +66,6 @@ class Command(BaseCommand):
 				LAMBDA.update_function_code(
 					FunctionName=descriptor["name"],
 					ZipFile=code_payload_bytes,
-					Publish=True,
 				)
 
 			else:
@@ -80,7 +79,6 @@ class Command(BaseCommand):
 					Code={"ZipFile": code_payload_bytes},
 					Timeout=descriptor["cpu_seconds"],
 					MemorySize=descriptor["memory"],
-					Publish=True,
 				)
 
 			if descriptor["stream_name"]:
