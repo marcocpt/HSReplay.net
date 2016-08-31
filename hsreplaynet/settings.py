@@ -70,7 +70,6 @@ if not ENV_LAMBDA:
 		"django_rq",
 		"django_rq_dashboard",
 		"loginas",
-		"cloud_browser",
 		"webpack_loader",
 		"hsreplaynet.admin",
 	]

@@ -4,7 +4,6 @@
 django-allauth==0.26.1
 django-loginas==0.2.2
 django-webpack-loader==0.3.3
-git+https://github.com/jleclanche/django-cloud-browser.git#egg=django_cloud_browser
 humanize==0.5.1
 libsass==0.11.1
 nodeenv==0.13.6
