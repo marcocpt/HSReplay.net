@@ -1,6 +1,6 @@
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import contextmanager
 from functools import wraps
 from django.conf import settings
@@ -53,17 +53,24 @@ def get_lambda_descriptors():
 
 def build_cloudwatch_url(log_group_name, log_stream_name):
 	baseurl = "https://console.aws.amazon.com/cloudwatch/home"
-	tpl = "?region=%s#logEvent:group=%s;stream=%s;start=%s"
+	tpl = "?region=%s#logEventViewer:group=%s;stream=%s;start=%s;end=%s;tz=UTC"
+	start = datetime.now()
+	end = start + timedelta(days=1)
 	return baseurl + tpl % (
 		settings.AWS_DEFAULT_REGION,
 		log_group_name,
 		log_stream_name,
-		datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+		start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+		end.strftime("%Y-%m-%dT%H:%M:%SZ")
 	)
 
 
 def build_papertrail_url(tracing_id):
 	return "https://papertrailapp.com/systems/Lambda/events?q=%s" % tracing_id
+
+
+def build_admin_url(tracing_id):
+	return "https://hsreplay.net/admin/uploads/uploadevent/?q=%s" % tracing_id
 
 
 def lambda_handler(
@@ -109,7 +116,8 @@ def lambda_handler(
 				# Provide additional metadata to sentry in case the exception
 				# gets trapped and reported within the function.
 				cloudwatch_url = build_cloudwatch_url(
-					context.log_group_name, context.log_stream_name
+					context.log_group_name,
+					context.log_stream_name
 				)
 				sentry.user_context({
 					"aws_log_group_name": context.log_group_name,
@@ -117,6 +125,7 @@ def lambda_handler(
 					"aws_function_name": context.function_name,
 					"aws_cloudwatch_url": cloudwatch_url,
 					"papertrail_url": build_papertrail_url(tracing_id),
+					"admin_url": build_admin_url(tracing_id),
 					"tracing_id": tracing_id
 				})
 
