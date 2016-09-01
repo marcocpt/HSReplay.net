@@ -151,7 +151,9 @@ class Deck(models.Model):
 		return repr(self)
 
 	def __repr__(self):
-		return "[" + ",".join(map(str, self.include_set.all())) + "]"
+		values = self.include_set.values("card__name", "count")
+		value_map = ["%s x %i" % (c["card__name"], c["count"]) for c in values]
+		return "[%s]" % (", ".join(value_map))
 
 	def __iter__(self):
 		# sorted() is stable, so sort alphabetically first and then by mana cost
