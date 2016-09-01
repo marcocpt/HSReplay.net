@@ -102,8 +102,8 @@ def process_raw_upload(raw_upload, reprocessing=False):
 	obj.file = new_log_key
 	obj.descriptor = new_descriptor_key
 	obj.upload_ip = descriptor["source_ip"]
-	obj.status = UploadEventStatus.VALIDATING
 	obj.user_agent = gateway_headers.get("User-Agent", "")[:100]
+	obj.status = UploadEventStatus.VALIDATING
 
 	try:
 		header = gateway_headers["Authorization"]
@@ -116,6 +116,11 @@ def process_raw_upload(raw_upload, reprocessing=False):
 
 		obj.token = token
 		obj.api_key = APIKey.objects.get(api_key=gateway_headers["X-Api-Key"])
+		if not obj.user_agent:
+			logger.info("No UA provided. Marking as unsupported (client too old).")
+			obj.status = UploadEventStatus.UNSUPPORTED_CLIENT
+			obj.save()
+			return
 	except Exception as e:
 		logger.error("Exception: %r", e)
 		obj.status = UploadEventStatus.VALIDATION_ERROR
