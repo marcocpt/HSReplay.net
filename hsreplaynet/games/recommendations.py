@@ -2,7 +2,7 @@
 from enum import IntEnum
 from itertools import chain, islice
 from hearthstone.enums import BnetGameType
-from hsreplaynet.games.models import GlobalGamePlayer, Visibility
+from hsreplaynet.games.models import GameReplay, Visibility
 
 
 class ReplayRecommendationReason(IntEnum):
@@ -27,9 +27,10 @@ class RecommendationGenerator:
 	"""Subclasses should supply a reason and populate recommendations during generate()"""
 	reason = None
 
-	def __init__(self, source_replay):
+	def __init__(self, source_replay, max):
 		self.source_replay = source_replay
 		self.recommendations = []
+		self.max = max
 
 	def __iter__(self):
 		self.generate()
@@ -45,30 +46,31 @@ class RecommendationGenerator:
 		raise NotImplementedError("Must be implemented by subclasses.")
 
 
-class FriendlyDeckMatchGenerator(RecommendationGenerator):
+class DeckMatchGenerator(RecommendationGenerator):
+	def generate(self):
+		account_lo = self.source_replay.friendly_player.account_lo
+		query = GameReplay.objects.filter(
+			visibility=Visibility.Public,
+			global_game__players__deck_list=self.deck
+		).exclude(global_game__players__account_lo=account_lo)[:self.max]
+		self.recommendations += query
+
+
+class FriendlyDeckMatchGenerator(DeckMatchGenerator):
 	reason = ReplayRecommendationReason.FRIENDLY_DECK_MATCH
 
-	def generate(self):
-		deck = self.source_replay.friendly_player.deck_list
-		account_lo = self.source_replay.friendly_player.account_lo
-		players = GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo)
-		for player in players:
-			related_replay = player.game.get_replay_for_global_player(player)
-			if related_replay and related_replay.visibility == Visibility.Public:
-				self.recommendations.append(related_replay)
+	@property
+	def deck(self):
+		return self.source_replay.friendly_player.deck_list
 
 
-class OpponentDeckMatchGenerator(RecommendationGenerator):
+class OpponentDeckMatchGenerator(DeckMatchGenerator):
 	reason = ReplayRecommendationReason.OPPONENT_DECK_MATCH
 
-	def generate(self):
-		deck = self.source_replay.opposing_player.deck_list
-		account_lo = self.source_replay.friendly_player.account_lo
-		players = GlobalGamePlayer.objects.filter(deck_list=deck).exclude(account_lo=account_lo)
-		for player in players:
-			related_replay = player.game.get_replay_for_global_player(player)
-			if related_replay and related_replay.visibility == Visibility.Public:
-				self.recommendations.append(related_replay)
+	@property
+	def deck(self):
+		return self.source_replay.opposing_player.deck_list
+
 
 # Generators are evaluated in order
 # Thus the ordering in the lists determine which recommendations get higher priority
@@ -92,7 +94,7 @@ def recommend_related_replays(replay, num):
 	Attempts to generate up to num RelatedReplayRecommendation objects
 	"""
 	game_type = replay.global_game.game_type
-	generators = [G(replay) for G in GENERATORS[game_type]]
+	generators = [G(replay, num) for G in GENERATORS[game_type]]
 
 	if generators:
 		return list(islice(chain.from_iterable(generators), 0, num))

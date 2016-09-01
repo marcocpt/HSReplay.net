@@ -107,9 +107,6 @@ class GlobalGame(models.Model):
 	def num_own_turns(self):
 		return ceil(self.num_turns / 2)
 
-	def get_replay_for_global_player(self, global_player):
-		return self.replays.filter(friendly_player_id=global_player.player_id).first()
-
 
 class GlobalGamePlayer(models.Model):
 	id = models.BigAutoField(primary_key=True)
