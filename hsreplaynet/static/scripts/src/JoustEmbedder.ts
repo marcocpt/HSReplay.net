@@ -58,8 +58,9 @@ export default class JoustEmbedder extends EventEmitter {
 		launcher.assets((asset: string) => joustAsset(asset));
 		launcher.cardArt((cardId: string) => cardArt(cardId));
 
-		// setup metadata source
+		// setup metadata
 		launcher.metadataSource((build, locale) => HEARTHSTONEJSON_URL.replace(/%\(build\)s/, "" + build).replace(/%\(locale\)s/, locale));
+		launcher.locale(this.locale);
 
 		// setup influx
 		let endpoint = INFLUX_DATABASE_JOUST;

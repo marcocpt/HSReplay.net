@@ -53,6 +53,8 @@ declare module "joust" {
 
 		debug(enable?: boolean): Launcher;
 
+		locale(locale?: string): Launcher;
+
 		fromUrl(url: string): void;
 
 		percentageWatched: number;
