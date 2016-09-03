@@ -275,10 +275,6 @@ REST_FRAMEWORK = {
 HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download-hsreplay/?utm_source=hsreplay.net&utm_campaign=download"
 
 
-# Used for compiling SCSS
-SCSS_INPUT_FILE = os.path.join(BASE_DIR, "hsreplaynet", "static", "styles", "main.scss")
-SCSS_OUTPUT_FILE = SCSS_INPUT_FILE.replace(".scss", ".css")
-
 # Monkeypatch default collectstatic ignore patterns
 from django.contrib.staticfiles.apps import StaticFilesConfig
 StaticFilesConfig.ignore_patterns += ["*.scss", "*.ts", "*.tsx", "typings.json"]

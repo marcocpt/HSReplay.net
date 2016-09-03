@@ -38,22 +38,16 @@ using the Python 2.7 runtime.
 
 ## Installation
 
-Install development dependencies with `pip install -r requirements/dev.txt`.
+Prerequisites:
 
-Settings are present in the `hsreplaynet/settings.py` file. You may copy the
-`local_settings.example.py` file to `hsreplaynet/local_settings.py` to
-customize settings without modifying the versioned file. This is especially
-useful to store sensitive settings such as API keys.
-Several settings such as Sentry, Influx and S3 are disabled by default. The
-default database engine is set to sqlite3.
+- [Vagrant](https://vagrantup.com) must be installed
+- Virtualbox must be installed in order for the default provider to work
 
-Various vendor libraries are required. Run `scripts/get_vendor_static.sh`.
+Downloading the box:
 
-Node >v5.3 is required to compile the scripts. Run `npm install` in the
-source root.
+- Run `vagrant up`
 
-Run the dev server with `./manage.py runserver [host:port]`. Will run on
-`localhost:8000` by default.
+The server will be available on `localhost:8000`
 
 The API is available at `/api/v1/` and is browsable using the DRF interface.
 
