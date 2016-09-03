@@ -10,7 +10,7 @@ else
 	BASEDIR="$(readlink -f $(dirname $0))"
 fi
 
-DATADIR="$BASEDIR/../data"
+DATADIR="$BASEDIR/../build"
 GITDIR="$DATADIR/hsreplay-test-data"
 TESTDATA_URL="https://github.com/HearthSim/hsreplay-test-data.git"
 
@@ -18,7 +18,7 @@ set -e
 
 mkdir -p "$DATADIR"
 
-if [ -d "$GITDIR" ]; then
+if [[ -d $GITDIR ]]; then
 	echo "Updating $GITDIR"
 	git -C "$GITDIR" fetch --all
 	git -C "$GITDIR" reset --hard origin/master

@@ -10,7 +10,7 @@ from hsreplaynet.uploads.models import UploadEvent
 
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-DATA_DIR = os.path.join(BASE_DIR, "data", "hsreplay-test-data")
+DATA_DIR = os.path.join(BASE_DIR, "build", "hsreplay-test-data")
 UPLOAD_SUITE = os.path.join(DATA_DIR, "hsreplaynet-tests", "uploads")
 
 
