@@ -1,3 +1,4 @@
+import logging
 from enum import IntEnum
 from math import ceil
 from django.conf import settings
@@ -10,6 +11,9 @@ from hearthstone.enums import BnetGameType, FormatType, PlayState
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
+
+
+logger = logging.getLogger(__file__)
 
 
 def _generate_upload_path(instance, filename):
@@ -425,8 +429,11 @@ def claim_token_replays(sender, instance, **kwargs):
 	"""
 	if instance.user:
 		# Claim all of the token's replays and delete them
+		logger.info("claim_token_replays(instance=%r, user=%r)", instance, instance.user)
 		claims = instance.replay_claims.all()
+		logger.info("Found %r claims", claims)
 		for claim in claims:
+			logger.info("Updating %r to %r", claim.replay.user, instance.user)
 			claim.replay.user = instance.user
 			claim.replay.save()
 		claims.delete()
