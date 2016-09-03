@@ -116,11 +116,6 @@ def process_raw_upload(raw_upload, reprocessing=False):
 
 		obj.token = token
 		obj.api_key = APIKey.objects.get(api_key=gateway_headers["X-Api-Key"])
-		if not obj.user_agent:
-			logger.info("No UA provided. Marking as unsupported (client too old).")
-			obj.status = UploadEventStatus.UNSUPPORTED_CLIENT
-			obj.save()
-			return
 	except Exception as e:
 		logger.error("Exception: %r", e)
 		obj.status = UploadEventStatus.VALIDATION_ERROR
@@ -142,12 +137,29 @@ def process_raw_upload(raw_upload, reprocessing=False):
 			# When token.test_data = True, then all UploadEvents are test_data = True
 			obj.test_data = True
 
+		# Only old clients released during beta do not include a user agent
+		is_unsupported_client = not obj.user_agent
+		if is_unsupported_client:
+			logger.info("No UA provided. Marking as unsupported (client too old).")
+			instrumentation.influx_metric("upload_from_unsupported_client", {
+				"count": 1,
+				"shortid": raw_upload.shortid,
+				"api_key": obj.api_key.full_name
+			})
+			obj.status = UploadEventStatus.UNSUPPORTED_CLIENT
+
 		obj.save()
 		logger.info("All state successfully saved to UploadEvent with id: %r", obj.id)
 
 		# If we get here, now everything is in the DB.
 		raw_upload.delete()
 		logger.info("Deleting objects from S3 succeeded")
+
+		if is_unsupported_client:
+			# Wait until after we have deleted the raw_upload to exit
+			# But do not start processing if it's an unsupported client
+			logger.info("Exiting Without Processing - Unsupported Client")
+			return
 
 	serializer = UploadEventSerializer(obj, data=upload_metadata)
 	if serializer.is_valid():
