@@ -184,7 +184,7 @@ KINESIS_UPLOAD_PROCESSING_STREAM_MAX_SHARDS = 256
 KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS = 600
 
 
-JOUST_STATIC_URL = STATIC_URL + "joust/"
+JOUST_STATIC_URL = "https://s3.amazonaws.com/hearthsim-joust/branches/master/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 
