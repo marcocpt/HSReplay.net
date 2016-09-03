@@ -1,26 +1,9 @@
-import binascii
 import datetime
-import logging
-import os
-import time
 from dateutil.relativedelta import relativedelta
 from uuid import UUID
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from . import checks  # noqa (needed to register the checks)
-
-
-_timing_start = time.clock()
-logger = logging.getLogger(__file__)
-
-
-def _time_elapsed():
-	return (time.clock() - _timing_start) * 10000
-
-
-def _reset_time_elapsed():
-	global _timing_start
-	_timing_start = time.clock()
 
 
 def delete_file(name):
@@ -38,10 +21,6 @@ def delete_file_async(name):
 	"""
 	from hsreplaynet.utils.redis import job_queue
 	job_queue.enqueue(delete_file, name)
-
-
-def generate_key():
-	return binascii.hexlify(os.urandom(20)).decode()
 
 
 def get_client_ip(request):
