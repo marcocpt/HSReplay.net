@@ -5,6 +5,7 @@ import {EventEmitter} from "events";
 import MetricsReporter from "./metrics/MetricsReporter";
 import BatchingMiddleware from "./metrics/BatchingMiddleware";
 import InfluxMetricsBackend from "./metrics/InfluxMetricsBackend";
+import * as React from "react";
 
 
 export default class JoustEmbedder extends EventEmitter {
@@ -35,6 +36,9 @@ export default class JoustEmbedder extends EventEmitter {
 					username: username,
 				});
 			}
+			(raven as any).setTagsContext({
+				react: React.version,
+			});
 			logger = (err: string|Error) => {
 				if (raven) {
 					if (typeof err === "string") {
