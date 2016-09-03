@@ -20,6 +20,7 @@ npm -C "$PROJECT" install
 
 createdb --username postgres hsreplaynet
 python "$PROJECT/manage.py" migrate --no-input
+python "$PROJECT/manage.py" load_cards
 
 if [[ ! -d $PROJECT/hsreplaynet/static/vendor ]]; then
 	"$PROJECT/scripts/get_vendor_static.sh"
@@ -27,6 +28,8 @@ fi
 
 python "$PROJECT/scripts/initdb.py"
 
+
+"$PROJECT/scripts/update_log_data.sh"
 
 webpack --verbose -d \
 	--devtool cheap-module-eval-source-map \
