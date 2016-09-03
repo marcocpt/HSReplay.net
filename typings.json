@@ -6,9 +6,9 @@
 	},
 	"globalDependencies": {
 		"jquery": "registry:dt/jquery#1.10.0+20160704162008",
-		"node": "registry:dt/node#6.0.0+20160805072842",
-		"ravenjs": "registry:dt/ravenjs#0.0.0+20160316155526",
-		"react": "registry:dt/react#0.14.0+20160802191555",
+		"node": "registry:dt/node#6.0.0+20160831021119",
+		"ravenjs": "registry:dt/ravenjs#0.0.0+20160820095925",
+		"react": "registry:dt/react#0.14.0+20160829191040",
 		"react-dom": "registry:dt/react-dom#0.14.0+20160412154040"
 	}
 }

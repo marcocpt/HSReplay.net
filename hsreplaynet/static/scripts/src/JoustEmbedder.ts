@@ -28,7 +28,7 @@ export default class JoustEmbedder extends EventEmitter {
 			let raven = Raven.config(dsn, {
 				release: release,
 				environment: JOUST_RAVEN_ENVIRONMENT || "development",
-			} as any).install(); // until typings are updated for environment
+			}).install();
 			let username = document.body.getAttribute("data-username");
 			if (username) {
 				raven.setUserContext({
