@@ -1,9 +1,19 @@
 import datetime
+import logging
 from dateutil.relativedelta import relativedelta
 from uuid import UUID
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from . import checks  # noqa (needed to register the checks)
+
+
+def get_logger(name="hsreplaynet", level=logging.DEBUG):
+	logger = logging.getLogger(name)
+	logger.setLevel(level)
+
+	return logger
+
+log = get_logger()
 
 
 def delete_file(name):

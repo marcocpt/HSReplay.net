@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.timezone import now
 from hsreplaynet.uploads.models import RawUpload
-from . import logger
+from . import log
 
 
 if "raven.contrib.django.raven_compat" in settings.INSTALLED_APPS:
@@ -17,10 +17,9 @@ else:
 
 
 def error_handler(e):
+	log.exception(e)
 	if sentry is not None:
 		sentry.captureException()
-	else:
-		logger.exception(e)
 
 
 def get_tracing_id(event):
@@ -134,12 +133,11 @@ def lambda_handler(
 				with influx_timer(measurement, timestamp=now()):
 					return func(event, context)
 			except Exception as e:
-				logger.exception("Got an exception: %r", e)
+				log.exception("Got an exception: %r", e)
 				if sentry:
-					logger.info("Inside sentry capture block.")
 					sentry.captureException()
 				else:
-					logger.info("Sentry is not available.")
+					log.info("Sentry is not available.")
 
 				if not trap_exceptions:
 					raise
@@ -180,7 +178,7 @@ def influx_write_payload(payload):
 	try:
 		result = influx.write_points(payload)
 		if not result:
-			logger.warn("Influx Write Failure.")
+			log.warn("Influx Write Failure.")
 	except Exception as e:
 		# Can happen if Influx if not available for example
 		error_handler(e)
