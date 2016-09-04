@@ -1,4 +1,3 @@
-import logging
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -9,11 +8,8 @@ from django.urls import reverse
 from django.views.generic import TemplateView, UpdateView, View
 from allauth.socialaccount.models import SocialAccount
 from hsreplaynet.games.models import GameReplay
-from hsreplaynet.utils import get_uuid_object_or_404
+from hsreplaynet.utils import get_uuid_object_or_404, log
 from .models import AccountClaim, AccountDeleteRequest, User
-
-
-logger = logging.getLogger(__file__)
 
 
 class EditAccountView(LoginRequiredMixin, UpdateView):
@@ -29,15 +25,15 @@ class EditAccountView(LoginRequiredMixin, UpdateView):
 class ClaimAccountView(LoginRequiredMixin, View):
 	def get(self, request, id):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
-		logger.info("Claim %r: Token=%r, User=%r", claim, claim.token, claim.token.user)
+		log.info("Claim %r: Token=%r, User=%r", claim, claim.token, claim.token.user)
 		if claim.token.user:
 			if claim.token.user.is_fake:
 				count = GameReplay.objects.filter(user=claim.token.user).update(user=request.user)
-				logger.info("Updated %r replays. Deleting %r.", count, claim.token.user)
+				log.info("Updated %r replays. Deleting %r.", count, claim.token.user)
 				# For now we just delete the fake user, because we are not using it.
 				claim.token.user.delete()
 			else:
-				logger.warning("%r is a real user. Deleting %r.", claim.token.user, claim)
+				log.warning("%r is a real user. Deleting %r.", claim.token.user, claim)
 				# Something's wrong. Get rid of the claim and reject the request.
 				claim.delete()
 				return HttpResponseForbidden("This token has already been claimed.")
