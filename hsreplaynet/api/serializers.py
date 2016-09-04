@@ -90,6 +90,7 @@ class UploadEventSerializer(serializers.Serializer):
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
 	test_data = serializers.BooleanField(default=False)
+	canary = serializers.BooleanField(default=False)
 
 	game_type = serializers.IntegerField(default=0, write_only=True)
 	format = serializers.IntegerField(required=False, write_only=True)

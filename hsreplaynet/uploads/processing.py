@@ -33,7 +33,7 @@ def queue_raw_uploads_for_processing(attempt_reprocessing):
 def generate_raw_uploads_for_processing(attempt_reprocessing):
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix="raw"):
 		key = object["Key"]
-		if key.endswith(".log"):  # Don't queue the descriptor files, just the logs.
+		if key.endswith(".log"):  # Don't queue the descriptor files, just the .logs
 
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 			raw_upload.attempt_reprocessing = attempt_reprocessing

@@ -40,8 +40,7 @@ class RawUpload(object):
 	"""
 	Represents a raw upload in S3.
 	"""
-
-	RAW_LOG_KEY_PATTERN = r"raw/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.power.log"
+	RAW_LOG_KEY_PATTERN = r"raw/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.\w{5,6}.log"
 	HAS_UPLOAD_KEY_PATTERN = r"uploads/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.power.log"
 	TIMESTAMP_FORMAT = "%Y/%m/%d/%H/%M"
 
@@ -274,6 +273,7 @@ class UploadEvent(models.Model):
 	error = models.TextField(blank=True)
 	traceback = models.TextField(blank=True)
 	test_data = models.BooleanField(default=False)
+	canary = models.BooleanField(default=False)
 
 	metadata = models.TextField(blank=True)
 	file = models.FileField(upload_to=_generate_upload_path, null=True)
