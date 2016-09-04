@@ -164,6 +164,7 @@ def process_raw_upload(raw_upload, reprocessing=False):
 	obj.file = new_log_key
 	obj.descriptor = new_descriptor_key
 	obj.upload_ip = descriptor["source_ip"]
+	obj.canary = "canary" in upload_metadata and upload_metadata["canary"]
 	obj.user_agent = gateway_headers.get("User-Agent", "")[:100]
 	obj.status = UploadEventStatus.VALIDATING
 
