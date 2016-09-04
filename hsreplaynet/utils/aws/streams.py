@@ -26,6 +26,9 @@ MAX_WRITES_SAFETY_LIMIT = .8
 
 
 def publish_from_iterable_at_fixed_speed(iterable, publisher_func, times_per_second):
+	if times_per_second == 0:
+		raise ValueError("times_per_second must be greater than 0!")
+
 	finished = False
 	while not finished:
 		try:
@@ -137,12 +140,42 @@ def base_two_shard_target(target):
 	return pow(2, ceil(log(target, 2)))
 
 
+def wait_for_stream_ready(stream_name):
+	# We will wait for up to 1 minute for the stream to become active
+	stream_status = current_stream_status(stream_name)
+	logger.info("The current stream status is: %s", stream_status)
+
+	attempts = 0
+	max_attempts = 15
+	while stream_status != "ACTIVE" and attempts < max_attempts:
+		time.sleep(4)
+		stream_status = current_stream_status(stream_name)
+		logger.info("The current stream status is: %s", stream_status)
+
+	if stream_status != "ACTIVE":
+		raise Exception("The stream %s never became active!" % stream_name)
+
+
 def get_open_shards(stream_name):
+	shards = generate_shard_list(stream_name)
+	open_shards = list(filter(shard_is_open, shards))
+	return open_shards
+
+
+def generate_shard_list(stream_name):
 	wait_for_stream_ready(stream_name)
 	sinfo = KINESIS.describe_stream(StreamName=stream_name)
 	shards = sinfo["StreamDescription"]["Shards"]
-	open_shards = list(filter(shard_is_open, shards))
-	return open_shards
+
+	while len(shards) > 0:
+		shard = shards.pop(0)
+		yield shard
+		if len(shards) == 0 and sinfo["StreamDescription"]["HasMoreShards"]:
+			sinfo = KINESIS.describe_stream(
+				StreamName=stream_name,
+				ExclusiveStartShardId=shard["ShardId"]
+			)
+			shards += sinfo["StreamDescription"]["Shards"]
 
 
 def current_stream_size(stream_name):
@@ -182,22 +215,6 @@ def resize_stream_to_size(stream_name, target_num_shards):
 		logger.info("The current size is: %s", current_size)
 
 	logger.info("The stream is the correct target size. Finished.")
-
-
-def wait_for_stream_ready(stream_name):
-	# We will wait for up to 1 minute for the stream to become active
-	stream_status = current_stream_status(stream_name)
-	logger.info("The current stream status is: %s", stream_status)
-
-	attempts = 0
-	max_attempts = 15
-	while stream_status != "ACTIVE" and attempts < max_attempts:
-		time.sleep(4)
-		stream_status = current_stream_status(stream_name)
-		logger.info("The current stream status is: %s", stream_status)
-
-	if stream_status != "ACTIVE":
-		raise Exception("The stream %s never became active!" % stream_name)
 
 
 def split_shards(stream_name):
