@@ -18,7 +18,7 @@ parser.add_argument("log_path", help="path to the power.log file to upload")
 
 args = parser.parse_args()
 
-HOST = "https://upload.hsreplay.net/api/v1/replay/upload/request"
+HOST = "https://upload.hsreplay.net/api/v1/replay/upload/canary?canary=true"
 api_key = args.api_key or os.environ.get("HSREPLAYNET_API_KEY")
 auth_token = args.auth_token or os.environ.get("HSREPLAYNET_AUTH_TOKEN")
 
@@ -36,7 +36,7 @@ else:
 	}
 
 response_one = requests.post(HOST, json=metadata, headers=request_one_headers).json()
-descriptor = requests.get(response_one["descriptor_url"]).content.decode("utf8")
+
 
 log = open(args.log_path).read()
 
@@ -46,8 +46,8 @@ request_two_headers = {
 
 response_two = requests.put(response_one["put_url"], data=log, headers=request_two_headers)
 
+print("Host: %s" % HOST)
 print("PUT Response Code: %s" % response_two.status_code)
-print("Replay ID: %s" % response_one["upload_shortid"])
+print("Replay ID: %s" % response_one["shortid"])
+print("Viewing URL: %s" % response_one["url"])
 print("Put URL:\n%s" % response_one["put_url"])
-print("Descriptor URL:\n%s" % response_one["descriptor_url"])
-print(descriptor)
