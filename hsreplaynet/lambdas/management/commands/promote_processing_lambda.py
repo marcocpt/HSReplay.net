@@ -95,8 +95,14 @@ class Command(BaseCommand):
 			self.stdout.write(
 				"%s canary upload events have been found" % canary_uploads.count()
 			)
-			success = UploadEventStatus.SUCCESS
-			canary_failures += [u for u in canary_uploads.all() if u.status != success]
+
+			acceptable_status = [
+				UploadEventStatus.SUCCESS,
+				UploadEventStatus.UNSUPPORTED_CLIENT,
+				UploadEventStatus.UNSUPPORTED
+			]
+			canaries = canary_uploads.all()
+			canary_failures = [u for u in canaries if u.status not in acceptable_status]
 
 			if canary_failures:
 				# We have canary failures, time to rollback.
