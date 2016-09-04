@@ -107,9 +107,9 @@ def _generate_raw_uploads_from_events(events):
 		yield raw_upload
 
 
-def queue_upload_events_for_reprocessing(events):
+def queue_upload_events_for_reprocessing(events, use_kinesis=False):
 
-	if settings.ENV_PROD:
+	if settings.ENV_PROD or use_kinesis:
 		from hsreplaynet.utils.aws.streams import fill_stream_from_iterable
 		iterable = _generate_raw_uploads_from_events(events)
 		publisher_func = aws.publish_raw_upload_to_processing_stream

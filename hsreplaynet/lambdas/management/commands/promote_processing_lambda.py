@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from hsreplaynet.uploads.models import UploadEvent, UploadEventStatus
+from hsreplaynet.uploads.processing import queue_upload_events_for_reprocessing
 from hsreplaynet.utils.aws import LAMBDA
 
 
@@ -59,45 +60,50 @@ class Command(BaseCommand):
 
 		# If we did not exit already, then we are doing a canary deployment.
 		canary_period_start = datetime.now()
-		min_wait_seconds = settings.MIN_CANARY_WAIT_SECONDS
-		max_wait_time = datetime.now() + timedelta(seconds=2 * min_wait_seconds)
 
-		self.stdout.write("Starting Canary Period Wait For %s Seconds" % min_wait_seconds)
-		time.sleep(min_wait_seconds)
+		max_wait_seconds = settings.MAX_CANARY_WAIT_SECONDS
+		self.stdout.write("MAX_CANARY_WAIT_SECONDS = %s" % max_wait_seconds)
+
 		min_canary_uploads = settings.MIN_CANARY_UPLOADS
 		self.stdout.write("MIN_CANARY_UPLOADS = %s" % min_canary_uploads)
 
+		max_wait_time = datetime.now() + timedelta(seconds=max_wait_seconds)
+
 		processing_statuses = UploadEventStatus.processing_statuses()
 		wait_for_more_canary_uploads = True
-		while wait_for_more_canary_uploads:
-			canary_uploads = UploadEvent.objects.filter(
-				canary=True,
-				created__gte=canary_period_start,
-			).exclude(status__in=processing_statuses)
+		canary_failures = []
+		try:
+			while wait_for_more_canary_uploads:
+				canary_uploads = UploadEvent.objects.filter(
+					canary=True,
+					created__gte=canary_period_start,
+				).exclude(status__in=processing_statuses)
 
-			if canary_uploads.count() >= min_canary_uploads:
-				wait_for_more_canary_uploads = False
-			else:
-				if datetime.now() > max_wait_time:
-					msg = "Waited too long for canary events. Exiting"
-					self.stderr.write(msg)
-					raise RuntimeError(msg)
+				if canary_uploads.count() >= min_canary_uploads:
+					wait_for_more_canary_uploads = False
+				else:
+					if datetime.now() > max_wait_time:
+						msg = "Waited too long for canary events. Exiting"
+						self.stderr.write(msg)
+						raise RuntimeError(msg)
 
-				self.stdout.write(
-					"Found %i uploads... sleeping 3 seconds" % (canary_uploads.count(),)
-				)
-				time.sleep(3)
+					self.stdout.write(
+						"Found %i uploads... sleeping 5 seconds" % (canary_uploads.count(),)
+					)
+					time.sleep(5)
 
-		self.stdout.write(
-			"%s canary upload events have been found" % canary_uploads.count()
-		)
-		success = UploadEventStatus.SUCCESS
-		canary_failures = [u for u in canary_uploads.all() if u.status != success]
+			self.stdout.write(
+				"%s canary upload events have been found" % canary_uploads.count()
+			)
+			success = UploadEventStatus.SUCCESS
+			canary_failures += [u for u in canary_uploads.all() if u.status != success]
 
-		if canary_failures:
-			# We have canary failures, time to rollback.
-			self.stdout.write("The following canary uploads have failed:")
-			self.stdout.write(", ".join(u.shortid for u in canary_failures))
+			if canary_failures:
+				# We have canary failures, time to rollback.
+				self.stdout.write("The following canary uploads have failed:")
+				self.stdout.write(", ".join(u.shortid for u in canary_failures))
+				raise RuntimeError("Failed canary events detected. Rolling back.")
+		except Exception:
 
 			update_canary_result = LAMBDA.update_alias(
 				FunctionName=func_name,
@@ -107,7 +113,9 @@ class Command(BaseCommand):
 			self.stdout.write(
 				"CANARY reverted to version: %s" % update_canary_result["FunctionVersion"]
 			)
-			raise RuntimeError("Deploy aborted due to canary failures.")
+			self.stdout.write("Initiating reprocessing to fix canary uploads")
+			queue_upload_events_for_reprocessing(canary_failures, use_kinesis=True)
+			raise
 
 		# We didn't have any canary failures so it's time to promote PROD.
 		self.stdout.write("The canary version is a success! Promoting PROD.")

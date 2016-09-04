@@ -191,7 +191,7 @@ HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 LAMBDA_DEFAULT_EXECUTION_ROLE_NAME = "iam_lambda_execution_role"
 
 # We initially wait this long when doing a canary deploy before checking the results
-MIN_CANARY_WAIT_SECONDS = 120
+MAX_CANARY_WAIT_SECONDS = 180
 # We require at least this many uploads before we declare the canary a success
 MIN_CANARY_UPLOADS = 10
 
