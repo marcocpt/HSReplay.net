@@ -48,7 +48,7 @@ def process_replay_upload_stream_handler(event, context):
 
 	countdown_latch = CountDownLatch(num_records)
 
-	def lambda_invoker(payload):
+	def lambda_invoker(payload, shortid):
 		try:
 			LAMBDA.invoke(
 				FunctionName="process_single_replay_upload_stream_handler",
@@ -56,12 +56,14 @@ def process_replay_upload_stream_handler(event, context):
 				Payload=payload,
 			)
 		finally:
-			logger.info("Decrementing latch")
+			logger.info("Lambda completed for %s Decrementing latch.", shortid)
 			countdown_latch.count_down()
 
 	for record in records:
+		shortid = record["kinesis"]["partitionKey"]
 		payload = json.dumps({"Records": [record]})
-		lambda_invocation = Thread(target=lambda_invoker, args=(payload,))
+		logger.info("Invoking Lambda for %s", shortid)
+		lambda_invocation = Thread(target=lambda_invoker, args=(payload, shortid))
 		lambda_invocation.start()
 
 	# We will exit once all child invocations have returned.
