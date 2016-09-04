@@ -19,6 +19,7 @@
 {% block meta %}
 	{{ block.super }}
 	<meta property="og:title" content="{{ replay.pretty_name_spoilerfree }}" />
+	<meta property="og:description" content="{{ replay.generate_description }}" />
 	<meta property="og:url" content="{{ canonical_url }}" />
 	<meta name="date" content="{{ replay.global_game.match_start|date:"c" }}">
 	<link rel="canonical" href="{{ canonical_url }}" />
