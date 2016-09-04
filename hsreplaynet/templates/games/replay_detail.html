@@ -20,6 +20,7 @@
 	{{ block.super }}
 	<meta property="og:title" content="{{ replay.pretty_name_spoilerfree }}" />
 	<meta property="og:url" content="{{ canonical_url }}" />
+	<meta name="date" content="{{ replay.global_game.match_start|date:"c" }}">
 	<link rel="canonical" href="{{ canonical_url }}" />
 	<link rel="me" href="https://twitter.com/hsreplaynet" />
 {% endblock %}
