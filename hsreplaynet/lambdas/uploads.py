@@ -1,4 +1,6 @@
 import logging
+import json
+from threading import Thread
 from django.conf import settings
 from hsreplaynet.api.models import APIKey, AuthToken
 from hsreplaynet.api.serializers import UploadEventSerializer
@@ -6,17 +8,73 @@ from hsreplaynet.uploads.models import (
 	UploadEvent, RawUpload, UploadEventStatus, _generate_upload_key
 )
 from hsreplaynet.utils import instrumentation
+from hsreplaynet.utils.latch import CountDownLatch
+from hsreplaynet.utils.aws import LAMBDA
 
 
 @instrumentation.lambda_handler(
 	cpu_seconds=180,
-	stream_name="replay-upload-processing-stream"
+	stream_name="replay-upload-processing-stream",
+	stream_batch_size=8
 )
 def process_replay_upload_stream_handler(event, context):
 	"""
-	A handler that consumes records from an AWS Kinesis stream.
+	A handler that supports reading from a stream with batch size > 1.
+
+	If this handler is invoked with N records in the event, then it will invoke the
+	single record processing lambda N times in parallel and exit once they have
+	all returned.
+
+	In combination with the number of shards in the stream, this allows for tuning the
+	parallelism of processing a stream more dynamically. The parallelism of the stream
+	is governed by:
+
+	CONCURRENT_LAMBDAS = NUM_SHARDS * STREAM_BATCH_SIZE
+
+	This also provides for controllable concurrency of lambdas much more cost efficiently
+	as we can run with many fewer shards, and we only pay the tax of this additional
+	lambda invocation. For example, with stream_batch_size = 2, this costs 50% as much
+	as adding a second shard would cost. With stream_batch_size = 8, this costs 7% as
+	much as adding 7 additional shards would cost.
+
+	When using this lambda, the number of shards should be set to be the fewest number
+	required to achieve the required write throughput. Then the batch size of this lambda
+	should be tuned to achieve the final desired concurrency level.
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_replay_upload_stream_handler")
+	records = event["Records"]
+	num_records = len(records)
+	logger.info("Kinesis batch handler invoked with %s records", num_records)
+
+	countdown_latch = CountDownLatch(num_records)
+
+	def lambda_invoker(payload):
+		try:
+			LAMBDA.invoke(
+				FunctionName="process_single_replay_upload_stream_handler",
+				InvocationType="RequestResponse",  # Triggers synchronous invocation
+				Payload=payload,
+			)
+		finally:
+			countdown_latch.count_down()
+
+	for record in records:
+		payload = json.dumps({"Records": [record]})
+		lambda_invocation = Thread(target=lambda_invoker, args=(payload,))
+		lambda_invocation.start()
+
+	# We will exit once all child invocations have returned.
+	countdown_latch.await()
+
+
+@instrumentation.lambda_handler(cpu_seconds=180)
+def process_single_replay_upload_stream_handler(event, context):
+	"""
+	A handler that consumes single records from an AWS Kinesis stream.
+	"""
+	logger = logging.getLogger(
+		"hsreplaynet.lambdas.process_single_replay_upload_stream_handler"
+	)
 	kinesis_event = event["Records"][0]["kinesis"]
 	raw_upload = RawUpload.from_kinesis_event(kinesis_event)
 

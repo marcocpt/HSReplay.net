@@ -28,7 +28,13 @@ def get_tracing_id(event):
 	Used in the Lambda logging system to trace sessions.
 	"""
 	UNKNOWN_ID = "unknown-id"
-	event_data = event["Records"][0]
+	records = event["Records"]
+
+	if len(records) > 1:
+		# This is a kinesis batch invocation
+		return ":".join(r["kinesis"]["partitionKey"] for r in records)
+
+	event_data = records[0]
 
 	if "s3" in event_data:
 		# We are in the process_s3_object Lambda
