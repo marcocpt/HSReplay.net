@@ -15,6 +15,7 @@ the rest of the hsreplaynet codebase.
 import json
 import shortuuid
 import logging
+from random import randrange
 from base64 import b64decode
 from datetime import datetime
 
@@ -29,6 +30,20 @@ except ImportError:
 	S3 = None
 
 S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
+
+
+PERCENT_CANARY_UPLOADS = 20
+
+
+def is_canary_upload(event):
+	if event and "query" in event and "canary" in event["query"]:
+		return True
+
+	dice_roll = randrange(0, 100)
+	if dice_roll < PERCENT_CANARY_UPLOADS:
+		return True
+
+	return False
 
 
 def get_timestamp():
@@ -61,6 +76,9 @@ def generate_log_upload_address_handler(event, context):
 
 	auth_token = get_auth_token(gateway_headers)
 	shortid = get_shortid()
+	is_canary = is_canary_upload(event)
+	logger.info("Is Canary: %s", is_canary)
+
 	ts = get_timestamp()
 	ts_path = ts.strftime("%Y/%m/%d/%H/%M")
 
@@ -73,6 +91,14 @@ def generate_log_upload_address_handler(event, context):
 	if not isinstance(upload_metadata, dict):
 		raise Exception("Meta data is not a valid JSON dictionary.")
 
+	# A small fixed percentage of uploads are marked as canaries
+	# 99% of the time they are handled identically to all other uploads
+	# However during a lambdas deploy, the canaries are exposed to the newest code first
+	# All canary uploads must succeed before the newest code gets promoted
+	# To handle 100% of the upload volume.
+	if is_canary:
+		upload_metadata["canary"] = is_canary
+
 	descriptor = {
 		"gateway_headers": gateway_headers,
 		"shortid": shortid,
@@ -83,8 +109,11 @@ def generate_log_upload_address_handler(event, context):
 	s3_descriptor_key = "raw/%s/%s.descriptor.json" % (ts_path, shortid)
 	logger.info("S3 Descriptor Key: %s", s3_descriptor_key)
 
-	# S3 only triggers downstream lambdas for PUTs suffixed with '...power.log'
-	s3_powerlog_key = "raw/%s/%s.power.log" % (ts_path, shortid)
+	# S3 only triggers downstream lambdas for PUTs suffixed with
+	#  '...power.log' or '...canary.log'
+	log_key_suffix = "power.log" if not is_canary else "canary.log"
+	s3_powerlog_key = "raw/%s/%s.%s" % (ts_path, shortid, log_key_suffix)
+
 	logger.info("S3 Powerlog Key: %s", s3_powerlog_key)
 
 	descriptor["event"] = event
