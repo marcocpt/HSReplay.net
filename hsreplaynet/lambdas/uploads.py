@@ -56,6 +56,7 @@ def process_replay_upload_stream_handler(event, context):
 				Payload=payload,
 			)
 		finally:
+			logger.info("Decrementing latch")
 			countdown_latch.count_down()
 
 	for record in records:
@@ -65,6 +66,7 @@ def process_replay_upload_stream_handler(event, context):
 
 	# We will exit once all child invocations have returned.
 	countdown_latch.await()
+	logger.info("All child invocations have completed")
 
 
 @instrumentation.lambda_handler(cpu_seconds=180)

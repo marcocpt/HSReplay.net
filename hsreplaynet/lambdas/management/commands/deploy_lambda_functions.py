@@ -120,7 +120,10 @@ class Command(BaseCommand):
 									mapping_batch_size,
 									batch_size
 								))
-								LAMBDA.update_event_source_mapping(UUID=mapping_uuid, BatchSize=mapping_batch_size)
+								LAMBDA.update_event_source_mapping(
+									UUID=mapping_uuid,
+									BatchSize=batch_size
+								)
 							else:
 								# Nothing has changed.
 								self.stdout.write("No changes required.")
