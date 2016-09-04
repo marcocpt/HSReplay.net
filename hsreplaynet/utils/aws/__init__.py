@@ -41,23 +41,49 @@ def get_processing_stream_max_writes_per_second():
 
 
 def enable_processing_raw_uploads():
-	processing_lambda = LAMBDA.get_function(FunctionName="ProcessS3CreateObjectV1")
+	prod_processing_lambda = LAMBDA.get_function(
+		FunctionName="ProcessS3CreateObjectV1",
+		Qualifier="PROD"
+	)
+	prod_notification_config = {
+		"LambdaFunctionArn": prod_processing_lambda["Configuration"]["FunctionArn"],
+		"Events": ["s3:ObjectCreated:*"],
+		"Id": "TriggerProdLambdaOnLogCreate",
+		"Filter": {
+			"Key": {
+				"FilterRules": [
+					{"Name": "suffix", "Value": "power.log"},
+					{"Name": "prefix", "Value": "raw"},
+				]
+			}
+		}
+	}
+
+	canary_processing_lambda = LAMBDA.get_function(
+		FunctionName="ProcessS3CreateObjectV1",
+		Qualifier="CANARY"
+	)
+	canary_notification_config = {
+		"LambdaFunctionArn": canary_processing_lambda["Configuration"]["FunctionArn"],
+		"Events": ["s3:ObjectCreated:*"],
+		"Id": "TriggerCanaryLambdaOnLogCreate",
+		"Filter": {
+			"Key": {
+				"FilterRules": [
+					{"Name": "suffix", "Value": "canary.log"},
+					{"Name": "prefix", "Value": "raw"},
+				]
+			}
+		}
+	}
+
 	S3.put_bucket_notification_configuration(
 		Bucket=settings.S3_RAW_LOG_UPLOAD_BUCKET,
 		NotificationConfiguration={
-			"LambdaFunctionConfigurations": [{
-				"LambdaFunctionArn": processing_lambda["Configuration"]["FunctionArn"],
-				"Events": ["s3:ObjectCreated:*"],
-				"Id": "TriggerLambdaOnLogCreate",
-				"Filter": {
-					"Key": {
-						"FilterRules": [
-							{"Name": "suffix", "Value": "power.log"},
-							{"Name": "prefix", "Value": "raw"},
-						]
-					}
-				}
-			}]
+			"LambdaFunctionConfigurations": [
+				prod_notification_config,
+				canary_notification_config
+			]
 		}
 	)
 

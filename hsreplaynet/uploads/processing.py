@@ -33,7 +33,7 @@ def queue_raw_uploads_for_processing(attempt_reprocessing):
 def generate_raw_uploads_for_processing(attempt_reprocessing):
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix="raw"):
 		key = object["Key"]
-		if key.endswith("power.log"):  # Don't queue the descriptor files, just the logs.
+		if key.endswith(".log"):  # Don't queue the descriptor files, just the logs.
 
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 			raw_upload.attempt_reprocessing = attempt_reprocessing
@@ -64,7 +64,7 @@ def current_raw_upload_bucket_size():
 def _list_raw_uploads_by_prefix(prefix):
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix=prefix):
 		key = object["Key"]
-		if key.endswith("power.log"):  # Just emit one message per power.log
+		if key.endswith(".log"):  # Just emit one message per power.log / canary.log
 			yield RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 
 
