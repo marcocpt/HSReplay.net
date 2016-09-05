@@ -21,3 +21,7 @@ class UploadEventAdmin(admin.ModelAdmin):
 	raw_id_fields = ("token", "game")
 	readonly_fields = ("created", )
 	search_fields = ("shortid", )
+
+	def get_queryset(self, request):
+		qs = super().get_queryset(request)
+		return qs.prefetch_related("game__global_game__players")

@@ -53,6 +53,10 @@ class GameReplayAdmin(admin.ModelAdmin):
 	search_fields = ("shortid", "global_game__players__name", "user__username")
 	inlines = (UploadEventInline, )
 
+	def get_queryset(self, request):
+		qs = super().get_queryset(request)
+		return qs.prefetch_related("global_game__players")
+
 
 class ReplaySidesFilter(admin.SimpleListFilter):
 	"""
@@ -87,6 +91,10 @@ class GlobalGameAdmin(admin.ModelAdmin):
 	)
 	search_fields = ("replays__shortid", "players__name")
 	inlines = (GlobalGamePlayerInline, GameReplayInline)
+
+	def get_queryset(self, request):
+		qs = super().get_queryset(request)
+		return qs.prefetch_related("players")
 
 
 @admin.register(GlobalGamePlayer)
