@@ -11,7 +11,7 @@ from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.utils.instrumentation import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
-from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
+from .models import GameReplay, GlobalGame, GlobalGamePlayer
 
 
 logger = logging.getLogger(__file__)
@@ -312,13 +312,5 @@ def do_process_upload_event(upload_event):
 	influx_metric("replay_xml_num_bytes", {"size": file.size})
 	replay.update_final_states()
 	replay.save()
-
-	# Manual uploads (admin/command line) don't have tokens attached
-	if user is None and upload_event.token is not None:
-		# If the auth token has not yet been claimed, create
-		# a pending claim for the replay for when it will be.
-		PendingReplayOwnership.objects.get_or_create(
-			replay=replay, token=upload_event.token
-		)
 
 	return replay

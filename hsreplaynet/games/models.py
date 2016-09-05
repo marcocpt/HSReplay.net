@@ -9,7 +9,6 @@ from django.urls import reverse
 from hearthstone.enums import BnetGameType, FormatType, PlayState
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.utils import log
 from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 
@@ -397,40 +396,9 @@ class GameReplay(models.Model):
 		return recommend_related_replays(self, num)
 
 
-class PendingReplayOwnership(models.Model):
-	"""
-	A model associating an AuthKey with a GameReplay, until
-	the AuthKey gains a real user.
-	"""
-	replay = models.OneToOneField(GameReplay, related_name="ownership_claim")
-	token = models.ForeignKey(
-		AuthToken, on_delete=models.CASCADE, related_name="replay_claims"
-	)
-
-	class Meta:
-		unique_together = ("replay", "token")
-
-
 @receiver(models.signals.post_delete, sender=GameReplay)
 def cleanup_hsreplay_file(sender, instance, **kwargs):
 	from hsreplaynet.utils import delete_file_async
 	file = instance.replay_xml
 	if file.name:
 		delete_file_async(file.name)
-
-
-@receiver(models.signals.post_save, sender=AuthToken)
-def claim_token_replays(sender, instance, **kwargs):
-	"""
-	Whenever AuthToken.user is set, process all the PendingReplayOwnerships.
-	"""
-	if instance.user:
-		# Claim all of the token's replays and delete them
-		log.info("claim_token_replays(instance=%r, user=%r)", instance, instance.user)
-		claims = instance.replay_claims.all()
-		log.info("Found %r claims", claims)
-		for claim in claims:
-			log.info("Updating %r to %r", claim.replay.user, instance.user)
-			claim.replay.user = instance.user
-			claim.replay.save()
-		claims.delete()

@@ -3,7 +3,7 @@ from django.db.models import Count
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.uploads.processing import queue_upload_event_for_reprocessing
 from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
-from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
+from .models import GameReplay, GlobalGame, GlobalGamePlayer
 
 
 def queue_for_reprocessing(admin, request, queryset):
@@ -35,11 +35,6 @@ class GameReplayInline(admin.StackedInline):
 	show_change_link = True
 
 
-class PendingReplayOwnershipInline(admin.TabularInline):
-	model = PendingReplayOwnership
-	raw_id_fields = ("token", )
-
-
 @admin.register(GameReplay)
 class GameReplayAdmin(admin.ModelAdmin):
 	actions = (set_user, queue_for_reprocessing)
@@ -56,7 +51,7 @@ class GameReplayAdmin(admin.ModelAdmin):
 	)
 	readonly_fields = ("shortid", )
 	search_fields = ("shortid", "global_game__players__name", "user__username")
-	inlines = (UploadEventInline, PendingReplayOwnershipInline)
+	inlines = (UploadEventInline, )
 
 
 class ReplaySidesFilter(admin.SimpleListFilter):
