@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD_DIR = os.path.join(BASE_DIR, "build")
 
 
-ENV_LIVE = platform.node() in ["hsreplay.net", "hearthsim.net"]
+ENV_LIVE = platform.node() == "hsreplay.net"
 ENV_LAMBDA = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 ENV_CI = platform.node() == "build.hearthsim.net"
 ENV_PROD = ENV_LIVE or ENV_LAMBDA
