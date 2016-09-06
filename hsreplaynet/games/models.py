@@ -96,6 +96,13 @@ class GlobalGame(models.Model):
 		return self.match_end - self.match_start
 
 	@property
+	def is_ranked(self):
+		return self.game_type in (
+			BnetGameType.BGT_RANKED_WILD,
+			BnetGameType.BGT_RANKED_STANDARD,
+		)
+
+	@property
 	def is_tavern_brawl(self):
 		return self.game_type in (
 			BnetGameType.BGT_TAVERNBRAWL_PVP,
