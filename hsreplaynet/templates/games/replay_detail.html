@@ -37,65 +37,69 @@
 {% block fullcontent %}
 <div id="tabletop" class="container-fluid">
 	<div class="row full_height">
-		<div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
+		<div class="col-lg-10 col-md-9 col-sm-12 col-xs-12 full_height">
 			<div class="full_height">
 				<div id="joust-container" class="full_height" data-replayurl="{{ replay.replay_xml.url }}"{% if user.is_authenticated %} data-locale="{{ user.locale }}"{% endif %}></div>
 			</div>
 		</div>
-	</div>
+		<div class="col-xs-12 visible-xs visible-sm">
+			<br/>
+		</div>
+		<div class="col-lg-2 col-md-3 col-sm-12 col-xs-12">
+			{% with replay.global_game as gg %}
+			<div id="replay-infobox">
+				{% if gg.is_ranked %}
+					<h1>Ranked - Season {{ gg.ladder_season }}</h1>
+				{% elif gg.is_tavern_brawl %}
+					<h1>Tavern Brawl</h1>
+				{% elif gg.game_type.name == "BGT_ARENA" %}
+					<h1>Arena</h1>
+				{% else %}
+					<h1>Ranked - Season {{ gg.ladder_season }}</h1>
+				{% endif %}
+				<h2>Share</h2>
+				<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
+				<h2>Players</h2>
+				<ul id="infobox-players">
+					{% for player in gg.players.all %}
+						<li class="{% if player.is_ai %}player-ai{% endif %}{% if player.is_first %}player-first{% endif %}">
+							{{ player }} ({{ player.final_state.name|title }})
+							{% if player.legend_rank %} - Legend Rank {{ player.legend_rank }}
+							{% elif player.rank %} - Rank {{ player.rank }}{% endif %}
+							<a class="infobox-show-deck" onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">Toggle deck</a>
+							<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
+								{# TODO: Make this an API call (inefficient as-is) #}
+								{% for include in player.deck_list.include_set.all %}
+									<li>{{ include }}</li>
+								{% endfor %}
+							</ul>
+						</li>
+					{% endfor %}
+				</ul>
+				<h2>Game</h2>
+				<ul id="infobox-game">
+					<li>Build {{ game.build|default:"unknown" }}</li>
+					<li>{{ gg.num_turns }} turns</li>
+				</ul>
+				{% comment %}
+				<h2>Related</h2>
+				<ul id="infobox-related">
+					<li class="related-empty">No similar games found</li>
+					<!-- This is too slow, it's killing the server. Figure out how to optimize it before uncommenting. -->
+					{% for recommendation in replay.related_replays %}
+						<li><a href="{{ recommendation.replay.get_absolute_url }}">{{ recommendation.replay }}</a></li>
+					{% empty %}
+						<li class="related-empty">No similar games found!</li>
+					{% endfor %}
+				</ul>
+				{% endcomment %}
 
-	{% with replay.global_game as gg %}
-	<div id="replay-infobox">
-		{% if gg.is_ranked %}
-			<h1>Ranked - Season {{ gg.ladder_season }}</h1>
-		{% elif gg.is_tavern_brawl %}
-			<h1>Tavern Brawl</h1>
-		{% elif gg.game_type.name == "BGT_ARENA" %}
-			<h1>Arena</h1>
-		{% else %}
-			<h1>Ranked - Season {{ gg.ladder_season }}</h1>
-		{% endif %}
-		<h2>Share</h2>
-		<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
-		<h2>Players</h2>
-		<ul id="infobox-players">
-			{% for player in gg.players.all %}
-				<li class="{% if player.is_ai %}player-ai{% endif %}{% if player.is_first %}player-first{% endif %}">
-					{{ player }} ({{ player.final_state.name|title }})
-					{% if player.legend_rank %} - Legend Rank {{ player.legend_rank }}
-					{% elif player.rank %} - Rank {{ player.rank }}{% endif %}
-					<a class="infobox-show-deck" onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">Toggle deck</a>
-					<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
-						{# TODO: Make this an API call (inefficient as-is) #}
-						{% for include in player.deck_list.include_set.all %}
-							<li>{{ include }}</li>
-						{% endfor %}
-					</ul>
-				</li>
-			{% endfor %}
-		</ul>
-		<h2>Game</h2>
-		<ul id="infobox-game">
-			<li>Build {{ game.build|default:"unknown" }}</li>
-			<li>{{ gg.num_turns }} turns</li>
-		</ul>
-		<h2>Similar</h2>
-		<ul id="infobox-related">
-			<li class="related-empty">No similar games found!</li>
-			{% comment %}
-			<!-- This is too slow, it's killing the server. Figure out how to optimize it before uncommenting. -->
-			{% for recommendation in replay.related_replays %}
-				<li><a href="{{ recommendation.replay.get_absolute_url }}">{{ recommendation.replay }}</a></li>
-			{% empty %}
-				<li class="related-empty">No similar games found!</li>
-			{% endfor %}
-			{% endcomment %}
-		</ul>
-
-		<!-- TODO: move this to Joust itself, in the extra menu -->
-		<h2><a href="{{ replay.replay_xml.url }}">Download XML</a></h2>
+				<!-- TODO: move this to Joust itself, in the extra menu -->
+				<h2><a href="{{ replay.replay_xml.url }}" download="{{ replay.shortid }}.hsreplay">Download XML</a></h2>
+			</div>
+			{% endwith %}
+		</div>
 	</div>
-	{% endwith %}
 </div>
 
 <script src="{% joust_static 'joust.js' %}"></script>

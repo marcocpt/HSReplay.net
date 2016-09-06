@@ -1,14 +1,21 @@
 #replay-infobox {
-	background-color: #1d3657;
+	background-color: $blue;
 	border: 1px solid white;
 	color: white;
-	margin: 1em 0.5em;
-	width: 300px;
+	width: 100%;
+
+	a, a:hover, a:active {
+		color: #3188b8;
+	}
 
 	ul {
 		list-style-type: none;
 		padding: 0;
 		margin: 0;
+
+		ul {
+			margin-top: 0.5em;
+		}
 	}
 
 	h1 {
@@ -21,16 +28,35 @@
 
 	h2 {
 		background-color: #154b69;
-		color: #3188b8;
+		color: #3ba3db;
 		font-size: 1.1em;
 		margin: 0;
 		padding: 0.3em 0.5em;
 		text-transform: uppercase;
+
+		&:last-child {
+			padding-bottom: 0.5em;
+		}
+
+		a, a:hover, a:active {
+			color: inherit;
+		}
 	}
 
 	li {
 		border-bottom: 1px solid #154b69;
 		padding: 0.5em 1em;
+
+		ul {
+			> li:first-of-type {
+				border-top: 1px solid #154b69;
+			}
+
+			> li:last-of-type {
+				padding-bottom: 0;
+				border-bottom: none;
+			}
+		}
 	}
 
 	#share-game-dialog {
