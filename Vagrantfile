@@ -16,10 +16,4 @@ Vagrant.configure("2") do |config|
 	config.vm.provision "shell",
 		path: "scripts/provision_user.sh",
 		privileged: false
-
-	# Start the server and its watchers
-	config.vm.provision "shell",
-		path: "scripts/provision_run.sh",
-		privileged: false,
-		run: "always"
 end
