@@ -7,6 +7,7 @@ from .games.views import ReplayDetailView
 urlpatterns = [
 	url(r"^$", TemplateView.as_view(template_name="home.html"), name="home"),
 	url(r"^api/", include("hsreplaynet.api.urls")),
+	url(r"^cards/", include("hsreplaynet.cards.urls")),
 	url(r"^games/", include("hsreplaynet.games.urls")),
 	url(r"^scenarios/", include("hsreplaynet.scenarios.urls")),
 	url(r"^uploads/", include("hsreplaynet.uploads.urls")),
