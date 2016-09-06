@@ -81,11 +81,15 @@
 		</ul>
 		<h2>Similar</h2>
 		<ul id="infobox-related">
+			<li class="related-empty">No similar games found!</li>
+			{% comment %}
+			<!-- This is too slow, it's killing the server. Figure out how to optimize it before uncommenting. -->
 			{% for recommendation in replay.related_replays %}
 				<li><a href="{{ recommendation.replay.get_absolute_url }}">{{ recommendation.replay }}</a></li>
 			{% empty %}
 				<li class="related-empty">No similar games found!</li>
 			{% endfor %}
+			{% endcomment %}
 		</ul>
 
 		<!-- TODO: move this to Joust itself, in the extra menu -->
