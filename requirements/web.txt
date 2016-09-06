@@ -7,6 +7,7 @@ django-webpack-loader==0.3.3
 humanize==0.5.1
 libsass==0.11.1
 nodeenv==0.13.6
+uwsgi==2.0.13.1
 
 # redis requirements
 django-rq==0.9.2

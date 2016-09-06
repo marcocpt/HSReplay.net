@@ -9,7 +9,7 @@ apt-get install -qy \
 	zsh curl git htop tree vim \
 	python3 python3-dev python3-venv \
 	gcc g++ libxml2 libxml2-dev libxslt1-dev \
-	postgresql libpq-dev
+	postgresql libpq-dev supervisor
 apt-get install -qy -t jessie-backports redis-server
 
 # Enable trust authentication for postgresql
