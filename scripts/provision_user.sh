@@ -33,9 +33,13 @@ export PATH="$VIRTUAL_ENV/nodeenv/bin:$HOME/node_modules/.bin:$PATH"
 # https://github.com/npm/npm/issues/7308
 # https://github.com/npm/npm/issues/9901
 ln -fs "$PROJECT/package.json" "$HOME/package.json"
+# Move typings one level up
+sed 's|hsreplaynet/|hsreplay.net/hsreplaynet/|g' "$PROJECT/typings.json" > "$HOME/typings.json"
 npm install
 
-touch "$PROJECT/hsreplaynet/local_settings.py"
+if [[ ! -e $PROJECT/hsreplaynet/local_settings.py ]]; then
+	cp "$PROJECT/local_settings.example.py" "$PROJECT/hsreplaynet/local_settings.py"
+fi
 
 createdb --username postgres hsreplaynet
 python "$PROJECT/manage.py" migrate --no-input

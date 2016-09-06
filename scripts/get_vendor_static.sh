@@ -24,7 +24,7 @@ OUTDIR="$STATICDIR/bootstrap"
 ZIPFILE="$OUTDIR/bootstrap.zip"
 
 mkdir -p "$OUTDIR"
-wget "$SOURCE" -O "$ZIPFILE"
+wget --no-verbose "$SOURCE" -O "$ZIPFILE"
 unzip "$ZIPFILE" -d "$OUTDIR"
 mv "$OUTDIR/$PKGNAME"/{css,js,fonts} "$OUTDIR"
 rmdir "$OUTDIR/$PKGNAME"
@@ -38,7 +38,7 @@ VERSION="1.12.4"
 SOURCE="https://code.jquery.com/$PKGNAME-$VERSION.min.js"
 OUTFILE="$STATICDIR/$PKGNAME.min.js"
 
-wget "$SOURCE" -O "$OUTFILE"
+wget --no-verbose "$SOURCE" -O "$OUTFILE"
 
 
 # React
@@ -48,11 +48,11 @@ BASEURL="https://cdnjs.cloudflare.com/ajax/libs/react/$VERSION"
 
 OUTFILE="$STATICDIR/react.min.js"
 SOURCE="$BASEURL/react.min.js"
-wget "$SOURCE" -O "$OUTFILE"
+wget --no-verbose "$SOURCE" -O "$OUTFILE"
 
 OUTFILE="$STATICDIR/react-dom.min.js"
 SOURCE="$BASEURL/react-dom.min.js"
-wget "$SOURCE" -O "$OUTFILE"
+wget --no-verbose "$SOURCE" -O "$OUTFILE"
 
 
 # Raven
@@ -62,7 +62,7 @@ VERSION="3.6.1"
 SOURCE="https://cdn.ravenjs.com/$VERSION/$PKGNAME.min.js"
 OUTFILE="$STATICDIR/$PKGNAME.min.js"
 
-wget "$SOURCE" -O "$OUTFILE"
+wget --no-verbose "$SOURCE" -O "$OUTFILE"
 
 
 # Hearthstone enums
@@ -70,7 +70,7 @@ wget "$SOURCE" -O "$OUTFILE"
 SOURCE="https://api.hearthstonejson.com/v1/enums.d.ts"
 OUTFILE="$STATICDIR/../scripts/src/hearthstone.d.ts"
 
-wget "$SOURCE" -O "$OUTFILE"
+wget --no-verbose "$SOURCE" -O "$OUTFILE"
 
 
 # Joust Fonts
@@ -82,5 +82,5 @@ franklin="franklingothicfs_mediumcondensed_macroman/franklingothic-medcd-webfont
 for font in $belwe $franklin; do
 	dir="$(dirname $font)"
 	name="$(basename $font)"
-	wget "$FONTS_SOURCE/$dir"/{$name.{eot,svg,ttf,woff,woff2},stylesheet.css} -P "$FONTSDIR/$dir"
+	wget --no-verbose "$FONTS_SOURCE/$dir"/{$name.{eot,svg,ttf,woff,woff2},stylesheet.css} -P "$FONTSDIR/$dir"
 done

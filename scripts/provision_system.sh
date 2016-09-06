@@ -6,7 +6,7 @@ deb-src http://cloudfront.debian.net/debian jessie-backports main' > /etc/apt/so
 apt-get update
 apt-get dist-upgrade -qy
 apt-get install -qy \
-	zsh curl git htop tree vim \
+	zsh curl git htop tree unzip vim \
 	python3 python3-dev python3-venv \
 	gcc g++ libxml2 libxml2-dev libxslt1-dev \
 	postgresql libpq-dev supervisor
