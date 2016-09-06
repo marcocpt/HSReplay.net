@@ -1,6 +1,6 @@
 PROJECT="$HOME/hsreplay.net"
 source "$HOME/env/bin/activate"
-export PATH="$VIRTUAL_ENV/nodeenv/bin:$PROJECT/node_modules/.bin:$PATH"
+export PATH="$VIRTUAL_ENV/nodeenv/bin:$HOME/node_modules/.bin:$PATH"
 
 echo "Starting webpack watcher"
 killall -9 -q node
