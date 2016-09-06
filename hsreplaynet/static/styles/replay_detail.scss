@@ -1,0 +1,43 @@
+#replay-infobox {
+	background-color: #1d3657;
+	border: 1px solid white;
+	color: white;
+	margin: 1em 0.5em;
+	width: 300px;
+
+	ul {
+		list-style-type: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	h1 {
+		background-color: #3188b8;
+		padding: 1em 0;
+		font-size: 1.2em;
+		text-align: center;
+		text-transform: uppercase;
+	}
+
+	h2 {
+		background-color: #154b69;
+		color: #3188b8;
+		font-size: 1.1em;
+		margin: 0;
+		padding: 0.3em 0.5em;
+		text-transform: uppercase;
+	}
+
+	li {
+		border-bottom: 1px solid #154b69;
+		padding: 0.5em 1em;
+	}
+
+	#share-game-dialog {
+		padding: 1em 0.5em 0;
+	}
+
+	.infobox-show-deck {
+		float: right;
+	}
+}

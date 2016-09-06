@@ -43,63 +43,56 @@
 			</div>
 		</div>
 	</div>
-</div>
 
-<div id="replay-details" class="container-fluid">
-	<div class="row">
-		<div class="col-lg-offset-1 col-lg-10 col-xs-12">
-			{% with replay.global_game as gg %}
-			<div class="row">
-				<div class="col-lg-3 col-lg-push-9 col-xs-12">
-					<h2>Share</h2>
-					<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
-				</div>
-				<div class="col-lg-3 col-lg-pull-3 col-xs-12">
-					<h3>Related games</h3>
-					<ul>
-					{% for recommendation in replay.related_replays %}
-						<li><a href="{{ recommendation.replay.get_absolute_url }}">{{ recommendation.replay }}</a></li>
-					{% empty %}
-						<li>No similar games found!</li>
-					{% endfor %}
-					</ul>
-					<h2>Details</h2>
-					<ul>
-						<li>Patch {{ gg.build }}</li>
-						<li>{{ gg.num_turns }} turns, {{ gg.num_entities }} entities</li>
-						<li>
-							{{ gg.game_type.name }}
-							{% if gg.ladder_season %}- Season {{ gg.ladder_season }}{% endif %}
-						</li>
-						<li><a href="{{ replay.replay_xml.url }}">Download replay</a></li>
-					</ul>
-				</div>
-				<div class="col-lg-6 col-lg-pull-3 col-xs-12">
-					<h2>Players</h2>
-					<div class="row">
-						{% for player in gg.players.all %}
-							<div class="col-lg-6 col-sm-12">
-								<h3>{{ player }}{% if player.is_ai %} (AI){% endif %} ({{ player.final_state.name|title }})</h3>
-								<ul>
-									<li>{% if player.is_first %}First player{% else %}Second player{% endif %}</li>
-									<li>Hero: {{ player.hero }}{% if player.hero_premium %} (Golden){% endif %}</li>
-									<li>Deck: {{ player.deck_list }}</li>
-									{% if player.rank %}
-										<li>Rank {{ player.rank }}{% if player.stars %} {{ player.stars }} stars{% endif %}</li>
-									{% elif player.legend_rank %}
-										<li>Legend rank {{ player.legend_rank }}</li>
-									{% endif %}
-								</ul>
-							</div>
+	{% with replay.global_game as gg %}
+	<div id="replay-infobox">
+		{% if gg.is_ranked %}
+			<h1>Ranked - Season {{ gg.ladder_season }}</h1>
+		{% elif gg.is_tavern_brawl %}
+			<h1>Tavern Brawl</h1>
+		{% elif gg.game_type.name == "BGT_ARENA" %}
+			<h1>Arena</h1>
+		{% else %}
+			<h1>Ranked - Season {{ gg.ladder_season }}</h1>
+		{% endif %}
+		<h2>Share</h2>
+		<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
+		<h2>Players</h2>
+		<ul id="infobox-players">
+			{% for player in gg.players.all %}
+				<li class="{% if player.is_ai %}player-ai{% endif %}{% if player.is_first %}player-first{% endif %}">
+					{{ player }} ({{ player.final_state.name|title }})
+					{% if player.legend_rank %} - Legend Rank {{ player.legend_rank }}
+					{% elif player.rank %} - Rank {{ player.rank }}{% endif %}
+					<a class="infobox-show-deck" onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">Toggle deck</a>
+					<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
+						{# TODO: Make this an API call (inefficient as-is) #}
+						{% for include in player.deck_list.include_set.all %}
+							<li>{{ include }}</li>
 						{% endfor %}
-					</div>
-				</div>
-			</div>
-			{% endwith %}
-		</div>
-	</div>
-</div>
+					</ul>
+				</li>
+			{% endfor %}
+		</ul>
+		<h2>Game</h2>
+		<ul id="infobox-game">
+			<li>Build {{ game.build|default:"unknown" }}</li>
+			<li>{{ gg.num_turns }} turns</li>
+		</ul>
+		<h2>Similar</h2>
+		<ul id="infobox-related">
+			{% for recommendation in replay.related_replays %}
+				<li><a href="{{ recommendation.replay.get_absolute_url }}">{{ recommendation.replay }}</a></li>
+			{% empty %}
+				<li class="related-empty">No similar games found!</li>
+			{% endfor %}
+		</ul>
 
+		<!-- TODO: move this to Joust itself, in the extra menu -->
+		<h2><a href="{{ replay.replay_xml.url }}">Download XML</a></h2>
+	</div>
+	{% endwith %}
+</div>
 
 <script src="{% joust_static 'joust.js' %}"></script>
 {% render_bundle "replay_detail" %}
