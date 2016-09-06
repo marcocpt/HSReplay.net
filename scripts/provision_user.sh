@@ -18,27 +18,15 @@ export PATH="$VIRTUAL_ENV/nodeenv/bin:$PROJECT/node_modules/.bin:$PATH"
 
 npm -C "$PROJECT" install
 
+touch "$PROJECT/hsreplaynet/local_settings.py"
+
 createdb --username postgres hsreplaynet
 python "$PROJECT/manage.py" migrate --no-input
 python "$PROJECT/manage.py" load_cards
+python "$PROJECT/scripts/initdb.py"
 
 if [[ ! -d $PROJECT/hsreplaynet/static/vendor ]]; then
 	"$PROJECT/scripts/get_vendor_static.sh"
 fi
 
-python "$PROJECT/scripts/initdb.py"
-
-
 "$PROJECT/scripts/update_log_data.sh"
-
-webpack --verbose -d \
-	--devtool cheap-module-eval-source-map \
-	--config "$PROJECT/webpack.config.js" \
-	--watch &
-
-sassc "$PROJECT/hsreplaynet/static/styles/main.scss" "$PROJECT/hsreplaynet/static/styles/main.css" \
-	--sourcemap --source-comments \
-	--watch &
-
-
-python "$PROJECT/manage.py" runserver 0.0.0.0:8000
