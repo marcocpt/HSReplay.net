@@ -78,4 +78,8 @@ module.exports = {
 		new BundleTracker({path: __dirname, filename: "./build/webpack-stats.json"}),
 		new webpack.DefinePlugin(settings),
 	],
+	watchOptions: {
+		// required in the Vagrant setup due to Vagrant inotify not working
+		poll: true
+	},
 };
