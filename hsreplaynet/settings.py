@@ -208,9 +208,9 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 DATABASES = {
 	"default": {
-		"ENGINE": "django.db.backends.sqlite3",
-		"NAME": os.path.join(BUILD_DIR, "db.sqlite"),
-		"USER": "",
+		"ENGINE": "django.db.backends.postgresql",
+		"NAME": "hsreplaynet",
+		"USER": "postgres",
 		"PASSWORD": "",
 		"HOST": "",
 		"PORT": "",
