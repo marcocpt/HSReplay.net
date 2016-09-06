@@ -97,7 +97,8 @@ export default class ShareGameDialog extends React.Component<ShareGameDialogProp
 				{this.props.showLinkToTurn ? <div className="checkbox">
 					<label>
 						<input type="checkbox" id="replay-share-link-turn" checked={this.state.linkToTurn}
-							   onChange={(e) => this.onChangeLinkToTurn()}/> Start at current turn
+							onChange={(e) => this.onChangeLinkToTurn()}/>
+							Link to current turn
 					</label>
 				</div> : null}
 				{this.props.showPreservePerspective ? <div className="checkbox">
