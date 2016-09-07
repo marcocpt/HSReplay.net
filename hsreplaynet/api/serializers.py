@@ -168,5 +168,5 @@ class GameReplayListSerializer(GameReplaySerializer):
 		model = GameReplay
 		fields = (
 			"shortid", "spectator_mode", "build", "won", "disconnected", "reconnecting",
-			"visibility", "global_game", "user"
+			"visibility", "global_game", "user", "friendly_player_id"
 		)
