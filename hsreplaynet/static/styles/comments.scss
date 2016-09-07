@@ -1,0 +1,51 @@
+#comment-form {
+	width: 30%;
+
+	/* Honepot field */
+	#id_honeypot {
+		display: none;
+	}
+
+	textarea {
+		height: 8em;
+	}
+
+	em {
+		color: $darkgrey;
+		margin: 1em 0;
+		float: right;
+	}
+
+	input[type="submit"] {
+		display: block;
+		margin: 0.5em 0 2em;
+	}
+}
+
+.comment {
+	width: 50%;
+	margin: 1em 0;
+
+	.comment-metadata {
+		background-color: $lightgrey;
+		padding: 0.4em;
+
+		.comment-author {
+			font-weight: bold;
+		}
+
+		.comment-time {
+			color: $darkgrey;
+			font-style: italic;
+			float: right;
+			padding-right: 0.5em;
+		}
+	}
+
+	.comment-body {
+		padding: 1em;
+		margin: 0;
+		background-color: $offwhite;
+		border: 1px solid $lightgrey;
+	}
+}

@@ -24,6 +24,7 @@ if not settings.ENV_LAMBDA:
 		url(r"^account/", include("hsreplaynet.accounts.urls")),
 		url(r"^about/privacy/$", flatpage, {"url": "/about/privacy/"}, name="privacy_policy"),
 		url(r"^about/tos/$", flatpage, {"url": "/about/tos/"}, name="terms_of_service"),
+		url(r"^comments/", include("django_comments.urls")),
 		url(r"^pages/", include("django.contrib.flatpages.urls")),
 	]
 

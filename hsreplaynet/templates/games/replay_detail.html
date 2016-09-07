@@ -2,7 +2,7 @@
 {% load static %}
 {% load web_extras %}
 {% load render_bundle from webpack_loader %}
-{% load humanize %}
+{% load comments humanize %}
 
 {% block stylesheets %}
 	{{ block.super }}
@@ -129,5 +129,29 @@
 
 <script src="{% joust_static 'joust.js' %}"></script>
 {% render_bundle "replay_detail" %}
+
+<div id="replay-comments" class="container-fluid">
+	<h2>Comments</h2>
+
+	{% if user.is_authenticated and user.is_staff %}
+		{% get_comment_form for replay as form %}
+		<form id="comment-form" action="{% comment_form_target %}" method="POST">
+			{% csrf_token %}
+			{# {{ form.comment }} #}
+			<textarea name="comment" rows="10" class="form-control" cols="40" id="id_comment" maxlength="3000" required></textarea>
+			{{ form.honeypot }}
+			{{ form.content_type }}
+			{{ form.object_pk }}
+			{{ form.timestamp }}
+			{{ form.security_hash }}
+			<input type="hidden" name="next" value="{{ replay.get_absolute_url }}"/>
+
+			<em>Note: Your Battletag will be visible to other users.</em>
+			<input type="submit" value="Post" class="btn btn-info"/>
+		</form>
+	{% endif %}
+
+	{% render_comment_list for replay %} {# comments/list.html #}
+</div>
 
 {% endblock %}

@@ -64,6 +64,7 @@ if not ENV_LAMBDA:
 		"django.contrib.admin",
 		"django.contrib.flatpages",
 		"django.contrib.humanize",
+		"django_comments",
 		"allauth",
 		"allauth.account",
 		"allauth.socialaccount",
