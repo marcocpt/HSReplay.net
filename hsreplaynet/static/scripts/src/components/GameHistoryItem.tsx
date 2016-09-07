@@ -120,7 +120,7 @@ export default class GameHistoryItem extends React.Component<GameHistoryItemProp
 			<a href={"/replay/" + this.props.shortid} className={this.props.won ? "won" : "lost"}>
 				<div className="hsreplay-involved">
 					<img src={this.props.image("vs.png")} className="hsreplay-versus"/>
-					{this.props.players.map((player: GlobalGamePlayer, i: number) => {
+					{this.props.players.sort(x => x.player_id == this.props.friendlyPlayer ? -1 : 1).map((player: GlobalGamePlayer, i: number) => {
 						return <GameHistoryPlayer
 							cardArt={this.props.cardArt}
 							name={player.name}
