@@ -104,18 +104,6 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	}
 }
 
-.hsreplay-involved figure.winner:before {
-	content: "✔";
-	display: inline-block;
-	position: absolute;
-	line-height: 0.8em;
-	font-size: 3em;
-	color: limegreen;
-	text-shadow: 0 0 0 black;
-	top: 0;
-	z-index: 10;
-}
-
 .hsreplay-involved figure.winner:first-of-type:before {
 	left: 0;
 }
