@@ -144,7 +144,7 @@ class Deck(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	objects = DeckManager()
 	cards = models.ManyToManyField(Card, through="Include")
-	digest = models.CharField(max_length=32, unique=True)
+	digest = models.CharField(max_length=32, unique=True, db_index=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
 	def __str__(self):
