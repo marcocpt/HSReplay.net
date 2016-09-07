@@ -13,6 +13,7 @@ interface GameHistoryItemProps extends ImageProps, CardArtProps, React.ClassAttr
 	disconnected: boolean;
 	turns: number;
 	won: boolean;
+	friendlyPlayer: number;
 }
 
 interface GameHistoryItemState {
@@ -51,13 +52,67 @@ export default class GameHistoryItem extends React.Component<GameHistoryItemProp
 		if (this.props.disconnected) {
 			return <img src={STATIC_URL + "images/dc.png"} className="hsreplay-type" alt="Disconnected"/>;
 		}
-		if (this.props.gameType == BnetGameType.BGT_ARENA) {
-			return <img src={STATIC_URL + "images/arena-medals/Medal_Key_2.png"} className="hsreplay-type" alt="Arena"/>;
+		switch (this.props.gameType) {
+			case BnetGameType.BGT_ARENA:
+				return this.getArenaIcon();
+			case BnetGameType.BGT_RANKED_STANDARD:
+			case BnetGameType.BGT_RANKED_WILD:
+				return this.getRankedIcon();
+			case BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI:
+			case BnetGameType.BGT_TAVERNBRAWL_2P_COOP:
+			case BnetGameType.BGT_TAVERNBRAWL_PVP:
+				return <img src={STATIC_URL + "images/modeID_Brawl.png"} className="hsreplay-type" alt="Tavern Brawl"/>;
+			default:
+				return null;
 		}
-		if (this.props.gameType == 16) {
-			return <img src={STATIC_URL + "images/brawl.png"} className="hsreplay-type" alt="Tavern Brawl"/>;
+	}
+
+	getArenaIcon(): JSX.Element {
+		var player = this.getFriendlyPlayer();
+		var wins = player ? player.wins + 1 : 1;
+		return <img src={STATIC_URL + "images/arena-medals/Medal_Key_" + wins + ".png"} className="hsreplay-type" alt="Arena"/>;
+	}
+
+	getRankedIcon(): JSX.Element {
+		var player = this.getFriendlyPlayer();
+		if (player) {
+			if (player.rank) {
+				return <img src={STATIC_URL + "images/ranked-medals/Medal_Ranked_" + player.rank + ".png"} className="hsreplay-type" alt={"Ranked"}/>
+			}
+			if (player.legend_rank) {
+				return <img src={STATIC_URL + "images/ranked-medals/Medal_Ranked_Legend.png"} className="hsreplay-type" alt={"Legend"}/>
+			}
 		}
 		return null;
+	}
+
+	getIconInfo(): string {
+		var player = this. getFriendlyPlayer();
+		if (!player) {
+			return null;
+		}
+		switch (this.props.gameType) {
+			case BnetGameType.BGT_ARENA:
+				return +player.wins + " - " + +player.losses;
+			case BnetGameType.BGT_RANKED_STANDARD:
+			case BnetGameType.BGT_RANKED_WILD:
+				if (player.rank) {
+					return "Rank " + player.rank;
+				}
+				if (player.legend_rank) {
+					return "Rank " + player.legend_rank;
+				}
+			case BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI:
+			case BnetGameType.BGT_TAVERNBRAWL_2P_COOP:
+			case BnetGameType.BGT_TAVERNBRAWL_PVP:
+				return "Tavern Brawl"
+			default:
+				return null;
+		}
+	}
+
+	getFriendlyPlayer(): GlobalGamePlayer {
+			return this.props.friendlyPlayer && this.props.players.find(x => x.player_id == this.props.friendlyPlayer);
 	}
 
 	render(): JSX.Element {
@@ -82,8 +137,10 @@ export default class GameHistoryItem extends React.Component<GameHistoryItemProp
 						<dd>{this.getDuration()}</dd>
 						<dt>Turns</dt>
 						<dd>{Math.floor(this.props.turns / 2)} turns</dd>
-					</dl><div>
+					</dl>
+					<div>
 						{this.getIcon()}
+						<div>{this.getIconInfo()}</div>
 					</div>
 				</div>
 			</a>

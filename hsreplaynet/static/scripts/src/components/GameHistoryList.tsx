@@ -39,6 +39,7 @@ export default class GameHistoryList extends React.Component<GameHistoryListProp
 					disconnected={game.disconnected}
 					turns={game.global_game.num_turns}
 					won={game.won}
+					friendlyPlayer={game.friendly_player_id}
 				/>
 			);
 		});

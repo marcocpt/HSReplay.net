@@ -146,7 +146,7 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 
 .hsreplay-details dl {
 	margin: 4px 0;
-	width: 60%;
+	width: 50%;
 	display: inline-block;
 }
 
@@ -165,11 +165,13 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 }
 
 .hsreplay-details > div {
-	margin: 16px 0 0 0;
-	width: 40%;
+	margin: 10px 0 0 0;
+	width: 50%;
 	display: inline-block;
 	vertical-align: top;
 	text-align: center;
+	font-size: 1.2em;
+	font-weight: bold;
 }
 
 .hsreplay-type {

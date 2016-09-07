@@ -41,6 +41,10 @@ export interface GlobalGamePlayer {
 	hero_id: string;
 	hero_premium: boolean;
 	final_state: PlayState;
+	wins: number;
+	losses: number;
+	rank: number;
+	legend_rank: number;
 }
 
 export const enum Visibility {
