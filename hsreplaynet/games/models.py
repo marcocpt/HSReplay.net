@@ -103,6 +103,13 @@ class GlobalGame(models.Model):
 		)
 
 	@property
+	def is_casual(self):
+		return self.game_type in (
+			BnetGameType.BGT_CASUAL_WILD,
+			BnetGameType.BGT_CASUAL_STANDARD,
+		)
+
+	@property
 	def is_tavern_brawl(self):
 		return self.game_type in (
 			BnetGameType.BGT_TAVERNBRAWL_PVP,
