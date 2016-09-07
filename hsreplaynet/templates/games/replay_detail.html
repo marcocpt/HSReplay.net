@@ -2,6 +2,7 @@
 {% load static %}
 {% load web_extras %}
 {% load render_bundle from webpack_loader %}
+{% load humanize %}
 
 {% block stylesheets %}
 	{{ block.super }}
@@ -49,24 +50,42 @@
 			{% with replay.global_game as gg %}
 			<div id="replay-infobox">
 				{% if gg.is_ranked %}
-					<h1>Ranked - Season {{ gg.ladder_season }}</h1>
+					<h1>
+						Ranked
+						{% if gg.format.name == "FT_STANDARD" %}
+							 - Standard
+						{% elif gg.format.name == "FT_WILD" %}
+							 - Wild
+						{% endif %}
+					</h1>
+				{% elif gg.is_casual %}
+					<h1>
+						Casual
+						{% if gg.format.name == "FT_STANDARD" %}
+							 - Standard
+						{% elif gg.format.name == "FT_WILD" %}
+							 - Wild
+						{% endif %}
+					</h1>
 				{% elif gg.is_tavern_brawl %}
 					<h1>Tavern Brawl</h1>
 				{% elif gg.game_type.name == "BGT_ARENA" %}
 					<h1>Arena</h1>
 				{% else %}
-					<h1>Ranked - Season {{ gg.ladder_season }}</h1>
+					<h1>Ranked</h1>
 				{% endif %}
 				<h2>Share</h2>
 				<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
 				<h2>Players</h2>
 				<ul id="infobox-players">
 					{% for player in gg.players.all %}
-						<li class="{% if player.is_ai %}player-ai{% endif %}{% if player.is_first %}player-first{% endif %}">
-							{{ player }} ({{ player.final_state.name|title }})
-							{% if player.legend_rank %} - Legend Rank {{ player.legend_rank }}
-							{% elif player.rank %} - Rank {{ player.rank }}{% endif %}
-							<a class="infobox-show-deck" onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">Toggle deck</a>
+						<li>
+							{{ player }}
+							{% if player.final_state.name == "WON" %}(Won){% endif %}
+							<a class="infobox-value {% if player.is_ai %}player-ai{% endif %} {% if player.is_first %}player-first{% endif %}"
+								onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">
+								Show deck
+							</a>
 							<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
 								{# TODO: Make this an API call (inefficient as-is) #}
 								{% for include in player.deck_list.include_set.all %}
@@ -78,8 +97,14 @@
 				</ul>
 				<h2>Game</h2>
 				<ul id="infobox-game">
-					<li>Build {{ game.build|default:"unknown" }}</li>
-					<li>{{ gg.num_turns }} turns</li>
+					<li>Date <span class="infobox-value"> {{ gg.match_start|naturaltime }} </span></li>
+					{% if replay.build %}
+						<li>Build <span class="infobox-value"> {{ replay.build }} </span></li>
+					{% endif %}
+					{% if gg.ladder_season %}
+						<li>Season <span class="infobox-value"> {{ gg.ladder_season }} </span></li>
+					{% endif %}
+					<li>Turns <span class="infobox-value"> {{ gg.num_turns }} </span></li>
 				</ul>
 				{% comment %}
 				<h2>Related</h2>

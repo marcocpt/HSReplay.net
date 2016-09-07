@@ -133,7 +133,7 @@ class GlobalGamePlayerSerializer(serializers.ModelSerializer):
 		model = GlobalGamePlayer
 		fields = (
 			"name", "player_id", "account_hi", "account_lo", "is_ai", "is_first",
-			"hero_id", "hero_premium", "final_state",
+			"hero_id", "hero_premium", "final_state", "wins", "losses", "rank", "legend_rank"
 		)
 
 

@@ -63,6 +63,7 @@ if not ENV_LAMBDA:
 	INSTALLED_APPS += [
 		"django.contrib.admin",
 		"django.contrib.flatpages",
+		"django.contrib.humanize",
 		"allauth",
 		"allauth.account",
 		"allauth.socialaccount",
