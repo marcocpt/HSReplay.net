@@ -81,18 +81,31 @@ export default class ShareGameDialog extends React.Component<ShareGameDialogProp
 		this.setState({preservePerspective: !this.state.preservePerspective});
 	}
 
+	protected onExternalShare(e: React.MouseEvent): void {
+		e.preventDefault();
+		window.open((e.currentTarget as HTMLElement).getAttribute("href"), "_blank", "resizable,scrollbars=yes,status=1");
+	}
+
 	render(): JSX.Element {
+		let url = this.buildUrl();
 		return <form>
-			<div className="input-group">
-				<input type="text" readonly id="replay-share-url" className="form-control"
-					   value={this.buildUrl()}
-					   onSelect={(e) => this.input.setSelectionRange(0, this.input.value.length)}
-					   ref={(node) => this.input = node}/>
-				<span className="input-group-btn">
-                     <button className="btn btn-default" id="replay-share-copy-url"
-							 type="button">{this.state.confirming ? "Copied!" : "Copy"}</button>
-                </span>
-			</div>
+			<fieldset>
+				<div className="form-group">
+					<div className="input-group">
+						<input type="text" readonly id="replay-share-url" className="form-control"
+							   value={url}
+							   onSelect={(e) => this.input.setSelectionRange(0, this.input.value.length)}
+							   ref={(node) => this.input = node}/>
+						<span className="input-group-btn">
+							 <button className="btn btn-default" id="replay-share-copy-url"
+									 type="button">{this.state.confirming ? "Copied!" : "Copy"}</button>
+						</span>
+					</div>
+				</div>
+				<a href={"https://www.reddit.com/submit?url=" + encodeURIComponent(url)} className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Reddit</a> &nbsp;
+				<a href={"https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)} className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Twitter</a> &nbsp;
+				<a href={"https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url)} className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Facebook</a>
+			</fieldset>
 			<fieldset>
 				{this.props.showLinkToTurn ? <div className="checkbox">
 					<label>

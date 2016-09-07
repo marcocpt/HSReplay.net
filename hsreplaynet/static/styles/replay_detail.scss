@@ -4,7 +4,9 @@
 	width: 100%;
 
 	a, a:hover, a:active {
-		color: #3188b8;
+		:not(.btn) {
+			color: #3188b8;
+		}
 	}
 
 	ul {
