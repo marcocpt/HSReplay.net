@@ -277,7 +277,7 @@ class UploadEvent(models.Model):
 
 	metadata = models.TextField(blank=True)
 	file = models.FileField(upload_to=_generate_upload_path, null=True)
-	descriptor = models.FileField(upload_to=_generate_descriptor_path, null=True)
+	descriptor = models.FileField(upload_to=_generate_descriptor_path, blank=True, null=True)
 	attempts = models.TextField(blank=True)
 	user_agent = models.CharField(max_length=100, blank=True)
 
