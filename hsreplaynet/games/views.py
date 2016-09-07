@@ -14,6 +14,11 @@ class MyReplaysView(LoginRequiredMixin, View):
 class ReplayDetailView(View):
 	def get(self, request, id):
 		replay = get_object_or_404(GameReplay.objects.live(), shortid=id)
+
+		# TODO: IP caching in redis
+		replay.views += 1
+		replay.save()
+
 		baseurl = "%s://%s" % (request.scheme, request.get_host())
 		return render(request, "games/replay_detail.html", {
 			"replay": replay,

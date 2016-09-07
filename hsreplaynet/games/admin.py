@@ -40,7 +40,7 @@ class GameReplayAdmin(admin.ModelAdmin):
 	actions = (set_user, queue_for_reprocessing)
 	list_display = (
 		"__str__", urlify("user"), urlify("global_game"), "visibility",
-		"build", "client_handle", "hsreplay_version", "replay_xml",
+		"build", "client_handle", "views", "replay_xml",
 	)
 	list_filter = (
 		"global_game__game_type", "hsreplay_version", "visibility",

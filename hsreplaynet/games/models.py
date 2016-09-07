@@ -288,6 +288,7 @@ class GameReplay(models.Model):
 	visibility = IntEnumField(enum=Visibility, default=Visibility.Public)
 	hide_player_names = models.BooleanField(default=False)
 
+	views = models.PositiveIntegerField(default=0)
 	objects = GameReplayManager()
 
 	def __str__(self):
