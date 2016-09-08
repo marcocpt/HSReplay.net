@@ -25,6 +25,19 @@ class APIKeyPermission(permissions.BasePermission):
 		return api_key.enabled
 
 
+class IsOwnerOrStaff(permissions.BasePermission):
+	"""
+	Permission check that only authorizes owners or staff.
+	"""
+
+	OWNER_FIELD = "user"
+
+	def has_object_permission(self, request, view, obj):
+		if request.user.is_staff:
+			return True
+		return getattr(obj, self.OWNER_FIELD) == request.user
+
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
 	"""
 	Permission check that fails on unsafe methods, unless the
