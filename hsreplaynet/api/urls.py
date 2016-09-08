@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
+from hsreplaynet.comments.urls import api_urlpatterns as comments_urlpatterns
 from . import views
 
 
@@ -15,3 +16,5 @@ urlpatterns = [
 	url(r"^v1/claim_account/", views.CreateAccountClaimView.as_view()),
 	url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
+
+urlpatterns += comments_urlpatterns
