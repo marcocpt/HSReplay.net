@@ -2,6 +2,9 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import ShareGameDialog from "./components/ShareGameDialog";
 import JoustEmbedder from "./JoustEmbedder";
+import MetricsReporter from "./metrics/MetricsReporter";
+import BatchingMiddleware from "./metrics/BatchingMiddleware";
+import InfluxMetricsBackend from "./metrics/InfluxMetricsBackend";
 
 
 let embedder = new JoustEmbedder();
@@ -29,6 +32,17 @@ if (location.hash) {
 
 embedder.embed(container);
 
+// share dialog
+let metrics: MetricsReporter = null;
+let endpoint = INFLUX_DATABASE_JOUST;
+if (endpoint) {
+	metrics = new MetricsReporter(
+		new BatchingMiddleware(new InfluxMetricsBackend(endpoint)),
+		(series: string): string => "hsreplaynet_" + series
+	);
+}
+let shared = {};
+
 function renderShareDialog() {
 	ReactDOM.render(
 		<ShareGameDialog
@@ -38,6 +52,17 @@ function renderShareDialog() {
 			turn={embedder.turn}
 			reveal={embedder.reveal}
 			swap={embedder.swap}
+			onShare={(network: string, linkToTurn: boolean) => {
+				if (!metrics) {
+					return;
+				}
+				if (shared[network]) {
+					// deduplicate
+					return;
+				}
+				metrics.writePoint("shares", {count: 1, link_to_turn: linkToTurn}, {network: network});
+				shared[network] = true;
+			}}
 		/>,
 		document.getElementById("share-game-dialog")
 	);

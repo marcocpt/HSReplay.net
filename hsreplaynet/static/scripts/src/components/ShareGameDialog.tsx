@@ -11,6 +11,7 @@ interface ShareGameDialogProps extends React.ClassAttributes<ShareGameDialog> {
 	showLinkToTurn?: boolean;
 	alwaysPreservePerspective?: boolean;
 	showPreservePerspective?: boolean;
+	onShare?: (network: string, linkToTurn?: boolean) => void;
 }
 
 interface ShareGameDialogState {
@@ -45,6 +46,9 @@ export default class ShareGameDialog extends React.Component<ShareGameDialogProp
 				this.setState({confirming: false});
 				this.timeout = null;
 			}, 1000);
+			if(this.props.onShare) {
+				this.props.onShare("copy", this.state.linkToTurn);
+			}
 		});
 	}
 
@@ -83,7 +87,11 @@ export default class ShareGameDialog extends React.Component<ShareGameDialogProp
 
 	protected onExternalShare(e: React.MouseEvent): void {
 		e.preventDefault();
-		window.open((e.currentTarget as HTMLElement).getAttribute("href"), "_blank", "resizable,scrollbars=yes,status=1");
+		let target = e.currentTarget as HTMLElement;
+		window.open(target.getAttribute("href"), "_blank", "resizable,scrollbars=yes,status=1");
+		if(this.props.onShare) {
+			this.props.onShare(target.getAttribute("data-network") || "unknown", this.state.linkToTurn);
+		}
 	}
 
 	render(): JSX.Element {
@@ -102,9 +110,9 @@ export default class ShareGameDialog extends React.Component<ShareGameDialogProp
 						</span>
 					</div>
 				</div>
-				<a href={"https://www.reddit.com/submit?url=" + encodeURIComponent(url)} className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Reddit</a> &nbsp;
-				<a href={"https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)} className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Twitter</a> &nbsp;
-				<a href={"https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url)} className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Facebook</a>
+				<a href={"https://www.reddit.com/submit?url=" + encodeURIComponent(url)} data-network="reddit" className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Reddit</a> &nbsp;
+				<a href={"https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)} data-network="twitter"  className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Twitter</a> &nbsp;
+				<a href={"https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url)} data-network="facebook" className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Facebook</a>
 			</fieldset>
 			<fieldset>
 				{this.props.showLinkToTurn ? <div className="checkbox">
