@@ -2,3 +2,4 @@ hsreplaynet/local_settings.py
 node_modules/
 build/
 __pycache__/
+.vagrant/
