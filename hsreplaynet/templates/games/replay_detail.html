@@ -74,7 +74,7 @@
 				{% else %}
 					<h1>Ranked</h1>
 				{% endif %}
-				<h2>Share</h2>
+				<h2>Share {% if user.is_staff %}<span id="replay-viewcount">{{ replay.views }} views</span>{% endif %}</h2>
 				<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
 				<h2>Players</h2>
 				<ul id="infobox-players">
