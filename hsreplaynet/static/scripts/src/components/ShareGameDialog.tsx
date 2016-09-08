@@ -110,7 +110,7 @@ export default class ShareGameDialog extends React.Component<ShareGameDialogProp
 						</span>
 					</div>
 				</div>
-				<a href={"https://www.reddit.com/submit?url=" + encodeURIComponent(url)} data-network="reddit" className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Reddit</a> &nbsp;
+				<a href={"https://www.reddit.com/r/hsreplay/submit?url=" + encodeURIComponent(url)} data-network="reddit" className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Reddit</a> &nbsp;
 				<a href={"https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)} data-network="twitter"  className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Twitter</a> &nbsp;
 				<a href={"https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url)} data-network="facebook" className="btn btn-default btn-xs" onClick={(e) => this.onExternalShare(e) }>Facebook</a>
 			</fieldset>
