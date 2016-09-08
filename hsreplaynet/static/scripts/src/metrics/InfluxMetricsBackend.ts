@@ -20,7 +20,11 @@ export default class InfluxMetricsBackend implements MetricsBackend {
 				}
 				let values = [];
 				for (let valueKey in point.values) {
-					values.push(valueKey + "=" + point.values[valueKey]);
+					let value = point.values[valueKey];
+					if(typeof value === "boolean") {
+						value = value ? "t" : "f";
+					}
+					values.push(valueKey + "=" + value);
 				}
 				let line = point.series + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",");
 				return line;
