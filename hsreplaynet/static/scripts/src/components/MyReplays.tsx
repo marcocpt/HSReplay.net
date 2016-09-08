@@ -30,7 +30,7 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			next: null,
 			previous: null,
 		};
-		this.query("/api/v1/games");
+		this.query("/api/v1/games/");
 	}
 
 	protected query(url: string) {
