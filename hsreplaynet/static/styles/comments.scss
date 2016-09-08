@@ -25,6 +25,7 @@
 .comment {
 	width: 50%;
 	margin: 1em 0;
+	border: 1px solid $lightgrey;
 
 	.comment-metadata {
 		background-color: $lightgrey;
@@ -34,18 +35,32 @@
 			font-weight: bold;
 		}
 
-		.comment-time {
-			color: $darkgrey;
-			font-style: italic;
+		.comment-options {
 			float: right;
-			padding-right: 0.5em;
+
+			.comment-time {
+				color: $darkgrey;
+				font-style: italic;
+				padding-right: 0.5em;
+			}
+
+			.error {
+				background-color: red;
+			}
 		}
+	}
+
+	&.error {
+		border-color: #c13838;
+	}
+
+	&.deleted {
+		display: none;
 	}
 
 	.comment-body {
 		padding: 1em;
 		margin: 0;
 		background-color: $offwhite;
-		border: 1px solid $lightgrey;
 	}
 }
