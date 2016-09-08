@@ -1,8 +1,12 @@
 import * as React from "react";
 import {GameReplay, CardArtProps, ImageProps, GlobalGamePlayer} from "../interfaces";
 import GameHistorySearch from "./GameHistorySearch";
+import GameHistoryModeFilter from "./GameHistoryModeFilter";
+import GameHistoryFormatFilter from "./GameHistoryFormatFilter"
 import GameHistoryList from "./GameHistoryList";
 import Pager from "./Pager";
+import {parseQuery, toQueryString} from "../QueryParser"
+import {formatMatch, modeMatch, nameMatch} from "../GameFilters"
 
 
 interface MyReplaysProps extends ImageProps, CardArtProps, React.ClassAttributes<MyReplays> {
@@ -11,7 +15,7 @@ interface MyReplaysProps extends ImageProps, CardArtProps, React.ClassAttributes
 
 interface MyReplaysState {
 	working?: boolean;
-	query?: string;
+	queryMap?: Map<string, string>;
 	games?: GameReplay[];
 	count?: number;
 	next?: string,
@@ -24,7 +28,7 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 		super(props, context);
 		this.state = {
 			working: true,
-			query: document.location.hash.substr(1) || "",
+			queryMap: parseQuery(document.location.hash.substr(1)),
 			games: [],
 			count: 0,
 			next: null,
@@ -54,40 +58,28 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 	}
 
 	componentDidUpdate(prevProps: MyReplaysProps, prevState: MyReplaysState, prevContext: any): void {
-		location.replace("#" + this.state.query);
+		location.replace("#" + toQueryString(this.state.queryMap));
 	}
 
 	render(): JSX.Element {
-		let terms = this.state.query.toLowerCase().split(" ").map((word: string) => word.trim()).filter((word: string) => {
-			return !!word;
-		});
-		let games = this.state.games.filter((game: GameReplay): boolean => {
-			if (!terms.length) {
-				return true;
-			}
-			let matchingTerms = true;
-			terms.forEach((term: string) => {
-				let matchingTerm = false;
-				game.global_game.players.forEach((player: GlobalGamePlayer): void => {
-					let name = player.name.toLowerCase();
-					if (name.indexOf(term) !== -1) {
-						matchingTerm = true;
-					}
-					if (term == '"' + name + '"') {
-						matchingTerm = true;
-					}
-				});
-				terms.forEach((term: string) => {
-					if (+term && game.build == +term) {
-						matchingTerm = true;
-					}
-				});
-				if (!matchingTerm) {
-					matchingTerms = false;
+		let games = this.state.games;
+		if (this.state.queryMap.size > 0) {
+			var name = this.state.queryMap.get("name");
+			var mode = this.state.queryMap.get("mode");
+			var format = this.state.queryMap.get("format");
+			games = games.filter(game => {
+				if(name && !nameMatch(game, name.toLowerCase())) {
+					return false;
 				}
+				if(mode && !modeMatch(game, mode)) {
+					return false;
+				}
+				if(format && !formatMatch(game, format, mode)) {
+					return false;
+				}
+				return true;
 			});
-			return matchingTerms;
-		});
+		}
 
 		let content = null;
 		if (games.length) {
@@ -105,9 +97,9 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			else {
 				message = <div>
 					<h2>No replay found</h2>
-					{!!this.state.query ? <p>
+					{!!this.state.queryMap ? <p>
 						<a href="#"
-						   onClick={(e) => {e.preventDefault(); this.setState({query: ""})}}>Reset search</a>
+						   onClick={(e) => {e.preventDefault(); this.setState({queryMap: new Map<string, string>()})}}>Reset search</a>
 					</p> : null}
 				</div>;
 			}
@@ -125,15 +117,27 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 		return (
 			<div>
 				<div className="row" id="replay-search">
-					<div className="col-md-3 col-sm-4 col-xs-12">
-						<GameHistorySearch
-							query={this.state.query}
-							setQuery={(query: string) => this.setState({query: query})}
-						/>
-					</div>
-					<div className="col-md-9 col-sm-8 col-xs-12 text-right">
+					<div className="col-md-12 col-sm-12 col-xs-12 text-right">
 						<br className="visible-xs-inline"/>
 						<Pager next={next} previous={previous}/>
+					</div>
+					<div className="col-md-3 col-sm-4 col-xs-12">
+						<GameHistorySearch
+							query={this.state.queryMap.get("name")}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("name", value)})}
+						/>
+					</div>
+					<div className="col-md-3 col-sm-4 col-xs-12">
+						<GameHistoryModeFilter
+							selected={this.state.queryMap.get("mode")}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("mode", value)})}
+						/>
+					</div>
+					<div className="col-md-3 col-sm-4 col-xs-12">
+						<GameHistoryFormatFilter
+							selected={this.state.queryMap.get("format")}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("format", value)})}
+						/>
 					</div>
 				</div>
 				<div className="clearfix"/>
@@ -144,6 +148,4 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			</div>
 		);
 	}
-
-
 }

@@ -25,6 +25,7 @@ export interface GlobalGame {
 	match_start: string;
 	match_end: string;
 	game_type: number;
+	format: number;
 	ladder_season: number;
 	scenario_id: number;
 	players: GlobalGamePlayer[];

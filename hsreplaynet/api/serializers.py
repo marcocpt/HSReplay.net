@@ -144,7 +144,7 @@ class GlobalGameSerializer(serializers.ModelSerializer):
 		model = GlobalGame
 		fields = (
 			"build", "match_start", "match_end", "game_type", "brawl_season",
-			"ladder_season", "scenario_id", "players", "num_turns"
+			"ladder_season", "scenario_id", "players", "num_turns", "format"
 		)
 
 

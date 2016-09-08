@@ -12,6 +12,9 @@ interface GameHistorySearchState {
 export default class GameHistorySearch extends React.Component<GameHistorySearchProps, GameHistorySearchState> {
 
 	render(): JSX.Element {
+		if (!this.props.query) {
+			this.props.query = "";
+		}
 		return (
 			<div>
 				<input
