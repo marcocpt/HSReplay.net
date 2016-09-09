@@ -57,7 +57,7 @@ import patch_gevent  # noqa
 from locust import HttpLocust, ResponseError, TaskSet, task
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-DATA_DIR = os.path.join(BASE_DIR, "data", "hsreplay-test-data")
+DATA_DIR = os.path.join(BASE_DIR, "build", "hsreplay-test-data")
 
 # 4 minute game
 SHORT_REPLAY = open(os.path.join(DATA_DIR, "examples", "short.log")).read()
