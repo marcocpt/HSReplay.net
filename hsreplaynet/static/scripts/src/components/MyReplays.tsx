@@ -16,10 +16,12 @@ interface MyReplaysProps extends ImageProps, CardArtProps, React.ClassAttributes
 interface MyReplaysState {
 	working?: boolean;
 	queryMap?: Map<string, string>;
-	games?: GameReplay[];
+	gamesPages?: Map<number, GameReplay[]>;
 	count?: number;
 	next?: string,
-	previous?: string,
+	receivedPages?: number;
+	currentLocalPage?: number;
+	pageSize?: number;
 }
 
 export default class MyReplays extends React.Component<MyReplaysProps, MyReplaysState> {
@@ -29,30 +31,36 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 		this.state = {
 			working: true,
 			queryMap: parseQuery(document.location.hash.substr(1)),
-			games: [],
+			gamesPages: new Map<number, GameReplay[]>(),
 			count: 0,
 			next: null,
-			previous: null,
+			receivedPages: 0,
+			currentLocalPage: 0,
+			pageSize: 1
 		};
 		this.query("/api/v1/games/");
 	}
 
 	protected query(url: string) {
 		this.setState({
-			working: true,
-			games: [],
+			working: true
 		});
 		$.getJSON(url, {username: this.props.username}, (data) => {
 			let games = [];
 			if (data.count) {
 				games = data.results;
+				if (!this.state.gamesPages.has(this.state.receivedPages)) {
+					this.state.gamesPages = this.state.gamesPages.set(this.state.receivedPages, games);
+					this.state.receivedPages++;
+					if(games.length > this.state.pageSize) {
+						this.state.pageSize = games.length;
+					}
+				}
 			}
 			this.setState({
 				working: false,
-				games: games,
 				count: data.count,
-				next: data.next,
-				previous: data.previous,
+				next: data.next
 			});
 		});
 	}
@@ -61,8 +69,8 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 		location.replace("#" + toQueryString(this.state.queryMap));
 	}
 
-	render(): JSX.Element {
-		let games = this.state.games;
+	filterGames(input: GameReplay[]): GameReplay[] {
+		let games = input;
 		if (this.state.queryMap.size > 0) {
 			var name = this.state.queryMap.get("name");
 			var mode = this.state.queryMap.get("mode");
@@ -79,6 +87,36 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 				}
 				return true;
 			});
+		}
+		return games;
+	}
+
+	render(): JSX.Element {
+		let games = [];
+		let hasFilters = false;
+		this.state.queryMap.forEach(v => hasFilters = hasFilters || !!v && v.length > 0);
+
+		let page = 0;
+		if(this.state.gamesPages.has(page)) {
+			games = this.filterGames(this.state.gamesPages.get(page));
+			//we load one more than we need so we know whether there is next page
+			while (games.length < (this.state.pageSize * (this.state.currentLocalPage + 1) + 1)) {
+				page++;
+				if (!this.state.gamesPages.has(page)) {
+					if (this.state.next && !this.state.working && (hasFilters || page == this.state.currentLocalPage)) {
+						this.query(this.state.next);
+					}
+					break;
+				}
+				games = games.concat(this.filterGames(this.state.gamesPages.get(page)));
+			}
+			//slice off everything before the currentLocalPage
+			games = games.slice(this.state.pageSize * (this.state.currentLocalPage));
+		}
+
+		let hasNext = !hasFilters && this.state.next || games.length > this.state.pageSize;
+		if (hasNext) {
+			games = games.slice(0, this.state.pageSize);
 		}
 
 		let content = null;
@@ -106,12 +144,12 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			content = <div className="list-message">{message}</div>;
 		}
 
-		let next = this.state.next && !this.state.working ? () => {
-			this.query(this.state.next);
+		let next = hasNext && !this.state.working ? () => {
+			this.setState({currentLocalPage: this.state.currentLocalPage + 1});
 		} : null;
 
-		let previous = this.state.previous && !this.state.working ? () => {
-			this.query(this.state.previous);
+		let previous = this.state.currentLocalPage > 0 ? () => {
+			this.setState({currentLocalPage: this.state.currentLocalPage - 1});
 		} : null;
 
 		return (
@@ -124,19 +162,19 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 					<div className="col-md-3 col-sm-4 col-xs-12">
 						<GameHistorySearch
 							query={this.state.queryMap.get("name")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("name", value)})}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("name", value), currentLocalPage: 0})}
 						/>
 					</div>
 					<div className="col-md-3 col-sm-4 col-xs-12">
 						<GameHistoryModeFilter
 							selected={this.state.queryMap.get("mode")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("mode", value)})}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("mode", value), currentLocalPage: 0})}
 						/>
 					</div>
 					<div className="col-md-3 col-sm-4 col-xs-12">
 						<GameHistoryFormatFilter
 							selected={this.state.queryMap.get("format")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("format", value)})}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("format", value), currentLocalPage: 0})}
 						/>
 					</div>
 				</div>
