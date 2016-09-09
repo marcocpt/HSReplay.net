@@ -16,7 +16,7 @@ class DeckWinRateQueryBuilder:
 		card_groups = groupby(sorted(cards, key=lambda c: c.id), key=lambda c: c.id)
 		cardids_with_counts = [(k, len(list(g))) for k, g in card_groups]
 
-		sub = '(SELECT deck_id FROM cards_include WHERE card_id = "%s" AND count >= %s)'
+		sub = "(SELECT deck_id FROM cards_include WHERE card_id = '%s' AND count >= %s)"
 		from_template = " FROM %s ci0" % sub
 		join_template = " JOIN " + sub + " ci%s ON ci0.deck_id = ci%s.deck_id"
 
