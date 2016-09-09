@@ -4,11 +4,12 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from hsreplaynet.uploads.models import UploadEvent, UploadEventStatus
 from hsreplaynet.uploads.processing import queue_upload_events_for_reprocessing
-from hsreplaynet.utils.aws import LAMBDA
+from hsreplaynet.utils.aws import LAMBDA, is_processing_disabled
 
 
 class Command(BaseCommand):
 	help = "Promote the ProcessS3CreateObjectV1 lambda into PROD"
+	canary_function_name = "ProcessS3CreateObjectV1"
 
 	def add_arguments(self, parser):
 		parser.add_argument(
@@ -16,121 +17,137 @@ class Command(BaseCommand):
 			help="Skip the canary stage and promote directly to PROD"
 		)
 
+	def log(self, msg):
+		self.stdout.write(msg)
+
+	def set_canary_version(self, version):
+		update_canary_result = LAMBDA.update_alias(
+			FunctionName=self.canary_function_name,
+			Name="CANARY",
+			FunctionVersion=version,
+		)
+		self.log(
+			"CANARY Alias updated to version: %s" % update_canary_result["FunctionVersion"]
+		)
+		return update_canary_result["FunctionVersion"]
+
+	def set_prod_version(self, version):
+		update_prod_result = LAMBDA.update_alias(
+			FunctionName=self.canary_function_name,
+			Name="PROD",
+			FunctionVersion=version,
+		)
+		self.stdout.write(
+			"PROD Alias updated to version: %s" % update_prod_result["FunctionVersion"]
+		)
+		return update_prod_result["FunctionVersion"]
+
 	def handle(self, *args, **options):
-		func_name = "ProcessS3CreateObjectV1"
+		func_name = self.canary_function_name
 
 		prod_alias = LAMBDA.get_alias(FunctionName=func_name, Name="PROD")
-		self.stdout.write(
-			"PROD Alias starting at version: %s" % prod_alias["FunctionVersion"]
-		)
+		self.log("PROD Alias starting at version: %s" % prod_alias["FunctionVersion"])
 
 		canary_alias = LAMBDA.get_alias(FunctionName=func_name, Name="CANARY")
-		self.stdout.write(
-			"CANARY Alias starting at version: %s" % canary_alias["FunctionVersion"]
-		)
+		self.log("CANARY Alias starting at version: %s" % canary_alias["FunctionVersion"])
 
 		# Create new version
 		self.stdout.write("Publishing new version...")
 		new_version = LAMBDA.publish_version(FunctionName=func_name)
-		self.stdout.write("New version is: %s" % new_version["Version"])
+		new_version_num = new_version["Version"]
+		self.log("New version is: %s" % new_version_num)
 
 		# This causes the new code to start getting used on canary upload events.
-		update_canary_result = LAMBDA.update_alias(
-			FunctionName=func_name,
-			Name="CANARY",
-			FunctionVersion=new_version["Version"],
-		)
-		self.stdout.write(
-			"CANARY Alias updated to version: %s" % update_canary_result["FunctionVersion"]
-		)
+		canary_period_start = datetime.now()
+		self.set_canary_version(new_version_num)
 
 		if options["bypass_canary"]:
 			# We promote all aliases and return immediately.
-			self.stdout.write("Bypassing Canary stage.")
-			update_prod_result = LAMBDA.update_alias(
-				FunctionName=func_name,
-				Name="PROD",
-				FunctionVersion=new_version["Version"],
-			)
-			self.stdout.write(
-				"PROD Alias updated to version: %s" % update_prod_result["FunctionVersion"]
-			)
-			self.stdout.write("Finished.")
+			self.log("Bypassing canary stage and promoting immediately")
+			self.set_prod_version(new_version_num)
+			self.log("Finished.")
+			return
+
+		if is_processing_disabled():
+			self.log("Processing is disabled so we will not see any canaries")
+			self.log("Bypassing canary stage and promoting immediately")
+
+			self.set_prod_version(new_version_num)
+
+			self.log("Finished.")
 			return
 
 		# If we did not exit already, then we are doing a canary deployment.
-		canary_period_start = datetime.now()
-
 		max_wait_seconds = settings.MAX_CANARY_WAIT_SECONDS
-		self.stdout.write("MAX_CANARY_WAIT_SECONDS = %s" % max_wait_seconds)
+		self.log("MAX_CANARY_WAIT_SECONDS = %s" % max_wait_seconds)
 
 		min_canary_uploads = settings.MIN_CANARY_UPLOADS
-		self.stdout.write("MIN_CANARY_UPLOADS = %s" % min_canary_uploads)
+		self.log("MIN_CANARY_UPLOADS = %s" % min_canary_uploads)
 
 		max_wait_time = datetime.now() + timedelta(seconds=max_wait_seconds)
 
-		processing_statuses = UploadEventStatus.processing_statuses()
 		wait_for_more_canary_uploads = True
-		canary_failures = []
 		try:
 			while wait_for_more_canary_uploads:
 				canary_uploads = UploadEvent.objects.filter(
 					canary=True,
 					created__gte=canary_period_start,
-				).exclude(status__in=processing_statuses)
+				).exclude(status__in=UploadEventStatus.processing_statuses())
 
 				if canary_uploads.count() >= min_canary_uploads:
 					wait_for_more_canary_uploads = False
 				else:
 					if datetime.now() > max_wait_time:
-						msg = "Waited too long for canary events. Exiting"
-						self.stderr.write(msg)
+						msg = "Waited too long for canary events. Exiting."
+						self.log(msg)
 						raise RuntimeError(msg)
 
-					self.stdout.write(
+					self.log(
 						"Found %i uploads... sleeping 5 seconds" % (canary_uploads.count(),)
 					)
 					time.sleep(5)
 
-			self.stdout.write(
+			self.log(
 				"%s canary upload events have been found" % canary_uploads.count()
 			)
 
-			acceptable_status = [
-				UploadEventStatus.SUCCESS,
-				UploadEventStatus.UNSUPPORTED_CLIENT,
-				UploadEventStatus.UNSUPPORTED
-			]
-			canaries = canary_uploads.all()
-			canary_failures = [u for u in canaries if u.status not in acceptable_status]
+			canary_failures = self.get_canary_failures_since(canary_period_start)
 
 			if canary_failures:
 				# We have canary failures, time to rollback.
-				self.stdout.write("The following canary uploads have failed:")
-				self.stdout.write(", ".join(u.shortid for u in canary_failures))
+				self.log("The following canary uploads have failed:")
+				self.log(", ".join(u.shortid for u in canary_failures))
 				raise RuntimeError("Failed canary events detected. Rolling back.")
 		except Exception:
 
-			update_canary_result = LAMBDA.update_alias(
-				FunctionName=func_name,
-				Name="CANARY",
-				FunctionVersion=prod_alias["FunctionVersion"],
-			)
-			self.stdout.write(
-				"CANARY reverted to version: %s" % update_canary_result["FunctionVersion"]
-			)
-			self.stdout.write("Initiating reprocessing to fix canary uploads")
+			# Revert the canary alias back to what PROD still points to
+			prod_version = prod_alias["FunctionVersion"]
+			self.log("CANARY will be reverted to version: %s" % prod_version)
+			self.set_canary_version(prod_version)
+
+			self.log("Initiating reprocessing to fix canary uploads")
+			# Query again for all canary failures after reverting so we don't miss any
+			canary_failures = self.get_canary_failures_since(canary_period_start)
 			queue_upload_events_for_reprocessing(canary_failures, use_kinesis=True)
 			raise
 
 		# We didn't have any canary failures so it's time to promote PROD.
-		self.stdout.write("The canary version is a success! Promoting PROD.")
-		update_prod_result = LAMBDA.update_alias(
-			FunctionName=func_name,
-			Name="PROD",
-			FunctionVersion=update_canary_result["FunctionVersion"],
-		)
-		self.stdout.write(
-			"PROD Alias updated to version: %s" % update_prod_result["FunctionVersion"]
-		)
-		self.stdout.write("Finished.")
+		self.log("The canary version is a success! Promoting PROD.")
+		self.set_prod_version(new_version_num)
+		self.log("Finished.")
+
+	def get_canary_failures_since(self, canary_period_start):
+		canary_uploads = UploadEvent.objects.filter(
+			canary=True,
+			created__gte=canary_period_start,
+		).exclude(status__in=UploadEventStatus.processing_statuses())
+
+		acceptable_status = [
+			UploadEventStatus.SUCCESS,
+			UploadEventStatus.UNSUPPORTED_CLIENT,
+			UploadEventStatus.UNSUPPORTED
+		]
+		canaries = canary_uploads.all()
+		canary_failures = [c for c in canaries if c.status not in acceptable_status]
+
+		return canary_failures

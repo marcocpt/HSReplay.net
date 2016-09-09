@@ -40,6 +40,15 @@ def get_processing_stream_max_writes_per_second():
 	return best_case_throughput * safety_limit
 
 
+def is_processing_disabled():
+	current_configuration = S3.get_bucket_notification_configuration(
+		Bucket=settings.S3_RAW_LOG_UPLOAD_BUCKET
+	)
+
+	lambda_notifications = current_configuration["LambdaFunctionConfigurations"]
+	return (len(lambda_notifications) == 0)
+
+
 def enable_processing_raw_uploads():
 	prod_processing_lambda = LAMBDA.get_function(
 		FunctionName="ProcessS3CreateObjectV1",
