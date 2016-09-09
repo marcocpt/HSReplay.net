@@ -7,8 +7,10 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 class UserAdmin(BaseUserAdmin):
 	change_form_template = "loginas/change_form.html"
 	fieldsets = ()
-	list_display = ("username", "date_joined", "last_login", "is_fake")
-	list_filter = BaseUserAdmin.list_filter + ("is_fake", )
+	list_display = (
+		"username", "date_joined", "last_login", "is_fake", "default_replay_visibility"
+	)
+	list_filter = BaseUserAdmin.list_filter + ("is_fake", "default_replay_visibility")
 
 
 @admin.register(AccountClaim)
