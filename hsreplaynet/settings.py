@@ -144,36 +144,27 @@ WEBPACK_LOADER = {
 	}
 }
 
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-STATIC_URL = "/static/"
 
 if ENV_PROD:
 	DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 	STATIC_URL = "https://static.hsreplay.net/static/"
-
-	# S3
-	S3_RAW_LOG_STORAGE_BUCKET = os.environ.get(
-		"S3_RAW_LOG_STORAGE_BUCKET",
-		"hsreplaynet-uploads"
-	)
-	S3_REPLAY_STORAGE_BUCKET = os.environ.get(
-		"S3_REPLAY_STORAGE_BUCKET",
-		"hsreplaynet-replays"
-	)
-	AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
-
-	AWS_S3_USE_SSL = True
-	AWS_DEFAULT_ACL = "private"
-
-	AWS_IS_GZIPPED = True
-	GZIP_CONTENT_TYPES = [
-		"text/xml",
-		"text/plain",
-		"application/xml",
-		"application/octet-stream",
-	]
+	AWS_STORAGE_BUCKET_NAME = "hsreplaynet-replays"
 else:
-	AWS_STORAGE_BUCKET_NAME = "hsreplaynet-dev-replays"
+	DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+	STATIC_URL = "/static/"
+	AWS_STORAGE_BUCKET_NAME = None
+
+# S3
+AWS_S3_USE_SSL = True
+AWS_DEFAULT_ACL = "private"
+
+AWS_IS_GZIPPED = True
+GZIP_CONTENT_TYPES = [
+	"text/xml",
+	"text/plain",
+	"application/xml",
+	"application/octet-stream",
+]
 
 # WARNING: To change this it must also be updated in isolated.uploaders.py
 S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
@@ -186,17 +177,16 @@ KINESIS_UPLOAD_PROCESSING_STREAM_MAX_SHARDS = 256
 # This value is used to periodically dynamically resize the stream capacity
 KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS = 600
 
-
-JOUST_STATIC_URL = "https://s3.amazonaws.com/hearthsim-joust/branches/master/"
-HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
-HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
-
 LAMBDA_DEFAULT_EXECUTION_ROLE_NAME = "iam_lambda_execution_role"
 
 # We initially wait this long when doing a canary deploy before checking the results
 MAX_CANARY_WAIT_SECONDS = 180
 # We require at least this many uploads before we declare the canary a success
 MIN_CANARY_UPLOADS = 10
+
+JOUST_STATIC_URL = "https://s3.amazonaws.com/hearthsim-joust/branches/master/"
+HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
+HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 
 # Email
 # https://docs.djangoproject.com/en/1.9/ref/settings/#email-backend
