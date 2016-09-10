@@ -6,6 +6,26 @@ from hsreplaynet.games.models import Visibility
 from hsreplaynet.utils.fields import IntEnumField
 
 
+HEARTHSTONE_LOCALES = (
+	("enUS", "English"),
+	# ("enGB", "English (GB)"),
+	("zhTW", "Chinese (TW)"),
+	("zhCN", "Chinese (CN)"),
+	("frFR", "French"),
+	("deDE", "German"),
+	("itIT", "Italian"),
+	("jaJP", "Japanese"),
+	("koKR", "Korean"),
+	("plPL", "Polish"),
+	("ptBR", "Portuguese (BR)"),
+	("ptPT", "Portuguese (PT)"),
+	("ruRU", "Russian"),
+	("esES", "Spanish (ES)"),
+	("esMX", "Spanish (MX)"),
+	("thTH", "Thai"),
+)
+
+
 class AccountClaim(models.Model):
 	id = models.UUIDField(primary_key=True)
 	token = models.OneToOneField("api.AuthToken")
@@ -31,6 +51,7 @@ class User(AbstractUser):
 	# Profile fields
 	locale = models.CharField(
 		max_length=8, default="enUS",
+		choices=HEARTHSTONE_LOCALES,
 		help_text="The user's preferred Hearthstone locale for display"
 	)
 	default_replay_visibility = IntEnumField(

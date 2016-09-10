@@ -15,7 +15,7 @@ from .models import AccountClaim, AccountDeleteRequest, User
 class EditAccountView(LoginRequiredMixin, UpdateView):
 	template_name = "account/edit.html"
 	model = User
-	fields = ["default_replay_visibility"]
+	fields = ["default_replay_visibility", "locale"]
 	success_url = "/account/"
 
 	def get_object(self, queryset=None):

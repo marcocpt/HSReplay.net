@@ -8,8 +8,10 @@
 		Signed in as <img src="{% static 'images/bnet.png' %}"/> <strong>{{ user }}</strong>.
 	</p>
 
-	<h2>Privacy</h2>
 	<form action="" method="POST">
+	{% csrf_token %}
+
+		<h3>Privacy</h3>
 		<p>
 			By default, your replays are <strong>Public</strong>.
 			They may appear in listings such as <em>Related games</em>.
@@ -19,10 +21,22 @@
 			to prevent future games from showing up in such listings.<br/>
 			Anyone you share the link to will still be able to view them!
 		</p>
-		{% csrf_token %}
-		{{ form.as_p }}
-		<input type="submit" value="Save"/>
+		<p>
+			{{ form.default_replay_visibility }}
+		</p>
+
+		<h3>Replayer Locale</h3>
+		<p>
+			Customize the default locale of the replayer to any of Hearthstone's locales.<br/>
+			This only affects replays on the website.
+		</p>
+		<p>
+			{{ form.locale }}
+		</p>
+
+		<input type="submit" class="btn btn-info" value="Save profile"/>
 	</form>
+
 	<hr/>
 
 	<h2>API access</h2>
