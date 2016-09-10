@@ -1,12 +1,14 @@
 import * as React from "react";
 import {GameReplay, CardArtProps, ImageProps, GlobalGamePlayer} from "../interfaces";
-import GameHistorySearch from "./GameHistorySearch";
-import GameHistoryModeFilter from "./GameHistoryModeFilter";
-import GameHistoryFormatFilter from "./GameHistoryFormatFilter"
+import GameHistorySearch from "./filters/GameHistorySearch";
+import GameHistoryModeFilter from "./filters/GameHistoryModeFilter";
+import GameHistoryFormatFilter from "./filters/GameHistoryFormatFilter"
+import GameHistoryResultFilter from "./filters/GameHistoryResultFilter"
+import GameHistoryHeroFilter from "./filters/GameHistoryHeroFilter"
 import GameHistoryList from "./GameHistoryList";
 import Pager from "./Pager";
 import {parseQuery, toQueryString} from "../QueryParser"
-import {formatMatch, modeMatch, nameMatch} from "../GameFilters"
+import {formatMatch, modeMatch, nameMatch, resultMatch, heroMatch, opponentMatch} from "../GameFilters"
 
 
 interface MyReplaysProps extends ImageProps, CardArtProps, React.ClassAttributes<MyReplays> {
@@ -72,9 +74,12 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 	filterGames(input: GameReplay[]): GameReplay[] {
 		let games = input;
 		if (this.state.queryMap.size > 0) {
-			var name = this.state.queryMap.get("name");
-			var mode = this.state.queryMap.get("mode");
-			var format = this.state.queryMap.get("format");
+			let name = this.state.queryMap.get("name");
+			let mode = this.state.queryMap.get("mode");
+			let format = this.state.queryMap.get("format");
+			let result = this.state.queryMap.get("result");
+			let hero = this.state.queryMap.get("hero");
+			let opponent = this.state.queryMap.get("opponent");
 			games = games.filter(game => {
 				if(name && !nameMatch(game, name.toLowerCase())) {
 					return false;
@@ -83,6 +88,15 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 					return false;
 				}
 				if(format && !formatMatch(game, format, mode)) {
+					return false;
+				}
+				if(result && !resultMatch(game, result)) {
+					return false;
+				}
+				if(hero && !heroMatch(game, hero)) {
+					return false;
+				}
+				if(opponent && !opponentMatch(game, opponent)) {
 					return false;
 				}
 				return true;
@@ -175,6 +189,26 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 						<GameHistoryFormatFilter
 							selected={this.state.queryMap.get("format")}
 							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("format", value), currentLocalPage: 0})}
+						/>
+					</div>
+					<div className="col-md-3 col-sm-4 col-xs-12">
+						<GameHistoryResultFilter
+							selected={this.state.queryMap.get("result")}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("result", value), currentLocalPage: 0})}
+						/>
+					</div>
+					<div className="col-md-3 col-sm-4 col-xs-12">
+						<GameHistoryHeroFilter
+							default="All Heroes"
+							selected={this.state.queryMap.get("hero")}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("hero", value), currentLocalPage: 0})}
+						/>
+					</div>
+					<div className="col-md-3 col-sm-4 col-xs-12">
+						<GameHistoryHeroFilter
+							default="All Opponents"
+							selected={this.state.queryMap.get("opponent")}
+							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("opponent", value), currentLocalPage: 0})}
 						/>
 					</div>
 				</div>
