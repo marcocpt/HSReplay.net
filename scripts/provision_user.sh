@@ -46,6 +46,9 @@ python "$PROJECT/manage.py" migrate --no-input
 python "$PROJECT/manage.py" load_cards
 python "$PROJECT/scripts/initdb.py"
 
+influx --execute "create database hsreplaynet"
+influx --execute "create database joust"
+
 if [[ ! -d $PROJECT/hsreplaynet/static/vendor ]]; then
 	"$PROJECT/scripts/get_vendor_static.sh"
 fi

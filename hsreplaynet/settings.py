@@ -17,7 +17,7 @@ ENV_CI = platform.node() == "build.hearthsim.net"
 ENV_PROD = ENV_LIVE or ENV_LAMBDA
 ENV_DEV = not ENV_PROD and not ENV_CI
 
-INFLUX_ENABLED = ENV_LIVE or ENV_LAMBDA
+INFLUX_ENABLED = not ENV_CI
 
 if (ENV_DEV or ENV_CI) and (not os.path.exists(BUILD_DIR)):
 	os.mkdir(BUILD_DIR)

@@ -31,5 +31,13 @@ INFLUX_DATABASES = {
 		"USER": "",
 		"PASSWORD": "",
 		"SSL": False,
+	},
+	"joust": {
+		"NAME": "joust",
+		"HOST": "localhost",
+		"PORT": 8086,
+		"USER": "",
+		"PASSWORD": "",
+		"SSL": False,
 	}
 }
