@@ -1,6 +1,7 @@
+# Requirements for the web frontend (eg. not on Lambda)
+
 -r base.txt
 
-# web-facing libraries (Not used for lambda clients)
 django-allauth==0.26.1
 django-contrib-comments==1.7.2
 django-debug-toolbar==1.5

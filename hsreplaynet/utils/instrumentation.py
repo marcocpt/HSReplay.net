@@ -44,6 +44,30 @@ def get_tracing_id(event):
 	return UNKNOWN_ID
 
 
+if settings.INFLUX_ENABLED:
+	from influxdb import InfluxDBClient
+
+	dbs = getattr(settings, "INFLUX_DATABASES", None)
+	if not dbs or "hsreplaynet" not in dbs:
+		raise ImproperlyConfigured('settings.INFLUX_DATABASES["hsreplaynet"] setting is not set')
+
+	influx_settings = settings.INFLUX_DATABASES["hsreplaynet"]
+	influx = InfluxDBClient(
+		host=influx_settings["HOST"],
+		port=influx_settings.get("PORT", 8086),
+		username=influx_settings["USER"],
+		password=influx_settings["PASSWORD"],
+		database=influx_settings["NAME"],
+		ssl=influx_settings.get("SSL", False),
+		timeout=2,
+		# Uncomment to switch over to using UDP
+		# use_udp=True,
+		# udp_port=8089
+	)
+else:
+	influx = None
+
+
 _lambda_descriptors = []
 
 
@@ -151,31 +175,10 @@ def lambda_handler(
 	return inner_lambda_handler
 
 
-if settings.INFLUX_ENABLED:
-	from influxdb import InfluxDBClient
-
-	dbs = getattr(settings, "INFLUX_DATABASES", None)
-	if not dbs or "hsreplaynet" not in dbs:
-		raise ImproperlyConfigured('settings.INFLUX_DATABASES["hsreplaynet"] setting is not set')
-
-	influx_settings = settings.INFLUX_DATABASES["hsreplaynet"]
-	influx = InfluxDBClient(
-		host=influx_settings["HOST"],
-		port=influx_settings.get("PORT", 8086),
-		username=influx_settings["USER"],
-		password=influx_settings["PASSWORD"],
-		database=influx_settings["NAME"],
-		ssl=influx_settings.get("SSL", False),
-		timeout=2,
-		# Uncomment to switch over to using UDP
-		# use_udp=True,
-		# udp_port=8089
-	)
-else:
-	influx = None
-
-
 def influx_write_payload(payload):
+	if influx is None:
+		return
+
 	try:
 		result = influx.write_points(payload)
 		if not result:
@@ -186,9 +189,6 @@ def influx_write_payload(payload):
 
 
 def influx_metric(measure, fields, timestamp=None, **kwargs):
-	if influx is None:
-		return
-
 	if timestamp is None:
 		timestamp = now()
 
@@ -231,5 +231,4 @@ def influx_timer(measure, timestamp=None, **kwargs):
 			"time": timestamp.isoformat(),
 		}
 
-		if influx:
-			influx_write_payload([payload])
+		influx_write_payload([payload])
