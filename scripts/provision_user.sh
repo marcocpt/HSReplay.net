@@ -9,7 +9,7 @@ cp /etc/skel/.zshrc "$HOME/.zshrc"
 
 python3 -m venv "$HOME/env"
 source "$HOME/env/bin/activate"
-pip install --upgrade -r "$PROJECT/requirements/dev.txt"
+pip install -r "$PROJECT/requirements/dev.txt"
 
 if [[ ! -e $VIRTUAL_ENV/nodeenv ]]; then
 	nodeenv "$VIRTUAL_ENV/nodeenv" --prebuilt
