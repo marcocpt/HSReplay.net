@@ -92,6 +92,7 @@ MIDDLEWARE_CLASSES = [
 	"django.middleware.security.SecurityMiddleware",
 	"django.middleware.gzip.GZipMiddleware",
 	"hsreplaynet.utils.middleware.DoNotTrackMiddleware",
+	"hsreplaynet.utils.middleware.SetRemoteAddrFromForwardedFor",
 ]
 
 
