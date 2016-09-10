@@ -48,14 +48,17 @@ def winrates(request):
 
 	cards_param = request.GET.get("cards", "")
 	if cards_param:
-		card_ids = cards_param.split(",")
-		cards = list(Card.objects.filter(id__in=card_ids))
+		card_names = [c.strip('"') for c in cards_param.split(",")]
+		cards = []
+		for name in card_names:
+			card = Card.objects.get_by_partial_name(name)
+			if card:
+				cards.append(card)
+			else:
+				return HttpResponseBadRequest("Unknown card '%s'" % name)
 
-		if len(cards) != len(card_ids):
-			return HttpResponseBadRequest("'cards' contained invalid Card IDs")
-		else:
-			context["cards"] = cards
-			query_builder.cards = context["cards"]
+		context["cards"] = cards
+		query_builder.cards = context["cards"]
 
 	columns, decks_by_winrate = query_builder.result()
 

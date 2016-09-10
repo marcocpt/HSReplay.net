@@ -33,6 +33,10 @@ class CardManager(models.Manager):
 
 		return self._usable_cards
 
+	def get_by_partial_name(self, name):
+		"""Makes a best guess attempt to return a card based on a full or partial name."""
+		return Card.objects.filter(collectible=True).filter(name__icontains=name).first()
+
 
 class Card(models.Model):
 	id = models.CharField(primary_key=True, max_length=50)
