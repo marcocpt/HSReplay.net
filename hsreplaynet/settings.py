@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 	"django.contrib.messages",
 	"django.contrib.staticfiles",
 	"django.contrib.sites",
+	"raven.contrib.django.raven_compat",
 	"rest_framework",
 	"hsreplaynet.accounts",
 	"hsreplaynet.api",
@@ -73,11 +74,6 @@ if not ENV_LAMBDA:
 		"loginas",
 		"webpack_loader",
 		"hsreplaynet.admin",
-	]
-
-if ENV_PROD:
-	INSTALLED_APPS += [
-		"raven.contrib.django.raven_compat",
 	]
 
 

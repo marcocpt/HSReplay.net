@@ -6,19 +6,14 @@ from functools import wraps
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.timezone import now
+from raven.contrib.django.raven_compat.models import client as sentry
 from hsreplaynet.uploads.models import RawUpload
 from . import log
 
 
-if "raven.contrib.django.raven_compat" in settings.INSTALLED_APPS:
-	from raven.contrib.django.raven_compat.models import client as sentry
-else:
-	sentry = None
-
-
 def error_handler(e):
 	log.exception(e)
-	if sentry is not None:
+	if not settings.ENV_DEV:
 		sentry.captureException()
 
 
