@@ -1,6 +1,5 @@
 -r base.txt
 
-django-storages==1.5.0
 enum34==1.1.6
 influxdb==2.12.0
 # https://urllib3.readthedocs.io/en/latest/user-guide.html#ssl-py2
