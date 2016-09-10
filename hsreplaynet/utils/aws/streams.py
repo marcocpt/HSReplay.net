@@ -4,20 +4,8 @@ from math import ceil, log, pow
 from django.conf import settings
 from hsreplaynet.utils.influx import get_avg_upload_processing_seconds
 from hsreplaynet.uploads.processing import current_raw_upload_bucket_size
+from .clients import KINESIS
 
-try:
-	import boto3
-	S3 = boto3.client("s3")
-	LAMBDA = boto3.client("lambda")
-	IAM = boto3.client("iam")
-	KINESIS = boto3.client('kinesis')
-	CLOUDWATCH = boto3.client('cloudwatch')
-except ImportError:
-	S3 = None
-	LAMBDA = None
-	IAM = None
-	KINESIS = None
-	CLOUDWATCH = None
 
 logger = logging.getLogger("hsreplaynet")
 
@@ -77,9 +65,7 @@ def resize_upload_processing_stream(num_shards=None):
 
 		new_shards_number = min(max_shards, max(min_shards, num_shards))
 		resize_stream_to_size(stream_name, new_shards_number)
-
 	else:
-
 		sla_seconds = settings.KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS
 		num_records = current_raw_upload_bucket_size()
 		processing_duration = get_avg_upload_processing_seconds()
@@ -279,7 +265,6 @@ def shards_are_mergable(first, second):
 
 
 def prepare_shards_for_merging(shards):
-
 	logger.info("The shards are being prepared for merging")
 	sorted_shards = sorted(shards, key=lambda s: int(s["HashKeyRange"]["EndingHashKey"]))
 

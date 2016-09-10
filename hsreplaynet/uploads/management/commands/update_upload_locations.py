@@ -39,18 +39,10 @@ class Command(BaseCommand):
 			self.delete.append(old_path)
 
 	def _s3_copy(self, old_path, new_path):
-		if not S3:
-			self.stderr.write("S3 is not available. Cannot move file.")
-			return
-
 		source = "%s/%s" % (self.bucket, old_path)
 		S3.copy_object(Bucket=self.bucket, Key=new_path, CopySource=source)
 
 	def cleanup(self):
-		if not S3:
-			self.stderr.write("S3 is not available. Cannot delete files.")
-			return
-
 		print("Deleting the following files:\n%s" % "\n".join(self.delete))
 
 		S3.delete_objects(

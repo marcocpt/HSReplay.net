@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from hsreplaynet.uploads.models import UploadEvent, UploadEventStatus
-from hsreplaynet.utils.aws import LAMBDA, IAM, get_kinesis_stream_arn_from_name
+from hsreplaynet.utils.aws import get_kinesis_stream_arn_from_name
+from hsreplaynet.utils.aws.clients import IAM, LAMBDA
 from hsreplaynet.utils.instrumentation import get_lambda_descriptors
 
 
@@ -20,9 +21,6 @@ class Command(BaseCommand):
 		)
 
 	def handle(self, *args, **options):
-		if LAMBDA is None:
-			raise Exception("Boto3 is not available")
-
 		for module_name in options["module"].split(","):
 			importlib.import_module(module_name)
 

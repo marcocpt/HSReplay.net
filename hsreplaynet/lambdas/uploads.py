@@ -9,7 +9,7 @@ from hsreplaynet.uploads.models import (
 )
 from hsreplaynet.utils import instrumentation
 from hsreplaynet.utils.latch import CountDownLatch
-from hsreplaynet.utils.aws import LAMBDA
+from hsreplaynet.utils.aws.clients import LAMBDA
 
 
 @instrumentation.lambda_handler(

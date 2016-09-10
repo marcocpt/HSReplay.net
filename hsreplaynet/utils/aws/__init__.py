@@ -1,17 +1,5 @@
 from django.conf import settings
-
-
-try:
-	import boto3
-	S3 = boto3.client("s3")
-	LAMBDA = boto3.client("lambda")
-	IAM = boto3.client("iam")
-	KINESIS = boto3.client('kinesis')
-except ImportError:
-	S3 = None
-	LAMBDA = None
-	IAM = None
-	KINESIS = None
+from .clients import LAMBDA, KINESIS, S3
 
 
 def get_kinesis_stream_arn_from_name(name):

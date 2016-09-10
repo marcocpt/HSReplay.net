@@ -1,10 +1,11 @@
 import time
 from datetime import datetime, timedelta
-from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.core.management.base import BaseCommand
 from hsreplaynet.uploads.models import UploadEvent, UploadEventStatus
 from hsreplaynet.uploads.processing import queue_upload_events_for_reprocessing
-from hsreplaynet.utils.aws import LAMBDA, is_processing_disabled
+from hsreplaynet.utils.aws import is_processing_disabled
+from hsreplaynet.utils.aws.clients import LAMBDA
 
 
 class Command(BaseCommand):
