@@ -96,7 +96,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 
-if ENV_DEV or ENV_LIVE:
+if ENV_DEV:
 	# Django Debug Toolbar
 	INSTALLED_APPS += [
 		"debug_toolbar",
