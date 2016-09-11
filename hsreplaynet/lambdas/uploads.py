@@ -119,7 +119,10 @@ def process_raw_upload(raw_upload, reprocessing=False):
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_raw_upload")
 
-	obj, created = UploadEvent.objects.get_or_create(shortid=raw_upload.shortid)
+	obj, created = UploadEvent.objects.get_or_create(
+		shortid=raw_upload.shortid,
+		defaults={"status": UploadEventStatus.PENDING}
+	)
 
 	logger.info("The created flag for this upload event is: %r", created)
 	if not created and not reprocessing:
