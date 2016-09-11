@@ -136,7 +136,7 @@
 <div id="replay-comments" class="container-fluid">
 	<h2>Comments</h2>
 
-	{% if user.is_authenticated and user.is_staff %}
+	{% if user.is_authenticated %}
 		{% get_comment_form for replay as form %}
 		<form id="comment-form" action="{% comment_form_target %}" method="POST">
 			{% csrf_token %}
