@@ -20,8 +20,8 @@ mkdir -p "$DATADIR"
 
 if [[ -d $GITDIR ]]; then
 	echo "Updating $GITDIR"
-	git -C "$GITDIR" fetch --all
-	git -C "$GITDIR" reset --hard origin/master
+	git -C "$GITDIR" fetch -q --all
+	git -C "$GITDIR" reset -q --hard origin/master
 else
 	git clone "$TESTDATA_URL" "$GITDIR"
 fi

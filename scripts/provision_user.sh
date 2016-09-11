@@ -41,6 +41,12 @@ if [[ ! -e $PROJECT/hsreplaynet/local_settings.py ]]; then
 	cp "$PROJECT/local_settings.example.py" "$PROJECT/hsreplaynet/local_settings.py"
 fi
 
+if [[ -e $HOME/joust ]]; then
+	git -C "$HOME/joust" fetch -q --all && git -C "$HOME/joust" reset -q --hard origin/master
+else
+	git clone -q https://github.com/HearthSim/Joust "$HOME/joust"
+fi
+
 createdb --username postgres hsreplaynet
 python "$PROJECT/manage.py" migrate --no-input
 python "$PROJECT/manage.py" load_cards
