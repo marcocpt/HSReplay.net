@@ -50,6 +50,15 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 		$.getJSON(url, {username: this.props.username}, (data) => {
 			let games = [];
 			if (data.count) {
+				if(!!this.state.count && this.state.count !== data.count) {
+					this.setState({
+						receivedPages: 0,
+						gamesPages: new Map<number, GameReplay[]>(),
+						count: data.count
+					});
+					this.query("/api/v1/games/");
+					return;
+				}
 				games = data.results;
 				if (!this.state.gamesPages.has(this.state.receivedPages)) {
 					this.state.gamesPages = this.state.gamesPages.set(this.state.receivedPages, games);
