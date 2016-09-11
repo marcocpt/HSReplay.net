@@ -304,3 +304,7 @@ def cleanup_uploaded_log_file(sender, instance, **kwargs):
 	file = instance.file
 	if file.name:
 		delete_file_async(file.name)
+
+	descriptor = instance.descriptor
+	if descriptor.name:
+		delete_file_async(descriptor.name)
