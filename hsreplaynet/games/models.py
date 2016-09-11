@@ -126,8 +126,8 @@ class GlobalGamePlayer(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	game = models.ForeignKey(GlobalGame, on_delete=models.CASCADE, related_name="players")
 
-	name = models.CharField("Player name", blank=True, max_length=64)
-	real_name = models.CharField("Real name", blank=True, max_length=64)
+	name = models.CharField("Player name", blank=True, max_length=64, db_index=True)
+	real_name = models.CharField("Real name", blank=True, max_length=64, db_index=True)
 	user = models.ForeignKey(
 		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
 	)
