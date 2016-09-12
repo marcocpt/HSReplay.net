@@ -60,3 +60,9 @@ export interface ImageProps {
 export interface CardArtProps {
 	cardArt: (string) => string;
 }
+
+export interface ReplayFilter {
+	name: string;
+	default: string;
+	options: [string, string][];
+}

@@ -1,10 +1,7 @@
 import * as React from "react";
-import {GameReplay, CardArtProps, ImageProps, GlobalGamePlayer} from "../interfaces";
-import GameHistorySearch from "./filters/GameHistorySearch";
-import GameHistoryModeFilter from "./filters/GameHistoryModeFilter";
-import GameHistoryFormatFilter from "./filters/GameHistoryFormatFilter"
-import GameHistoryResultFilter from "./filters/GameHistoryResultFilter"
-import GameHistoryHeroFilter from "./filters/GameHistoryHeroFilter"
+import {GameReplay, CardArtProps, ImageProps, GlobalGamePlayer, ReplayFilter} from "../interfaces";
+import GameHistorySearch from "./GameHistorySearch";
+import GameHistorySelectFilter from "./GameHistorySelectFilter";
 import GameHistoryList from "./GameHistoryList";
 import Pager from "./Pager";
 import {parseQuery, toQueryString} from "../QueryParser"
@@ -24,6 +21,7 @@ interface MyReplaysState {
 	receivedPages?: number;
 	currentLocalPage?: number;
 	pageSize?: number;
+	filters?: ReplayFilter[];
 }
 
 export default class MyReplays extends React.Component<MyReplaysProps, MyReplaysState> {
@@ -40,6 +38,7 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			currentLocalPage: 0,
 			pageSize: 1
 		};
+		this.state.filters = this.getFilters();
 		this.query("/api/v1/games/");
 	}
 
@@ -175,6 +174,20 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			this.setState({currentLocalPage: this.state.currentLocalPage - 1});
 		} : null;
 
+		let filters = [];
+		this.state.filters.forEach(filter => {
+			filters.push(
+				<div className="col-md-3 col-sm-4 col-xs-12">
+					<GameHistorySelectFilter
+						default={filter.default}
+						options={filter.options}
+						selected={this.state.queryMap.get(filter.name)}
+						onChanged={(value: string) => this.setState({queryMap: this.state.queryMap.set(filter.name, value), currentLocalPage: 0})}
+					/>
+				</div>
+			)
+		});
+
 		return (
 			<div>
 				<div className="row" id="replay-search">
@@ -188,38 +201,7 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("name", value), currentLocalPage: 0})}
 						/>
 					</div>
-					<div className="col-md-3 col-sm-4 col-xs-12">
-						<GameHistoryModeFilter
-							selected={this.state.queryMap.get("mode")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("mode", value), currentLocalPage: 0})}
-						/>
-					</div>
-					<div className="col-md-3 col-sm-4 col-xs-12">
-						<GameHistoryFormatFilter
-							selected={this.state.queryMap.get("format")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("format", value), currentLocalPage: 0})}
-						/>
-					</div>
-					<div className="col-md-3 col-sm-4 col-xs-12">
-						<GameHistoryResultFilter
-							selected={this.state.queryMap.get("result")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("result", value), currentLocalPage: 0})}
-						/>
-					</div>
-					<div className="col-md-3 col-sm-4 col-xs-12">
-						<GameHistoryHeroFilter
-							default="All Heroes"
-							selected={this.state.queryMap.get("hero")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("hero", value), currentLocalPage: 0})}
-						/>
-					</div>
-					<div className="col-md-3 col-sm-4 col-xs-12">
-						<GameHistoryHeroFilter
-							default="All Opponents"
-							selected={this.state.queryMap.get("opponent")}
-							setQuery={(value: string) => this.setState({queryMap: this.state.queryMap.set("opponent", value), currentLocalPage: 0})}
-						/>
-					</div>
+					{filters}
 				</div>
 				<div className="clearfix"/>
 				{content}
@@ -229,4 +211,38 @@ export default class MyReplays extends React.Component<MyReplaysProps, MyReplays
 			</div>
 		);
 	}
+
+	getFilters(): ReplayFilter[] {
+		return [
+			{
+				name: "mode",
+				default: "All Modes",
+				options: [["arena", "Arena"], ["ranked", "Ranked"], ["casual", "Casual"], ["brawl", "Tavern Brawl"],
+					["friendly", "Friendly"], ["adventure", "Adventure"]]
+			},
+			{
+				name: "format",
+				default: "All Formats",
+				options: [["standard", "Standard"], ["wild", "Wild"]]
+			},
+			{
+				name: "result",
+				default: "All Results",
+				options: [["won", "Won"], ["lost", "Lost"]]
+			},
+			{
+				name: "hero",
+				default: "All Heroes",
+				options: [["druid", "Druid"], ["hunter", "Hunter"], ["mage", "Mage"], ["paladin", "Paladin"], ["priest", "Priest"],
+					["rogue", "Rogue"], ["shaman", "Shaman"], ["warlock", "Warlock"], ["warrior", "Warrior"]],
+			},
+			{
+				name: "opponent",
+				default: "All Opponents",
+				options: [["druid", "Druid"], ["hunter", "Hunter"], ["mage", "Mage"], ["paladin", "Paladin"], ["priest", "Priest"],
+					["rogue", "Rogue"], ["shaman", "Shaman"], ["warlock", "Warlock"], ["warrior", "Warrior"]],
+			}
+		];
+	}
+
 }
