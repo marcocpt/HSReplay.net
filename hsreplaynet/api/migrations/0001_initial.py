@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True, verbose_name='Created')),
                 ('test_data', models.BooleanField(default=False)),
                 ('creation_apikey', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='api.APIKey')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='auth_tokens', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='auth_tokens', to=settings.AUTH_USER_MODEL))
             ],
         ),
         migrations.AddField(

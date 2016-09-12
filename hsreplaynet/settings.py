@@ -74,6 +74,7 @@ if not ENV_LAMBDA:
 		"loginas",
 		"webpack_loader",
 		"hsreplaynet.admin",
+		"hsreplaynet.packs",
 	]
 
 

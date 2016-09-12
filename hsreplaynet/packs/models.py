@@ -32,6 +32,3 @@ class PackCard(models.Model):
 	pack = models.ForeignKey(Pack)
 	card = models.ForeignKey(Card)
 	premium = models.BooleanField()
-
-	class Meta:
-		unique_together = ("card", "premium")
