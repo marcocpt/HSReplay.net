@@ -17,8 +17,8 @@
 	</style>
 {% endblock %}
 
-{% with replay.generate_description as description %}
 {% block meta %}
+{% with replay.generate_description as description %}
 	{{ block.super }}
 	<meta property="og:title" content="{{ replay.pretty_name_spoilerfree }}" />
 	<meta property="og:description" content="{{ description }}" />
@@ -26,12 +26,9 @@
 	<meta name="date" content="{{ replay.global_game.match_start|date:"c" }}">
 	<link rel="canonical" href="{{ canonical_url }}" />
 	<link rel="me" href="https://twitter.com/hsreplaynet" />
-{% endblock %}
-
-{% block description %}
 	<meta name="description" content="{{ description }}" />
-{% endblock %}
 {% endwith %}
+{% endblock %}
 
 {% block title %}{{ replay.pretty_name_spoilerfree }}{% endblock title %}
 
@@ -40,7 +37,10 @@
 	<div class="row full_height">
 		<div class="col-lg-10 col-md-9 col-sm-12 col-xs-12 full_height">
 			<div class="full_height">
-				<div id="joust-container" class="full_height" data-replayurl="{{ replay.replay_xml.url }}"{% if user.is_authenticated %} data-locale="{{ user.locale }}"{% endif %}></div>
+				<div id="joust-container" class="full_height"
+					data-replayurl="{{ replay.replay_xml.url }}"
+					{% if user.is_authenticated %}data-locale="{{ user.locale }}"{% endif %}
+				></div>
 			</div>
 		</div>
 		<div class="col-xs-12 visible-xs visible-sm">
