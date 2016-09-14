@@ -3,7 +3,6 @@ from . import views
 
 
 urlpatterns = [
-	url(r"^failures/$", views.UploadFailuresListView.as_view(), name="failures_list"),
 	url(
 		r"^upload/(?P<shortid>[\w-]+)/$", views.UploadDetailView.as_view(),
 		name="upload_detail"

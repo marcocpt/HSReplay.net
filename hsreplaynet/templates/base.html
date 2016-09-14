@@ -48,7 +48,6 @@
 				<li><a href="{% url 'my_replays' %}">My Replays</a></li>
 				{% if user.is_staff %}
 					<li><a href="{% url 'scenario_list_view' %}">Scenarios</a></li>
-					<li><a href="{% url 'failures_list' %}">Upload Failures</a></li>
 					<li><a href="{% url 'admin:index' %}">Admin</a></li>
 			{% endif %}
 			{% endif %}
