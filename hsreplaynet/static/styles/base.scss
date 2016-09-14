@@ -87,7 +87,7 @@ header nav h1 {
 
 .site-footer {
 	clear: both;
-	color: #aaa;
+	color: $darkgrey;
 	font-size: x-small;
 	margin-top: 3em;
 	margin-bottom: 2em;
@@ -99,7 +99,7 @@ header nav h1 {
 }
 
 .site-footer a {
-	color: #aaa;
+	color: inherit;
 }
 
 .site-footer abbr[title] {
