@@ -4,9 +4,11 @@ from django.contrib.auth.decorators import login_required
 from hearthstone.enums import CardClass, BnetGameType
 from .models import Card
 from .queries import DeckWinRateQueryBuilder
+from hsreplaynet.features.decorators import view_requires_feature_access
 
 
 @login_required
+@view_requires_feature_access("winrates")
 def winrates(request):
 
 	query_builder = DeckWinRateQueryBuilder()
