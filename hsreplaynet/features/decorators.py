@@ -2,6 +2,7 @@ from functools import wraps
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from .models import Feature
+from hsreplaynet.utils.instrumentation import error_handler
 
 
 def view_requires_feature_access(feature_name):
@@ -17,7 +18,8 @@ def view_requires_feature_access(feature_name):
 			try:
 				feature = Feature.objects.get(name=feature_name)
 				is_enabled = feature.enabled_for_user(request.user)
-			except Feature.DoesNotExist:
+			except Feature.DoesNotExist as e:
+				error_handler(e)
 				# Missing features are treated as if they are set to
 				# FeatureStatus.STAFF_ONLY. This occurs when new feature code is deployed
 				# before the DB is updated

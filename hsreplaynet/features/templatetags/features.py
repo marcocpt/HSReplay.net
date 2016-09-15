@@ -1,6 +1,7 @@
 from django import template
 from django.conf import settings
 from hsreplaynet.features.models import Feature
+from hsreplaynet.utils.instrumentation import error_handler
 
 register = template.Library()
 
@@ -30,7 +31,8 @@ def feature(context, feature_name):
 
 	try:
 		feature = Feature.objects.get(name=feature_name)
-	except Feature.DoesNotExist:
+	except Feature.DoesNotExist as e:
+		error_handler(e)
 		# Missing features are treated as if they are set to FeatureStatus.STAFF_ONLY
 		# Occurs when new feature code is deployed before the DB is updated
 		feature_context["is_enabled"] = user.is_staff
