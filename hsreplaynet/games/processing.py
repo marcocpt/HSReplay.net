@@ -8,11 +8,11 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from hearthstone.enums import CardType, GameTag
 from hsreplay.document import HSReplayDocument
-from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import guess_ladder_season, log
 from hsreplaynet.utils.influx import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
+from .metrics import InfluxInstrumentedParser
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, _generate_upload_path
 
 
@@ -296,10 +296,16 @@ def parse_upload_event(upload_event, meta):
 	upload_event.file.close()
 
 	try:
-		parser = parse_log(powerlog, processor="GameState", date=match_start)
+		parser = InfluxInstrumentedParser(upload_event.shortid, meta)
+		parser._game_state_processor = "GameState"
+		parser._current_date = match_start
+		parser.read(powerlog)
 	except Exception as e:
 		log.exception("Got exception %r while parsing log", e)
 		raise ParsingError(str(e))  # from e
+
+	if not upload_event.test_data:
+		parser.write_payload()
 
 	return parser
 
