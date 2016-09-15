@@ -9,10 +9,11 @@ cp /etc/skel/.zshrc "$HOME/.zshrc"
 
 python3 -m venv "$HOME/env"
 source "$HOME/env/bin/activate"
+pip install --upgrade pip setuptools
 pip install -r "$PROJECT/requirements/dev.txt"
 
 if [[ ! -e $VIRTUAL_ENV/nodeenv ]]; then
-	nodeenv "$VIRTUAL_ENV/nodeenv" --prebuilt
+	nodeenv "$VIRTUAL_ENV/nodeenv"
 fi
 export PATH="$VIRTUAL_ENV/nodeenv/bin:$HOME/node_modules/.bin:$PATH"
 
