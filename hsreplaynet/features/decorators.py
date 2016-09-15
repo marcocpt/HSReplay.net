@@ -21,7 +21,7 @@ def view_requires_feature_access(feature_name):
 				# Missing features are treated as if they are set to
 				# FeatureStatus.STAFF_ONLY. This occurs when new feature code is deployed
 				# before the DB is updated
-				is_enabled = request.user.is_staff()
+				is_enabled = request.user.is_staff
 
 			if is_enabled:
 				return view_func(request, *args, **kwargs)

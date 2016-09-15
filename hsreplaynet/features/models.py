@@ -80,7 +80,7 @@ class Feature(models.Model):
 		if self.status == FeatureStatus.OFF:
 			return False
 
-		if user.is_staff():
+		if user.is_staff:
 			# Staff can always see everything except OFF
 			return True
 

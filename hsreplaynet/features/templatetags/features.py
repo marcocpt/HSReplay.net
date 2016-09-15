@@ -33,7 +33,7 @@ def feature(context, feature_name):
 	except Feature.DoesNotExist:
 		# Missing features are treated as if they are set to FeatureStatus.STAFF_ONLY
 		# Occurs when new feature code is deployed before the DB is updated
-		feature_context["is_enabled"] = user.is_staff()
+		feature_context["is_enabled"] = user.is_staff
 	else:
 		feature_context["is_enabled"] = feature.enabled_for_user(user)
 		feature_context["read_only"] = feature.read_only
