@@ -3,9 +3,9 @@
 echo 'deb http://cloudfront.debian.net/debian jessie-backports main
 deb-src http://cloudfront.debian.net/debian jessie-backports main' > /etc/apt/sources.list.d/backports.list
 echo "deb https://repos.influxdata.com/debian jessie stable" > /etc/apt/sources.list.d/influxdb.list
-curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
+wget https://repos.influxdata.com/influxdb.key -qO - | apt-key add -
 
-apt-get update
+apt-get update -q
 apt-get install -qy apt-transport-https
 apt-get dist-upgrade -qy
 apt-get install -qy \

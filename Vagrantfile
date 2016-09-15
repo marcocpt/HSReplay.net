@@ -11,9 +11,11 @@ Vagrant.configure("2") do |config|
 	config.vm.synced_folder ".", "/home/vagrant/hsreplay.net"
 
 	config.vm.provision "shell",
-		path: "scripts/provision_system.sh"
+		path: "scripts/provision_system.sh",
+		keep_color: true
 
 	config.vm.provision "shell",
 		path: "scripts/provision_user.sh",
-		privileged: false
+		privileged: false,
+		keep_color: true
 end
