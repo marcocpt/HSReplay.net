@@ -4,8 +4,8 @@
 	width: 100%;
 
 	a, a:hover, a:active {
-		:not(.btn) {
-			color: #3188b8;
+		&:not(.btn) {
+			color: $lighterblue;
 		}
 	}
 
@@ -20,16 +20,17 @@
 	}
 
 	h1 {
-		background-color: #3188b8;
+		background-color: $lightblue;
 		padding: 1em 0;
 		font-size: 1.2em;
 		text-align: center;
 		text-transform: uppercase;
+		font-weight: normal;
 	}
 
 	h2 {
-		background-color: #154b69;
-		color: #3ba3db;
+		background-color: $aqua;
+		color: $lighterblue;
 		font-size: 1.1em;
 		margin: 0;
 		padding: 0.5em 0.5em;
@@ -45,19 +46,22 @@
 	}
 
 	li {
-		border-bottom: 1px solid #154b69;
+		border-bottom: 1px solid $aqua;
 		padding: 0.5em 1em;
 
 		ul {
 			> li:first-of-type {
-				border-top: 1px solid #154b69;
+				border-top: 1px solid $aqua;
 			}
 
 			> li:last-of-type {
 				padding-bottom: 0;
-				border-bottom: none;
 			}
 		}
+	}
+
+	li:last-of-type {
+		border-bottom: none;
 	}
 
 	#replay-visibility {
@@ -74,7 +78,7 @@
 	}
 
 	.infobox-value {
-		color: #3ba3db;
+		color: $lighterblue;
 		font-weight: bold;
 		float: right;
 	}
