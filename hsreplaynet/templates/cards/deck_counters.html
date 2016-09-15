@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% load web_extras %}
+
+{% block title %}Card Counters{% endblock %}
+
+{% block fullcontent %}
+	<div class="page-header">
+		<div class="container">
+			<h1>Card Counters</h1>
+		</div>
+	</div>
+	<div class="content">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<ul>
+						<li>Decks That Counter Cards:
+							<ul>
+								{% for card in cards %}
+									<li>{{ card.name }}</li>
+								{% endfor %}
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<table>
+						<tr>
+						{% for column in counter_deck_columns %}
+							<th>{{ column }}</th>
+						{% endfor %}
+						</tr>
+
+						{% for deck_info in counters_by_match_count %}
+							<tr>
+								{% for item in deck_info %}
+									<td>{{ item }}</td>
+								{% endfor %}
+							</tr>
+						{% endfor %}
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
