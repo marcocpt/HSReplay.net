@@ -72,6 +72,9 @@ class Feature(models.Model):
 	status = IntEnumField(enum=FeatureStatus, default=FeatureStatus.IN_PROGRESS)
 	read_only = models.BooleanField(default=False)
 
+	def __str__(self):
+		return self.name
+
 	def enabled_for_user(self, user):
 		if settings.DEBUG:
 			# Feature policies are not enforced in development mode
