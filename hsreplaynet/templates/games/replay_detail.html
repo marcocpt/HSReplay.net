@@ -82,16 +82,20 @@
 						<li>
 							{{ player }}
 							{% if player.final_state.name == "WON" %}(Won){% endif %}
-							<a class="infobox-value {% if player.is_ai %}player-ai{% endif %} {% if player.is_first %}player-first{% endif %}"
-								onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">
-								Show deck
-							</a>
-							<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
-								{# TODO: Make this an API call (inefficient as-is) #}
-								{% for include in player.deck_list.include_set.all %}
-									<li>{{ include }}</li>
-								{% endfor %}
-							</ul>
+							{# TODO: Make this an API call (inefficient as-is) #}
+							{% with player.deck_list.include_set.all as decklist %}
+							{% if decklist %}
+								<a class="infobox-value {% if player.is_ai %}player-ai{% endif %} {% if player.is_first %}player-first{% endif %}"
+									onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">
+									Show deck
+								</a>
+								<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
+									{% for card in decklist %}
+										<li>{{ card }}</li>
+									{% endfor %}
+								</ul>
+							{% endif %}
+							{% endwith %}
 						</li>
 					{% endfor %}
 				</ul>
