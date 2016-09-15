@@ -6,13 +6,12 @@ from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
 from hearthstone.enums import CardType, GameTag
-from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.utils.instrumentation import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
 from .models import GameReplay, GlobalGame, GlobalGamePlayer
-
+from .metrics import InfluxInstrumentedParser
 
 logger = logging.getLogger(__file__)
 
@@ -196,7 +195,14 @@ def parse_upload_event(upload_event, meta):
 	upload_event.file.close()
 
 	try:
-		parser = parse_log(log, processor="GameState", date=match_start)
+		parser = InfluxInstrumentedParser(upload_event.shortid, meta)
+		parser._game_state_processor = "GameState"
+		parser._current_date = match_start
+		parser.read(log)
+
+		if not upload_event.test_data:
+			parser.persist_influx_payload()
+
 	except Exception as e:
 		raise ParsingError(str(e))  # from e
 
