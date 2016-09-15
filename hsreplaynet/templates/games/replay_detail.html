@@ -108,7 +108,11 @@
 					{% if replay.spectator_mode %}
 						<li>Spectator mode <span class="infobox-value">POV: {{ replay.friendly_player.name }}</span></li>
 					{% endif %}
+					{% if user.is_staff %}
+						<li>View in Admin<span class="infobox-value"><a href="{% url 'admin:games_gamereplay_change' replay.id %}">Link</a></span></li>
+					{% endif %}
 				</ul>
+
 				{% comment %}
 				<h2>Related</h2>
 				<ul id="infobox-related">
