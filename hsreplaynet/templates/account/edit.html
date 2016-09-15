@@ -8,7 +8,7 @@
 		Signed in as <img src="{% static 'images/bnet.png' %}"/> <strong>{{ user }}</strong>.
 	</p>
 
-	<form action="" method="POST">
+	<form action="" method="post">
 	{% csrf_token %}
 
 		<h3>Privacy</h3>
@@ -34,7 +34,7 @@
 			{{ form.locale }}
 		</p>
 
-		<input type="submit" class="btn btn-info" value="Save profile"/>
+		<input type="submit" class="btn btn-primary" value="Save profile"/>
 	</form>
 
 	<hr/>
@@ -63,7 +63,7 @@
 				{% else %}
 					<td>{{ token.creation_apikey }}</td>
 				{% endif %}
-				<td>{{ token.created }}</th>
+				<td>{{ token.created }}</td>
 			</tr>
 		{% endfor %}
 		</table>

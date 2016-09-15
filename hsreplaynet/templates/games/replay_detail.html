@@ -144,7 +144,7 @@
 
 			{% if user.is_authenticated %}
 				{% get_comment_form for replay as form %}
-				<form id="comment-form" action="{% comment_form_target %}" method="POST">
+				<form id="comment-form" action="{% comment_form_target %}" method="post">
 					{% csrf_token %}
 					{# {{ form.comment }} #}
 					<textarea name="comment" rows="10" class="form-control" cols="40" id="id_comment" maxlength="3000" required></textarea>
@@ -156,7 +156,7 @@
 					<input type="hidden" name="next" value="{{ replay.get_absolute_url }}"/>
 
 					<em>Note: Your Battletag will be visible to other users.</em>
-					<input type="submit" value="Post" class="btn btn-info"/>
+					<input type="submit" value="Post" class="btn btn-primary"/>
 				</form>
 			{% endif %}
 

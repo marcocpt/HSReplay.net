@@ -1,0 +1,28 @@
+.btn {
+	border-radius: 0;
+}
+
+.btn-primary {
+	color: white;
+	background-color: $lightblue;
+	border-color: $lightblue;
+}
+
+.btn-primary:hover {
+	background-color: darken($lightblue, 5);
+	border-color: $lightblue;
+}
+
+.btn-primary {
+	&:active, &.active {
+		background-color: darken($lightblue, 10);
+		border-color: $lightblue;
+	}
+}
+
+.btn-primary {
+	&.focus, &:focus {
+		background-color: darken($lightblue, 5);
+		border-color: darken($lightblue, 20);
+	}
+}
