@@ -18,13 +18,15 @@ urlpatterns = [
 
 if not settings.ENV_LAMBDA:
 	from django.contrib.flatpages.views import flatpage
-	# Do not register admin/flatpages on Lambda as they are not installed
+	# These pages are not registered on Lambda as they are not needed there
+	downloads = TemplateView.as_view(template_name="downloads.html")
 	urlpatterns += [
 		url(r"^admin/", include("hsreplaynet.admin.urls")),
 		url(r"^account/", include("hsreplaynet.accounts.urls")),
+		url(r"^comments/", include("hsreplaynet.comments.urls")),
 		url(r"^about/privacy/$", flatpage, {"url": "/about/privacy/"}, name="privacy_policy"),
 		url(r"^about/tos/$", flatpage, {"url": "/about/tos/"}, name="terms_of_service"),
-		url(r"^comments/", include("hsreplaynet.comments.urls")),
+		url(r"^downloads/", downloads, name="downloads"),
 		url(r"^pages/", include("django.contrib.flatpages.urls")),
 	]
 

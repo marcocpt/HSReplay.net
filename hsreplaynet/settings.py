@@ -242,7 +242,9 @@ if ENV_DEV:
 ##
 # Custom site settings
 
-HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download-hsreplay/?utm_source=hsreplay.net&utm_campaign=download"
+HSREPLAY_CAMPAIGN = "utm_source=hsreplay.net&utm_campaign=download"
+HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download/?%s" % (HSREPLAY_CAMPAIGN)
+HSTRACKER_DOWNLOAD_URL = "https://hstracker.net/download-hstracker/?%s" % (HSREPLAY_CAMPAIGN)
 INFLUX_ENABLED = True
 
 # WARNING: To change this it must also be updated in isolated.uploaders.py
