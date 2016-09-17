@@ -1,5 +1,4 @@
 import json
-import logging
 import traceback
 import shortuuid
 from io import StringIO
@@ -8,13 +7,10 @@ from django.core.exceptions import ValidationError
 from hearthstone.enums import CardType, GameTag
 from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
+from hsreplaynet.utils import deduplication_time_range, guess_ladder_season, log
 from hsreplaynet.utils.instrumentation import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
 from .models import GameReplay, GlobalGame, GlobalGamePlayer
-
-
-logger = logging.getLogger(__file__)
 
 
 class ProcessingError(Exception):
@@ -35,6 +31,20 @@ class UnsupportedReplay(ProcessingError):
 
 def eligible_for_unification(meta):
 	return all([meta.get("game_handle"), meta.get("client_handle")])
+
+
+def get_valid_match_start(match_start, upload_date):
+	"""
+	Returns a valid match_start value given the match_start and upload_date.
+	If the upload_date is greater than the match_start, return the match_start.
+	If it's greater than the match_start, return the upload_date, modified to
+	use the match_start's timezone.
+	"""
+	if upload_date > match_start:
+		return match_start
+
+	log.info("match_start=%r>upload_date=%r - rejecting match_start", match_start, upload_date)
+	return upload_date.astimezone(match_start.tzinfo)
 
 
 def find_or_create_global_game(game_tree, meta):
@@ -98,7 +108,7 @@ def find_or_create_replay(global_game, meta, unified):
 			raise RuntimeError("Found multiple handles %r for %r" % (client_handle, global_game))
 		elif replays:
 			replay = replays.first()
-			logger.info("Duplicate upload detected: %r", replay)
+			log.info("Duplicate upload detected: %r", replay)
 			return replay, True
 
 	replay = GameReplay(
@@ -186,7 +196,11 @@ def capture_class_distribution_stats(replay):
 
 
 def parse_upload_event(upload_event, meta):
-	match_start = dateutil_parse(meta["match_start"])
+	orig_match_start = dateutil_parse(meta["match_start"])
+	match_start = get_valid_match_start(orig_match_start, upload_event.created)
+	if match_start != orig_match_start:
+		upload_event.tainted = True
+		upload_event.save()
 	upload_event.file.open(mode="rb")
 	log_bytes = upload_event.file.read()
 	influx_metric("raw_power_log_upload_num_bytes", {"size": len(log_bytes)})
@@ -282,7 +296,7 @@ def create_global_players(global_game, game_tree, meta):
 
 
 def update_global_players(global_game, game_tree, meta):
-	logger.info("Unified upload. Updating players not implemented yet.")
+	log.info("Unified upload. Updating players not implemented yet.")
 
 
 def do_process_upload_event(upload_event):

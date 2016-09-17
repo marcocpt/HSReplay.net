@@ -118,7 +118,6 @@ upload_regression_suite = pytest.mark.skipif(
 @upload_regression_suite
 @pytest.mark.django_db
 def test_upload_regression_suite(hsreplaynet_card_db):
-
 	if os.path.exists(UPLOAD_SUITE):
 		for shortid in os.listdir(UPLOAD_SUITE):
 			raw_upload = MockRawUpload(os.path.join(UPLOAD_SUITE, shortid), default_storage)
@@ -164,3 +163,47 @@ def validate_player_data(raw_upload, replay, number):
 		if "deck" in upload_player:
 			assert replay_player.deck_list is not None
 			assert len(upload_player["deck"]) == replay_player.deck_list.size()
+
+
+def test_validate_upload_date():
+	"""
+	Verifies the upload date / match start validation algorithm.
+	The match start is never supposed to be any later than the upload date, so
+	if it is, the match start is set to the upload date -- but the timezone
+	remains untouched.
+	"""
+
+	from aniso8601 import parse_datetime
+	from hsreplaynet.games.processing import get_valid_match_start
+
+	values = ((
+		# MS greater than UD, same timezone, expecting UD
+		"2016-01-01T10:00:00Z",  # Match start
+		"2016-01-01T01:01:01Z",  # Upload date
+		"2016-01-01T01:01:01Z",  # Expected result
+	), (
+		# MS lesser than UD, expecting MS
+		"2016-01-01T10:00:00+0200",
+		"2016-01-01T10:00:00+0100",
+		"2016-01-01T10:00:00+0200"
+	), (
+		# MS greater than UD, different timezone, expecting modified UD
+		"2016-01-01T10:00:00+0300",
+		"2016-01-01T10:00:00+0400",
+		"2016-01-01T09:00:00+0300"
+	), (
+		# MS greater than UD, different timezone, expecting modified UD
+		"2018-01-01T10:00:00-0500",
+		"2016-01-01T10:00:00+0500",
+		"2016-01-01T00:00:00-0500"
+	))
+
+	for match_start, upload_date, expected in values:
+		match_start = parse_datetime(match_start)
+		upload_date = parse_datetime(upload_date)
+		expected = parse_datetime(expected)
+
+		ret = get_valid_match_start(match_start, upload_date)
+		# assert expected.tzinfo == match_start.tzinfo
+		assert ret.tzinfo == match_start.tzinfo
+		assert ret == expected
