@@ -206,4 +206,9 @@ header nav h1 {
 	margin-top: 10%;
 	padding: 3em;
 	text-align: center;
+
+	a, a:active, a:hover {
+		color: inherit;
+		text-decoration: underline;
+	}
 }
