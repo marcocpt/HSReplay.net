@@ -75,8 +75,11 @@ class MakePrimaryView(LoginRequiredMixin, View):
 		if socacc.provider != "battlenet":
 			raise NotImplementedError("Making non-battlenet account primary is not implemented")
 
-		request.user.username = socacc.extra_data.get("battletag", request.user.username)
-		request.user.save()
+		battletag = socacc.extra_data.get("battletag")
+		if battletag:
+			request.user.battletag = battletag
+			request.user.username = battletag
+			request.user.save()
 		return self.redirect()
 
 	def redirect(self):

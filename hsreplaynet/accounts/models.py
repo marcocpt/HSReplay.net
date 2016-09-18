@@ -46,6 +46,10 @@ class AccountClaim(models.Model):
 class User(AbstractUser):
 	id = models.BigAutoField(primary_key=True)
 	username = models.CharField(max_length=150, unique=True)
+	battletag = models.CharField(
+		max_length=24, blank=True,
+		help_text="The user's primary Battle.net username."
+	)
 	is_fake = models.BooleanField(default=False)
 
 	# Profile fields

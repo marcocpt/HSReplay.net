@@ -30,7 +30,8 @@ class AccountClaimSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.Serializer):
 	id = serializers.IntegerField(read_only=True)
-	username = serializers.CharField(max_length=100)
+	username = serializers.CharField(max_length=150)
+	battletag = serializers.CharField(max_length=24)
 
 	def to_representation(self, instance):
 		if instance.is_fake:
