@@ -5,7 +5,7 @@
 		"main": "hsreplaynet/static/scripts/typings"
 	},
 	"globalDependencies": {
-		"jquery": "registry:dt/jquery#1.10.0+20160704162008",
+		"jquery": "registry:dt/jquery#1.10.0+20160908203239",
 		"node": "registry:dt/node#6.0.0+20160831021119",
 		"ravenjs": "registry:dt/ravenjs#0.0.0+20160820095925",
 		"react": "registry:dt/react#0.14.0+20160829191040",
