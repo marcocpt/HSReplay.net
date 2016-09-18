@@ -100,6 +100,10 @@ class GlobalGameAdmin(admin.ModelAdmin):
 @admin.register(GlobalGamePlayer)
 class GlobalGamePlayerAdmin(admin.ModelAdmin):
 	actions = (set_user, )
-	list_display = ("__str__", urlify("user"), "player_id", "is_first")
-	list_filter = ("is_ai", "rank", "is_first")
-	raw_id_fields = ("game", "user", "deck_list")
+	list_display = (
+		"__str__", "account_lo", urlify("hero"), "is_first",
+		"rank", "stars", "legend_rank", "final_state"
+	)
+	list_filter = ("rank", "is_ai", "is_first", "hero_premium", "final_state", "player_id")
+	raw_id_fields = ("game", "hero", "user", "deck_list")
+	search_fields = ("name", "real_name")
