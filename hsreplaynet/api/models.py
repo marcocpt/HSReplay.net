@@ -1,4 +1,5 @@
 import uuid
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import models
 
@@ -34,6 +35,18 @@ class AuthToken(models.Model):
 			return AuthToken.objects.get(key=token)
 		except (AuthToken.DoesNotExist, ValueError):
 			pass
+
+	def create_fake_user(self, save=True):
+		"""
+		Create a User instance with the same username as the key UUID.
+		The user has the is_fake attribute set to True.
+		"""
+		User = get_user_model()
+		user = User.objects.create(username=str(self.key), is_fake=True)
+		self.user = user
+		if save:
+			self.save()
+		return user
 
 
 class APIKey(models.Model):
