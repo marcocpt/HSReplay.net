@@ -7,40 +7,39 @@ import platform
 from django.urls import reverse_lazy
 
 
+##
+# Environments
+# ENV_LIVE: True if running on *.hsreplay.net
+# ENV_LAMBDA: True if running on AWS Lambda
+# ENV_AWS: True if running on AWS (ENV_LIVE or ENV_LAMBDA)
+# ENV_DEV: True if running on dev.hsreplay.net, or not on LIVE/LAMBDA
+
+HOSTNAME = platform.node()
+ENV_LIVE = HOSTNAME.endswith("hsreplay.net")
+ENV_LAMBDA = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+ENV_AWS = ENV_LIVE or ENV_LAMBDA
+ENV_DEV = not ENV_AWS or HOSTNAME == "dev.hsreplay.net"
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD_DIR = os.path.join(BASE_DIR, "build")
 
-
-ENV_LIVE = platform.node() == "hsreplay.net"
-ENV_LAMBDA = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
-ENV_CI = platform.node() == "build.hearthsim.net"
-ENV_PROD = ENV_LIVE or ENV_LAMBDA
-ENV_DEV = not ENV_PROD and not ENV_CI
-
-INFLUX_ENABLED = not ENV_CI
-
-if (ENV_DEV or ENV_CI) and (not os.path.exists(BUILD_DIR)):
-	os.mkdir(BUILD_DIR)
-
-
-if ENV_PROD:
-	DEBUG = False
-	ALLOWED_HOSTS = [".hsreplay.net"]
-else:
-	# SECURITY WARNING: don't run with debug turned on in production!
-	DEBUG = True
-	ALLOWED_HOSTS = ["*"]
-	INTERNAL_IPS = ["127.0.0.1", "::1", "10.0.2.2"]
-
-
+SITE_ID = 1
 ROOT_URLCONF = "hsreplaynet.urls"
 WSGI_APPLICATION = "wsgi.application"
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "be8^qa&f2fut7_1%q@x2%nkw5u=-r6-rwj8c^+)5m-6e^!zags"
 
 
-INSTALLED_APPS = [
+if ENV_DEV:
+	DEBUG = True
+else:
+	# Set DEBUG mode only on dev.hsreplay.net
+	ALLOWED_HOSTS = [".hsreplay.net"]
+	SECRET_KEY = None
+
+
+# These apps are used on both Lambda and Web
+INSTALLED_APPS_CORE = [
 	"django.contrib.auth",
 	"django.contrib.contenttypes",
 	"django.contrib.sessions",
@@ -60,23 +59,27 @@ INSTALLED_APPS = [
 	"hsreplaynet.utils",
 ]
 
+# The following apps are not needed on Lambda
+INSTALLED_APPS_WEB = [
+	"django.contrib.admin",
+	"django.contrib.flatpages",
+	"django.contrib.humanize",
+	"django_comments",
+	"allauth",
+	"allauth.account",
+	"allauth.socialaccount",
+	"allauth.socialaccount.providers.battlenet",
+	"django_rq",
+	"django_rq_dashboard",
+	"loginas",
+	"webpack_loader",
+	"hsreplaynet.admin",
+	"hsreplaynet.packs",
+]
+
+INSTALLED_APPS = INSTALLED_APPS_CORE
 if not ENV_LAMBDA:
-	INSTALLED_APPS += [
-		"django.contrib.admin",
-		"django.contrib.flatpages",
-		"django.contrib.humanize",
-		"django_comments",
-		"allauth",
-		"allauth.account",
-		"allauth.socialaccount",
-		"allauth.socialaccount.providers.battlenet",
-		"django_rq",
-		"django_rq_dashboard",
-		"loginas",
-		"webpack_loader",
-		"hsreplaynet.admin",
-		"hsreplaynet.packs",
-	]
+	INSTALLED_APPS += INSTALLED_APPS_WEB
 
 
 MIDDLEWARE_CLASSES = [
@@ -91,19 +94,6 @@ MIDDLEWARE_CLASSES = [
 	"hsreplaynet.utils.middleware.DoNotTrackMiddleware",
 	"hsreplaynet.utils.middleware.SetRemoteAddrFromForwardedFor",
 ]
-
-
-if ENV_DEV:
-	# Django Debug Toolbar
-	INSTALLED_APPS += [
-		"debug_toolbar",
-	]
-	MIDDLEWARE_CLASSES += [
-		"debug_toolbar.middleware.DebugToolbarMiddleware",
-	]
-	DEBUG_TOOLBAR_CONFIG = {
-		"JQUERY_URL": "",
-	}
 
 
 TEMPLATES = [{
@@ -123,12 +113,34 @@ TEMPLATES = [{
 }]
 
 
+##
+# Email
+
+SERVER_EMAIL = "admin@hsreplay.net"
+DEFAULT_FROM_EMAIL = "contact@hsreplay.net"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+##
+# Internationalization
+
+USE_I18N = False
+USE_L10N = True
+LANGUAGE_CODE = "en-us"
+
+USE_TZ = True
+TIME_ZONE = "UTC"
+
+
+##
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 MEDIA_ROOT = os.path.join(BUILD_DIR, "media")
 MEDIA_URL = "/media/"
+
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+
 STATICFILES_DIRS = [
 	os.path.join(BASE_DIR, "hsreplaynet", "static"),
 ]
@@ -141,15 +153,14 @@ WEBPACK_LOADER = {
 	}
 }
 
-
-if ENV_PROD:
+if ENV_AWS:
 	DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-	STATIC_URL = "https://static.hsreplay.net/static/"
+	# STATIC_URL = "https://static.hsreplay.net/static/"
 	AWS_STORAGE_BUCKET_NAME = "hsreplaynet-replays"
 else:
 	DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-	STATIC_URL = "/static/"
 	AWS_STORAGE_BUCKET_NAME = None
+
 
 # S3
 AWS_S3_USE_SSL = True
@@ -157,11 +168,85 @@ AWS_DEFAULT_ACL = "private"
 
 AWS_IS_GZIPPED = True
 GZIP_CONTENT_TYPES = [
+	"text/css",
 	"text/xml",
 	"text/plain",
 	"application/xml",
 	"application/octet-stream",
 ]
+
+
+##
+# Account/Allauth settings
+
+AUTH_USER_MODEL = "accounts.User"
+
+AUTHENTICATION_BACKENDS = [
+	# Needed to login by username in Django admin, regardless of `allauth`
+	"django.contrib.auth.backends.ModelBackend",
+	# `allauth` specific authentication methods, such as login by e-mail
+	"allauth.account.auth_backends.AuthenticationBackend",
+]
+
+LOGIN_REDIRECT_URL = reverse_lazy("my_replays")
+LOGIN_URL = reverse_lazy("account_login")
+
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+SOCIALACCOUNT_ADAPTER = "allauth.socialaccount.providers.battlenet.provider.BattleNetSocialAccountAdapter"
+SOCIALACCOUNT_PROVIDERS = {"battlenet": {"SCOPE": []}}
+
+
+##
+# RQ
+# https://github.com/ui/django-rq
+
+RQ_QUEUES = {
+	"default": {
+		"HOST": "localhost",
+		"PORT": 6379,
+		"DB": 0,
+		"PASSWORD": "",
+		"DEFAULT_TIMEOUT": 360,
+	}
+}
+
+
+##
+# API
+# http://www.django-rest-framework.org/api-guide/settings/
+
+REST_FRAMEWORK = {
+	# Use Django's standard `django.contrib.auth` permissions,
+	# or allow read-only access for unauthenticated users.
+	"DEFAULT_PERMISSION_CLASSES": [
+		"rest_framework.permissions.IsAuthenticatedOrReadOnly",
+	],
+	"DEFAULT_PAGINATION_CLASS": "hsreplaynet.api.pagination.DefaultPagination",
+}
+
+
+##
+# Django Debug Toolbar (Only on dev)
+# https://github.com/jazzband/django-debug-toolbar
+# NOTE: This won't work is DEBUG is set to True from local_settings.py
+
+if ENV_DEV:
+	INSTALLED_APPS += [
+		"debug_toolbar",
+	]
+	MIDDLEWARE_CLASSES += [
+		"debug_toolbar.middleware.DebugToolbarMiddleware",
+	]
+	DEBUG_TOOLBAR_CONFIG = {
+		"JQUERY_URL": "",
+	}
+
+
+##
+# Custom site settings
+
+HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download-hsreplay/?utm_source=hsreplay.net&utm_campaign=download"
+INFLUX_ENABLED = True
 
 # WARNING: To change this it must also be updated in isolated.uploaders.py
 S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
@@ -185,90 +270,6 @@ JOUST_STATIC_URL = "https://s3.amazonaws.com/hearthsim-joust/branches/master/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 
-# Email
-# https://docs.djangoproject.com/en/1.9/ref/settings/#email-backend
-
-SERVER_EMAIL = "admin@hsreplay.net"
-DEFAULT_FROM_EMAIL = "contact@hsreplay.net"
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-# Database
-# https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
-DATABASES = {
-	"default": {
-		"ENGINE": "django.db.backends.sqlite3",
-		"NAME": os.path.join(BUILD_DIR, "db.sqlite"),
-		"USER": "",
-		"PASSWORD": "",
-		"HOST": "",
-		"PORT": "",
-	}
-}
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.9/topics/i18n/
-
-USE_I18N = False
-USE_L10N = True
-LANGUAGE_CODE = "en-us"
-
-USE_TZ = True
-TIME_ZONE = "UTC"
-
-SITE_ID = 1
-
-
-# Account settings
-
-AUTH_USER_MODEL = "accounts.User"
-
-AUTHENTICATION_BACKENDS = [
-	# Needed to login by username in Django admin, regardless of `allauth`
-	"django.contrib.auth.backends.ModelBackend",
-	# `allauth` specific authentication methods, such as login by e-mail
-	"allauth.account.auth_backends.AuthenticationBackend",
-]
-
-LOGIN_REDIRECT_URL = reverse_lazy("my_replays")
-LOGIN_URL = reverse_lazy("account_login")
-
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if ENV_DEV else "https"
-SOCIALACCOUNT_ADAPTER = "allauth.socialaccount.providers.battlenet.provider.BattleNetSocialAccountAdapter"
-SOCIALACCOUNT_PROVIDERS = {"battlenet": {"SCOPE": []}}
-
-
-# RQ
-# https://github.com/ui/django-rq
-
-RQ_QUEUES = {
-	"default": {
-		"HOST": "localhost",
-		"PORT": 6379,
-		"DB": 0,
-		"PASSWORD": "",
-		"DEFAULT_TIMEOUT": 360,
-	}
-}
-
-
-# API
-REST_FRAMEWORK = {
-	# Use Django's standard `django.contrib.auth` permissions,
-	# or allow read-only access for unauthenticated users.
-	"DEFAULT_PERMISSION_CLASSES": [
-		"rest_framework.permissions.IsAuthenticatedOrReadOnly",
-	],
-	"DEFAULT_PAGINATION_CLASS": "hsreplaynet.api.pagination.DefaultPagination",
-}
-
-
-# Custom site settings
-
-HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download-hsreplay/?utm_source=hsreplay.net&utm_campaign=download"
-
 
 # Monkeypatch default collectstatic ignore patterns
 from django.contrib.staticfiles.apps import StaticFilesConfig
@@ -284,6 +285,7 @@ except ImportError as e:
 
 
 if __name__ == "__main__":
+	# Invoke `python settings.py` to get a JSON dump of all settings
 	import json
 
 	print(json.dumps({

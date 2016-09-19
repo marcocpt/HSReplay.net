@@ -1,12 +1,8 @@
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-MEDIA_URL = "/media/"
-STATIC_URL = "/static/"
 
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 INTERNAL_IPS = ["127.0.0.1", "::1", "10.0.2.2"]
-
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
 
