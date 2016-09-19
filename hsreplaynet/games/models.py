@@ -56,7 +56,7 @@ class GlobalGame(models.Model):
 		help_text="Hearthstone build number the game was played on."
 	)
 
-	match_start = models.DateTimeField(null=True)
+	match_start = models.DateTimeField(null=True, db_index=True)
 	match_end = models.DateTimeField(null=True)
 
 	game_type = IntEnumField("Game type", enum=BnetGameType, null=True, blank=True)

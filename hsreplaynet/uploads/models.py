@@ -267,7 +267,7 @@ class UploadEvent(models.Model):
 		"games.GameReplay", on_delete=models.SET_NULL,
 		null=True, blank=True, related_name="uploads"
 	)
-	created = models.DateTimeField(auto_now_add=True)
+	created = models.DateTimeField(auto_now_add=True, db_index=True)
 	upload_ip = models.GenericIPAddressField(null=True)
 	status = IntEnumField(enum=UploadEventStatus, default=UploadEventStatus.UNKNOWN)
 	tainted = models.BooleanField(default=False)
