@@ -43,7 +43,7 @@ wget --no-verbose "$SOURCE" -O "$OUTFILE"
 
 # React
 
-VERSION="15.3.1"
+VERSION="15.3.2"
 BASEURL="https://cdnjs.cloudflare.com/ajax/libs/react/$VERSION"
 
 OUTFILE="$STATICDIR/react.min.js"
