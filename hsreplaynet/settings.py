@@ -237,9 +237,6 @@ if ENV_DEV:
 	MIDDLEWARE_CLASSES += [
 		"debug_toolbar.middleware.DebugToolbarMiddleware",
 	]
-	DEBUG_TOOLBAR_CONFIG = {
-		"JQUERY_URL": "",
-	}
 
 
 ##
