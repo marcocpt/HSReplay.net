@@ -4,7 +4,10 @@
 {% block head_title %}{% trans "Account Connections" %}{% endblock %}
 
 {% block content %}
-<h2>{% trans "Account Connections" %}</h2>
+
+<section class="box-section">
+<h3>{% trans "Account Connections" %}</h3>
+<div class="inner">
 
 {% if form.accounts %}
 	<p>
@@ -46,25 +49,32 @@
 		{% endfor %}
 	</table>
 {% else %}
-	<p>
-		{% trans "You currently have no social network accounts connected to this account." %}
-	</p>
+	<p>{% trans "You currently have no social network accounts connected to this account." %}</p>
 {% endif %}
+</div>
+</section>
 
+<section id="account-social-link" class="box-section">
 <h3>Link a Battle.net account</h3>
+<div class="inner">
+	<p>
+		Here, you can connect multiple Battle.net accounts to your HSReplay account.
+	</p>
 
-<p>
-	You can connect multiple Battle.net accounts to your HSReplay account.<br/>
-	<strong>
+	<p class="alert alert-warning">
 		NOTE: Make sure to <a href="https://eu.battle.net/?logout" target="_blank">sign out of Battle.net</a>
 		before connecting another account.
-	</strong>
-</p>
+	</p>
 
-{% get_providers as socialaccount_providers %}
-<a class="socialaccount_provider {{provider.id}}" href="{% provider_login_url "battlenet" process="connect" %}">
-	Connect a Battle.net account
-</a>
+	{% get_providers as socialaccount_providers %}
+	<p>
+		<a class="socialaccount_provider {{provider.id}} btn btn-primary" href="{% provider_login_url "battlenet" process="connect" %}">
+			Connect a Battle.net account
+		</a>
+	</p>
+</div>
+</section>
 
 {% include "socialaccount/snippets/login_extra.html" %}
+
 {% endblock %}

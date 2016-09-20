@@ -17,3 +17,30 @@ h2 {
 		padding: 0.5em;
 	}
 }
+
+#account-social-link p.alert {
+	// Reduce bootstrap alert padding (Link account page)
+	padding: 0.5em !important;
+	margin: 0 2em;
+}
+
+.box-section {
+	border: 1px solid $lightgrey;
+	margin: 0 0 1em;
+	padding: 0;
+
+	h3 {
+		background-color: #efefef;
+		border-bottom: 1px solid $lightgrey;
+		padding: 0.3em;
+		margin: 0;
+	}
+
+	.inner {
+		padding: 0.5em;
+	}
+
+	p {
+		margin-top: 0.5em;
+	}
+}
