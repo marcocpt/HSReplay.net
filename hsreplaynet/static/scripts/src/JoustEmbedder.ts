@@ -63,6 +63,7 @@ export default class JoustEmbedder extends EventEmitter {
 		launcher.locale(this.locale);
 
 		// setup influx
+		let startupTime = null;
 		let endpoint = INFLUX_DATABASE_JOUST;
 		if (endpoint) {
 			let metrics = null;
@@ -72,14 +73,24 @@ export default class JoustEmbedder extends EventEmitter {
 				}
 				tags["release"] = release;
 				tags["locale"] = this.locale;
+				if (series === "startup") {
+					startupTime = Date.now();
+				}
 				metrics.writePoint(series, values, tags);
 			};
 			metrics = new MetricsReporter(
 				new BatchingMiddleware(new InfluxMetricsBackend(endpoint), (): void => {
-					metrics.writePoint("watched", {
+					let values = {
 						percentage: launcher.percentageWatched,
 						seconds: launcher.secondsWatched,
 						duration: launcher.replayDuration,
+						realtime: undefined,
+					};
+					if (startupTime) {
+						values.realtime = (Date.now() - startupTime) / 1000;
+					}
+					metrics.writePoint("watched", values, {
+						realtime_fixed: 1,
 					});
 				}),
 				(series: string): string => "joust_" + series
