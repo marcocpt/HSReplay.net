@@ -40,7 +40,10 @@
 				</p>
 			{% else %}
 				{% include 'login_button.html' %}
-				<p class="promo-help">You don't need a new account&mdash;we use <img src="{% static 'images/bnet.png' %}"/> Battle.net.</p>
+				<p class="promo-help">
+					You don't need a new account&mdash;we use <img src="{% static 'images/bnet.png' %}"/>
+					<abbr title="We'll send you over to the official Battle.net site to log in there.&#10;HSReplay.net neither gains access to your email address nor your password.">Battle.net</abbr>.
+				</p>
 				{% if debug %}
 					<a href="{% url 'account_login' %}" class="promo-link">(DEBUG) Log in with password</a>
 				{% endif %}

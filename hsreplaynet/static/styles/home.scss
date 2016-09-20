@@ -180,6 +180,13 @@ ul.home-steps .promo-button {
 	color: #ddd;
 }
 
+.promo-help {
+	abbr {
+		text-decoration: none;
+		border-bottom: 1px dotted white;
+	}
+}
+
 #joust-lightbox {
 	display: none;
 	position: fixed;
