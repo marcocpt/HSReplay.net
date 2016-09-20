@@ -267,6 +267,10 @@ JOUST_STATIC_URL = "https://s3.amazonaws.com/hearthsim-joust/branches/master/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 
+# This setting controls whether utils.aws.clients are initialized.
+# Add `CONNECT_TO_AWS = True` in local_settings.py if you need to use those locally.
+CONNECT_TO_AWS = ENV_AWS
+
 
 # Monkeypatch default collectstatic ignore patterns
 from django.contrib.staticfiles.apps import StaticFilesConfig

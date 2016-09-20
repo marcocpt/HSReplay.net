@@ -2,7 +2,7 @@ import boto3
 from django.conf import settings
 
 
-if settings.ENV_AWS:
+if settings.CONNECT_TO_AWS:
 	IAM = boto3.client("iam")
 	LAMBDA = boto3.client("lambda")
 	KINESIS = boto3.client("kinesis")
