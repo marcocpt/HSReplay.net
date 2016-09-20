@@ -62,6 +62,7 @@ class User(AbstractUser):
 		"Default replay visibility",
 		enum=Visibility, default=Visibility.Public
 	)
+	exclude_from_statistics = models.BooleanField(default=False)
 
 	def delete_replays(self):
 		self.replays.update(is_deleted=True)
