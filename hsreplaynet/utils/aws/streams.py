@@ -9,7 +9,7 @@ from .clients import KINESIS
 
 logger = logging.getLogger("hsreplaynet")
 
-KINESIS_WRITES_PER_SEC = 5
+KINESIS_WRITES_PER_SEC = 1000
 MAX_WRITES_SAFETY_LIMIT = .8
 
 
@@ -22,6 +22,10 @@ def publish_from_iterable_at_fixed_speed(iterable, publisher_func, times_per_sec
 		try:
 			start_time = time.time()
 			for i in range(0, times_per_second):
+				# NOTE: If the aggregate data published exceeds 1MB / second there will
+				# be write throughput failures.
+				# As Of 9-20-16 the average record was ~ 180 Bytes
+				# 180 Bytes * 1000 = 180KB (which is well below the threshold)
 				publisher_func(next(iterable))
 			elapsed_time = time.time() - start_time
 			sleep_duration = 1 - elapsed_time
