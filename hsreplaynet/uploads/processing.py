@@ -5,6 +5,8 @@ import logging
 from django.conf import settings
 from hsreplaynet.uploads.models import RawUpload
 from hsreplaynet.utils import aws
+
+
 logger = logging.getLogger(__file__)
 
 
@@ -34,7 +36,6 @@ def generate_raw_uploads_for_processing(attempt_reprocessing):
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix="raw"):
 		key = object["Key"]
 		if key.endswith(".log"):  # Don't queue the descriptor files, just the .logs
-
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 			raw_upload.attempt_reprocessing = attempt_reprocessing
 			yield raw_upload
@@ -59,8 +60,7 @@ def _generate_raw_uploads_from_events(events):
 
 
 def queue_upload_events_for_reprocessing(events, use_kinesis=False):
-
-	if settings.ENV_PROD or use_kinesis:
+	if settings.ENV_AWS or use_kinesis:
 		from hsreplaynet.utils.aws.streams import fill_stream_from_iterable
 		iterable = _generate_raw_uploads_from_events(events)
 		publisher_func = aws.publish_raw_upload_to_processing_stream
@@ -73,8 +73,7 @@ def queue_upload_events_for_reprocessing(events, use_kinesis=False):
 
 
 def queue_upload_event_for_reprocessing(event):
-
-	if settings.ENV_PROD:
+	if settings.ENV_AWS:
 		raw_upload = RawUpload.from_upload_event(event)
 		raw_upload.attempt_reprocessing = True
 		aws.publish_raw_upload_to_processing_stream(raw_upload)
