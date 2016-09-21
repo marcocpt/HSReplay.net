@@ -50,7 +50,11 @@
 				{% if user.is_staff %}
 					<li><a href="{% url 'scenario_list_view' %}">Scenarios</a></li>
 					<li><a href="{% url 'admin:index' %}">Admin</a></li>
+				{% endif %}
 			{% endif %}
+			{% setting 'HSREPLAY_TWITTER' as twitter_url %}
+			{% if twitter_url %}
+				<li><a href="{{ twitter_url }}" class="hidden-xs" target="_blank">@HSReplayNet</a></li>
 			{% endif %}
 			</ul>
 

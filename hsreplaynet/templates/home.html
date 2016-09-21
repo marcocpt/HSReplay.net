@@ -149,7 +149,8 @@
 				<div class="col-lg-6 col-xs-12">
 					<dl>
 						<dt>Where can I get the latest news about HSReplay.net?</dt>
-						<dd>Follow us <a href="https://twitter.com/HSReplayNet">@HSReplayNet</a> and subscribe to <a href="https://www.reddit.com/r/hsreplay">/r/hsreplay</a>.</dd>
+						{% setting 'HSREPLAY_TWITTER' as twitter_url %}
+						<dd>Follow us {% if twitter_url %}<a href="HSREPLAY_TWITTER">@HSReplayNet</a> {% endif %}and subscribe to <a href="https://www.reddit.com/r/hsreplay">/r/hsreplay</a>.</dd>
 						<dt>Can you show me statistics about my winrates/decks/matchups…</dt>
 						<dd>Stay tuned!</dd>
 					</dl>
