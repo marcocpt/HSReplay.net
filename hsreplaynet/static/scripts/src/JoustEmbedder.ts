@@ -63,9 +63,22 @@ export default class JoustEmbedder extends EventEmitter {
 		launcher.locale(this.locale);
 
 		// setup influx
-		let startupTime = null;
 		let endpoint = INFLUX_DATABASE_JOUST;
 		if (endpoint) {
+			// track startup time
+			let realtimeElapsed = 0;
+			let startupTime = null;
+			let measuring = true;
+			if ("visibilityState" in document) {
+				measuring = document.visibilityState === "visible";
+				document.addEventListener("visibilitychange", () => {
+					if (measuring && startupTime) {
+						realtimeElapsed += Date.now() - startupTime;
+					}
+					measuring = document.visibilityState === "visible";
+					startupTime = Date.now();
+				});
+			}
 			let metrics = null;
 			let track = (series, values, tags) => {
 				if (!tags) {
@@ -86,8 +99,9 @@ export default class JoustEmbedder extends EventEmitter {
 						duration: launcher.replayDuration,
 						realtime: undefined,
 					};
-					if (startupTime) {
-						values.realtime = (Date.now() - startupTime) / 1000;
+					if (measuring && startupTime) {
+						realtimeElapsed += Date.now() - startupTime;
+						values.realtime = realtimeElapsed / 1000;
 					}
 					metrics.writePoint("watched", values, {
 						realtime_fixed: 1,
