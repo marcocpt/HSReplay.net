@@ -20,7 +20,7 @@ class ReplayDetailView(View):
 		# replay.save()
 
 		players = replay.global_game.players.all()
-		players = players.prefetch_related("deck_list", "deck_list__includes")
+		# players = players.prefetch_related("deck_list", "deck_list__includes")
 
 		baseurl = "%s://%s" % (request.scheme, request.get_host())
 		return render(request, "games/replay_detail.html", {
