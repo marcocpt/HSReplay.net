@@ -16,8 +16,8 @@ class ReplayDetailView(View):
 		replay = get_object_or_404(GameReplay.objects.live(), shortid=id)
 
 		# TODO: IP caching in redis
-		replay.views += 1
-		replay.save()
+		# replay.views += 1
+		# replay.save()
 
 		baseurl = "%s://%s" % (request.scheme, request.get_host())
 		return render(request, "games/replay_detail.html", {
