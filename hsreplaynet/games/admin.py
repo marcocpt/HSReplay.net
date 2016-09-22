@@ -81,7 +81,6 @@ class ReplaySidesFilter(admin.SimpleListFilter):
 
 @admin.register(GlobalGame)
 class GlobalGameAdmin(admin.ModelAdmin):
-	date_hierarchy = "match_start"
 	list_display = (
 		"__str__", "match_start", "game_type", "build", "server_version",
 		"game_handle", "ladder_season", "scenario_id", "num_turns",

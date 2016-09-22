@@ -12,7 +12,6 @@ queue_for_reprocessing.short_description = "Queue for reprocessing"
 @admin.register(UploadEvent)
 class UploadEventAdmin(admin.ModelAdmin):
 	actions = (queue_for_reprocessing, )
-	date_hierarchy = "created"
 	list_display = (
 		"__str__", "status", "tainted", urlify("token"),
 		urlify("game"), "upload_ip", "created", "file", "user_agent"
