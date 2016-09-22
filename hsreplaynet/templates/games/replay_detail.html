@@ -74,15 +74,17 @@
 				{% else %}
 					<h1>Ranked</h1>
 				{% endif %}
+
 				<h2>Share <span id="replay-visibility">{{ replay.visibility.name }}{% if user.is_staff %} ({{ replay.views }} views){% endif %}</span></h2>
 				<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
+
 				<h2>Players</h2>
 				<ul id="infobox-players">
-					{% for player in gg.players.all %}
+					{% for player in players %}
 						<li>
 							{{ player }}
 							{# TODO: Make this an API call (inefficient as-is) #}
-							{% with player.deck_list.includes.all as decklist %}
+							{% with player.deck_list.all_includes as decklist %}
 							{% if decklist %}
 								<a class="infobox-value {% if player.is_ai %}player-ai{% endif %} {% if player.is_first %}player-first{% endif %}"
 									onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">

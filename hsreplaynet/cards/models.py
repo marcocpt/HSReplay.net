@@ -174,6 +174,15 @@ class Deck(models.Model):
 			self.digest = generate_digest_from_deck_list(self.card_id_list())
 			return super(Deck, self).save(*args, **kwargs)
 
+	@property
+	def all_includes(self):
+		"""
+		Use instead of .includes if you know you will use all of them
+		this will prefetch the related cards. (eg. in a deck list)
+		"""
+		fields = ("id", "count", "deck_id", "card__name")
+		return self.includes.all().select_related("card").only(*fields)
+
 	def card_id_list(self):
 		result = []
 
