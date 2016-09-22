@@ -115,7 +115,7 @@ class DeckManager(models.Manager):
 		deck = Deck.objects.create(digest=digest)
 
 		for card_id in id_list:
-			include, created = deck.include_set.get_or_create(
+			include, created = deck.includes.get_or_create(
 				deck=deck,
 				card_id=card_id,
 				defaults={"count": 1}
@@ -155,7 +155,7 @@ class Deck(models.Model):
 		return repr(self)
 
 	def __repr__(self):
-		values = self.include_set.values("card__name", "count")
+		values = self.includes.values("card__name", "count")
 		value_map = ["%s x %i" % (c["card__name"], c["count"]) for c in values]
 		return "[%s]" % (", ".join(value_map))
 
@@ -167,7 +167,7 @@ class Deck(models.Model):
 
 	def save(self, *args, **kwargs):
 		EMPTY_DECK_DIGEST = "d41d8cd98f00b204e9800998ecf8427e"
-		if self.digest != EMPTY_DECK_DIGEST and self.include_set.count() == 0:
+		if self.digest != EMPTY_DECK_DIGEST and self.includes.count() == 0:
 			# A client has set a digest by hand, so don't recalculate it.
 			return super(Deck, self).save(*args, **kwargs)
 		else:
@@ -177,7 +177,7 @@ class Deck(models.Model):
 	def card_id_list(self):
 		result = []
 
-		includes = self.include_set.all().values_list("card__id", "count")
+		includes = self.includes.values_list("card__id", "count")
 		for id, count in includes:
 			for i in range(count):
 				result.append(id)
@@ -188,13 +188,13 @@ class Deck(models.Model):
 		"""
 		The number of cards in the deck.
 		"""
-		return sum(i.count for i in self.include_set.all())
+		return sum(i.count for i in self.includes.all())
 
 
 class Include(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	deck = models.ForeignKey(Deck, on_delete=models.CASCADE)
-	card = models.ForeignKey(Card, on_delete=models.PROTECT)
+	deck = models.ForeignKey(Deck, on_delete=models.CASCADE, related_name="includes")
+	card = models.ForeignKey(Card, on_delete=models.PROTECT, related_name="included_in")
 	count = models.IntegerField(default=1)
 
 	def __str__(self):

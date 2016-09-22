@@ -96,7 +96,7 @@ class Scenario(models.Model):
 		sample_size = 20
 		replays = GameReplay.objects.filter(global_game__scenario_id=scenario_id)[:sample_size]
 		for replay in replays:
-			for include in replay.opposing_player.deck_list.include_set.all():
+			for include in replay.opposing_player.deck_list.includes.all():
 				card = include.card
 				current_count = deck[card]
 				if include.count > current_count:

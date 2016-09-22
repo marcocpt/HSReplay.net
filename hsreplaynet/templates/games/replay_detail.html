@@ -82,7 +82,7 @@
 						<li>
 							{{ player }}
 							{# TODO: Make this an API call (inefficient as-is) #}
-							{% with player.deck_list.include_set.all as decklist %}
+							{% with player.deck_list.includes.all as decklist %}
 							{% if decklist %}
 								<a class="infobox-value {% if player.is_ai %}player-ai{% endif %} {% if player.is_first %}player-first{% endif %}"
 									onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">
