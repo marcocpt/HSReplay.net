@@ -94,7 +94,7 @@ def build_papertrail_url(tracing_id):
 
 
 def build_admin_url(tracing_id):
-	return "https://hsreplay.net/admin/uploads/uploadevent/?q=%s" % tracing_id
+	return "https://dev.hsreplay.net/admin/uploads/uploadevent/?q=%s" % tracing_id
 
 
 def lambda_handler(
