@@ -108,11 +108,10 @@ class Card(models.Model):
 class DeckManager(models.Manager):
 	def get_or_create_from_id_list(self, id_list):
 		digest = generate_digest_from_deck_list(id_list)
-		existing_deck = Deck.objects.filter(digest=digest).first()
-		if existing_deck:
-			return existing_deck, False
 
-		deck = Deck.objects.create(digest=digest)
+		deck, deck_created = Deck.objects.get_or_create(digest=digest)
+		if not deck_created:
+			return deck, False
 
 		for card_id in id_list:
 			include, created = deck.includes.get_or_create(
