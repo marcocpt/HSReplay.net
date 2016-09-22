@@ -6,7 +6,7 @@ from .models import GameReplay
 
 class MyReplaysView(LoginRequiredMixin, View):
 	def get(self, request):
-		replays = GameReplay.objects.live().filter(user=request.user)
+		replays = GameReplay.objects.live().filter(user=request.user).count()
 		context = {"replays": replays}
 		return render(request, "games/my_replays.html", context)
 
