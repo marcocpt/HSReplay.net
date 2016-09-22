@@ -81,7 +81,6 @@
 					{% for player in gg.players.all %}
 						<li>
 							{{ player }}
-							{% if player.final_state.name == "WON" %}(Won){% endif %}
 							{# TODO: Make this an API call (inefficient as-is) #}
 							{% with player.deck_list.include_set.all as decklist %}
 							{% if decklist %}
