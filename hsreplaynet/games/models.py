@@ -77,7 +77,7 @@ class GlobalGame(models.Model):
 
 	# Nullable, We currently have no way to discover this.
 	scenario_id = models.IntegerField(
-		"Scenario ID", null=True, blank=True,
+		"Scenario ID", null=True, blank=True, db_index=True,
 		help_text="ID from DBF/SCENARIO.xml or Scenario cache",
 	)
 
