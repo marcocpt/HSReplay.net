@@ -15,7 +15,7 @@ from hsreplaynet.utils.aws.clients import LAMBDA
 @instrumentation.lambda_handler(
 	cpu_seconds=180,
 	stream_name="replay-upload-processing-stream",
-	stream_batch_size=64
+	stream_batch_size=16
 )
 def process_replay_upload_stream_handler(event, context):
 	"""
