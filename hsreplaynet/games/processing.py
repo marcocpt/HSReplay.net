@@ -223,6 +223,9 @@ def validate_parser(parser, meta):
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
 	game_tree = parser.games[0]
 
+	if len(game_tree.game.players) != 2:
+		raise ValidationError("Expected 2 players, found %i" % (len(game_tree.game.players)))
+
 	# If a player's name is None, this is an unsupported replay.
 	for player in game_tree.game.players:
 		if player.name is None:
