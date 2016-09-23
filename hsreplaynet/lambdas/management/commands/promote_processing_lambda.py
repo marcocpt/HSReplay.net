@@ -1,4 +1,4 @@
-import time
+import time, sys
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -130,7 +130,8 @@ class Command(BaseCommand):
 			# Query again for all canary failures after reverting so we don't miss any
 			canary_failures = self.get_canary_failures_since(canary_period_start)
 			queue_upload_events_for_reprocessing(canary_failures, use_kinesis=True)
-			raise
+			self.log("Finished queuing canaries for reprocessing.")
+			sys.exit(1)
 
 		# We didn't have any canary failures so it's time to promote PROD.
 		self.log("The canary version is a success! Promoting PROD.")
