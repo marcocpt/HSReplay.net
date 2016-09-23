@@ -242,7 +242,7 @@ if ENV_DEV:
 ##
 # Custom site settings
 
-HSREPLAY_CAMPAIGN = "utm_source=hsreplay.net&utm_campaign=download"
+HSREPLAY_CAMPAIGN = "utm_source=hsreplay.net&utm_medium=referral&utm_campaign=download"
 HDT_DOWNLOAD_URL = "https://hsdecktracker.net/download/?%s" % (HSREPLAY_CAMPAIGN)
 HSTRACKER_DOWNLOAD_URL = "https://hsdecktracker.net/hstracker/download/?%s" % (HSREPLAY_CAMPAIGN)
 INFLUX_ENABLED = True
