@@ -1,6 +1,7 @@
 import json
 import traceback
 import shortuuid
+from hashlib import sha1
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
@@ -30,7 +31,7 @@ class UnsupportedReplay(ProcessingError):
 
 
 def eligible_for_unification(meta):
-	return all([meta.get("game_handle"), meta.get("client_handle")])
+	return all([meta.get("game_handle"), meta.get("client_handle"), meta.get("server_ip")])
 
 
 def get_valid_match_start(match_start, upload_date):
@@ -47,6 +48,16 @@ def get_valid_match_start(match_start, upload_date):
 	return upload_date.astimezone(match_start.tzinfo)
 
 
+def generate_globalgame_digest(game_tree, meta):
+	game_handle = meta["game_handle"]
+	server_address = meta["server_ip"]
+	players = game_tree.game.players
+	lo1, lo2 = players[0].account_lo, players[1].account_lo
+	values = (game_handle, server_address, lo1, lo2)
+	ret = "-".join(str(k) for k in values)
+	return sha1(ret.encode("utf-8")).hexdigest()
+
+
 def find_or_create_global_game(game_tree, meta):
 	game_handle = meta.get("game_handle")
 	game_type = meta.get("game_type", 0)
@@ -58,9 +69,11 @@ def find_or_create_global_game(game_tree, meta):
 	if not ladder_season:
 		ladder_season = guess_ladder_season(end_time)
 
+	eligible = eligible_for_unification(meta)
+
 	global_game = None
 	# Check if we have enough metadata to deduplicate the game
-	if eligible_for_unification(meta):
+	if eligible:
 		matches = GlobalGame.objects.filter(
 			build=meta["build"],
 			game_type=game_type,
@@ -75,6 +88,11 @@ def find_or_create_global_game(game_tree, meta):
 				# clearly something's up. invalidate the upload, look into it manually.
 				raise ValidationError("Found too many global games. Mumble mumble...")
 			return matches.first(), True
+
+	if eligible:
+		digest = generate_globalgame_digest(game_tree, meta)
+	else:
+		digest = None
 
 	global_game = GlobalGame.objects.create(
 		game_handle=game_handle,
@@ -91,6 +109,7 @@ def find_or_create_global_game(game_tree, meta):
 		scenario_id=meta.get("scenario_id"),
 		num_entities=len(game_tree.game.entities),
 		num_turns=game_tree.game.tags.get(GameTag.TURN),
+		digest=digest,
 	)
 
 	return global_game, False
