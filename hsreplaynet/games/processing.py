@@ -96,12 +96,12 @@ def find_or_create_global_game(game_tree, meta):
 	else:
 		defaults.update(common)
 		global_game = GlobalGame.objects.create(digest=None, **defaults)
-		created = False
+		created = True
 
-	return global_game, not created
+	return global_game, created
 
 
-def find_or_create_replay(global_game, meta, unified):
+def find_or_create_replay(global_game, meta, existing_replay):
 	client_handle = meta.get("client_handle") or None
 
 	common = {
@@ -119,14 +119,24 @@ def find_or_create_replay(global_game, meta, unified):
 		"build": meta["build"],
 	}
 
-	if unified and client_handle:
+	if existing_replay:
+		# We are reprocessing an existing replay, so straight up update it.
+		defaults.update(common)
+		for k, v in defaults.items():
+			setattr(existing_replay, k, v)
+		created = False
+		replay = existing_replay
+	elif client_handle:
+		# Get or create a replay object based on our defaults
 		replay, created = GameReplay.objects.get_or_create(defaults=defaults, **common)
 	else:
+		# The client_handle is the minimum we require to update an existing replay.
+		# If we don't have it, we'll instead *always* create a new replay.
 		defaults.update(common)
 		replay = GameReplay.objects.create(**defaults)
 		created = True
 
-	return replay, not created
+	return replay, created
 
 
 def process_upload_event(upload_event):
@@ -327,13 +337,12 @@ def do_process_upload_event(upload_event):
 	parser = parse_upload_event(upload_event, meta)
 	game_tree = validate_parser(parser, meta)
 
-	global_game, unified = find_or_create_global_game(game_tree, meta)
+	# Create/Update the global game object and its players
+	global_game, created = find_or_create_global_game(game_tree, meta)
 	update_global_players(global_game, game_tree, meta)
 
-	if upload_event.game:
-		replay, duplicate = upload_event.game, True
-	else:
-		replay, duplicate = find_or_create_replay(global_game, meta, unified)
+	# Create/Update the replay object itself
+	replay, created = find_or_create_replay(global_game, meta, upload_event.game)
 
 	user = upload_event.token.user if upload_event.token else None
 	if user and not replay.user:
