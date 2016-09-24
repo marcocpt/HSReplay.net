@@ -33,6 +33,10 @@ def is_processing_disabled():
 		Bucket=settings.S3_RAW_LOG_UPLOAD_BUCKET
 	)
 
+	has_notification_configs = "LambdaFunctionConfigurations" in current_configuration
+	if not has_notification_configs:
+		return False
+
 	lambda_notifications = current_configuration["LambdaFunctionConfigurations"]
 	return (len(lambda_notifications) == 0)
 
