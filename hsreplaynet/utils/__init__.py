@@ -43,15 +43,6 @@ def get_client_ip(request):
 	return request.META.get("REMOTE_ADDR")
 
 
-def deduplication_time_range(ts):
-	"""
-	From a datetime, return a tuple of (datetime_min, datetime_max)
-	of the range margin around that datetime allowed for deduplication.
-	"""
-	margin = datetime.timedelta(hours=6)
-	return ts - margin, ts + margin
-
-
 def guess_ladder_season(timestamp):
 	epoch = datetime.datetime(2014, 1, 1, tzinfo=timestamp.tzinfo)
 	epoch_season = 1

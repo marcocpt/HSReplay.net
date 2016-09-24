@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from hearthstone.enums import CardType, GameTag
 from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.utils import deduplication_time_range, guess_ladder_season, log
+from hsreplaynet.utils import guess_ladder_season, log
 from hsreplaynet.utils.instrumentation import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
 from .models import GameReplay, GlobalGame, GlobalGamePlayer
@@ -31,7 +31,7 @@ class UnsupportedReplay(ProcessingError):
 
 
 def eligible_for_unification(meta):
-	return all([meta.get("game_handle"), meta.get("client_handle"), meta.get("server_ip")])
+	return all([meta.get("game_handle"), meta.get("server_ip")])
 
 
 def get_valid_match_start(match_start, upload_date):
@@ -59,92 +59,74 @@ def generate_globalgame_digest(game_tree, meta):
 
 
 def find_or_create_global_game(game_tree, meta):
-	game_handle = meta.get("game_handle")
-	game_type = meta.get("game_type", 0)
-	format = meta.get("format", 0)
-	start_time = game_tree.start_time
 	end_time = game_tree.end_time
 
 	ladder_season = meta.get("ladder_season")
 	if not ladder_season:
 		ladder_season = guess_ladder_season(end_time)
 
-	eligible = eligible_for_unification(meta)
+	common = {
+		"game_handle": meta.get("game_handle"),
+		"server_address": meta.get("server_ip"),
+	}
+	defaults = {
+		"server_port": meta.get("server_port"),
+		"server_version": meta.get("server_version"),
+		"game_type": meta.get("game_type", 0),
+		"format": meta.get("format", 0),
+		"build": meta["build"],
+		"match_start": game_tree.start_time,
+		"match_end": end_time,
+		"brawl_season": meta.get("brawl_season", 0),
+		"ladder_season": ladder_season,
+		"scenario_id": meta.get("scenario_id"),
+		"num_entities": len(game_tree.game.entities),
+		"num_turns": game_tree.game.tags.get(GameTag.TURN),
+	}
 
-	global_game = None
-	# Check if we have enough metadata to deduplicate the game
-	if eligible:
-		matches = GlobalGame.objects.filter(
-			build=meta["build"],
-			game_type=game_type,
-			game_handle=game_handle,
-			server_address=meta.get("server_ip"),
-			server_port=meta.get("server_port"),
-			match_start__range=deduplication_time_range(start_time),
-		)
-
-		if matches:
-			if len(matches) > 1:
-				# clearly something's up. invalidate the upload, look into it manually.
-				raise ValidationError("Found too many global games. Mumble mumble...")
-			return matches.first(), True
-
-	if eligible:
+	if eligible_for_unification(meta):
+		# If the globalgame is eligible for unification, generate a digest
+		# and get_or_create the object
 		digest = generate_globalgame_digest(game_tree, meta)
+		global_game, created = GlobalGame.objects.get_or_create(
+			digest=digest,
+			defaults=defaults,
+			**common
+		)
 	else:
-		digest = None
+		defaults.update(common)
+		global_game = GlobalGame.objects.create(digest=None, **defaults)
+		created = False
 
-	global_game = GlobalGame.objects.create(
-		game_handle=game_handle,
-		server_address=meta.get("server_ip"),
-		server_port=meta.get("server_port"),
-		server_version=meta.get("server_version"),
-		game_type=game_type,
-		format=format,
-		build=meta["build"],
-		match_start=start_time,
-		match_end=end_time,
-		brawl_season=meta.get("brawl_season", 0),  # TODO make it nullable
-		ladder_season=ladder_season,
-		scenario_id=meta.get("scenario_id"),
-		num_entities=len(game_tree.game.entities),
-		num_turns=game_tree.game.tags.get(GameTag.TURN),
-		digest=digest,
-	)
-
-	return global_game, False
+	return global_game, not created
 
 
 def find_or_create_replay(global_game, meta, unified):
 	client_handle = meta.get("client_handle") or None
-	if unified:
-		# Look for duplicate uploads
-		replays = global_game.replays.filter(
-			friendly_player_id=meta["friendly_player"],
-			client_handle=client_handle,
-		)
-		if len(replays) > 1:
-			raise RuntimeError("Found multiple handles %r for %r" % (client_handle, global_game))
-		elif replays:
-			replay = replays.first()
-			log.info("Duplicate upload detected: %r", replay)
-			return replay, True
 
-	replay = GameReplay(
-		# NOTE: shortid generated here so it's available in pre_save for filenames
-		shortid=shortuuid.uuid(),
-		global_game=global_game,
-		friendly_player_id=meta["friendly_player"],
-		client_handle=client_handle,
-		aurora_password=meta.get("aurora_password", ""),
-		spectator_mode=meta.get("spectator_mode", False),
-		spectator_password=meta.get("spectator_password", ""),
-		reconnecting=meta.get("reconnecting", False),
-		resumable=meta.get("resumable"),
-		build=meta["build"],
-	)
+	common = {
+		"global_game": global_game,
+		"client_handle": client_handle,
+		"spectator_mode": meta.get("spectator_mode", False),
+		"reconnecting": meta.get("reconnecting", False),
+		"friendly_player_id": meta["friendly_player"],
+	}
+	defaults = {
+		"shortid": shortuuid.uuid(),
+		"aurora_password": meta.get("aurora_password", ""),
+		"spectator_password": meta.get("spectator_password", ""),
+		"resumable": meta.get("resumable"),
+		"build": meta["build"],
+	}
 
-	return replay, False
+	if unified and client_handle:
+		replay, created = GameReplay.objects.get_or_create(defaults=defaults, **common)
+	else:
+		defaults.update(common)
+		replay = GameReplay.objects.create(**defaults)
+		created = True
+
+	return replay, not created
 
 
 def process_upload_event(upload_event):
@@ -280,61 +262,78 @@ def get_player_names(player):
 		return player.name, ""
 
 
-def create_global_players(global_game, game_tree, meta):
+def update_global_players(global_game, game_tree, meta):
 	# Fill the player metadata and objects
 	for player in game_tree.game.players:
 		player_meta = meta.get("player%i" % (player.player_id), {})
 		decklist = player_meta.get("deck")
 		if not decklist:
 			decklist = [c.card_id for c in player.initial_deck if c.card_id]
-		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
-		final_state = player.tags.get(GameTag.PLAYSTATE, 0)
 
 		name, real_name = get_player_names(player)
 
-		game_player = GlobalGamePlayer(
-			game=global_game,
-			player_id=player.player_id,
-			name=name,
-			real_name=real_name,
-			account_hi=player.account_hi,
-			account_lo=player.account_lo,
-			is_ai=player.is_ai,
-			hero_id=player._hero.card_id,
-			hero_premium=player._hero.tags.get(GameTag.PREMIUM, False),
-			rank=player_meta.get("rank"),
-			legend_rank=player_meta.get("legend_rank"),
-			stars=player_meta.get("stars"),
-			wins=player_meta.get("wins"),
-			losses=player_meta.get("losses"),
-			deck_id=player_meta.get("deck_id") or None,
-			cardback_id=player_meta.get("cardback"),
-			is_first=player.tags.get(GameTag.FIRST_PLAYER, False),
-			final_state=final_state,
-			deck_list=deck,
-		)
+		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
 
-		game_player.save()
+		common = {
+			"game": global_game,
+			"player_id": player.player_id,
+			"account_hi": player.account_hi,
+			"account_lo": player.account_lo,
+		}
+		defaults = {
+			"is_first": player.tags.get(GameTag.FIRST_PLAYER, False),
+			"is_ai": player.is_ai,
+			"hero_id": player._hero.card_id,
+			"hero_premium": player._hero.tags.get(GameTag.PREMIUM, False),
+			"final_state": player.tags.get(GameTag.PLAYSTATE, 0),
+			"deck_list": deck,
+		}
 
+		game_player, created = GlobalGamePlayer.objects.get_or_create(defaults=defaults, **common)
 
-def update_global_players(global_game, game_tree, meta):
-	log.info("Unified upload. Updating players not implemented yet.")
+		update = {
+			"name": name,
+			"real_name": real_name,
+			"rank": player_meta.get("rank"),
+			"legend_rank": player_meta.get("legend_rank"),
+			"stars": player_meta.get("stars"),
+			"wins": player_meta.get("wins"),
+			"losses": player_meta.get("losses"),
+			"deck_id": player_meta.get("deck_id") or None,
+			"cardback_id": player_meta.get("cardback"),
+		}
+
+		# Go through the update dict and update values on the player
+		# This gets us extra data we might not have had when the player was first created
+		updated = False
+		for k, v in update.items():
+			if v and getattr(game_player, k) != v:
+				setattr(game_player, k, v)
+				updated = True
+
+		# Skip updating the deck if we already have a bigger one
+		# TODO: We should make deck_list nullable and only create it here
+		if not created and len(decklist) > game_player.deck_list.size():
+			# XXX: Maybe we should also check friendly_player_id for good measure
+			game_player.deck_list = deck
+			updated = True
+
+		if updated:
+			game_player.save()
 
 
 def do_process_upload_event(upload_event):
 	meta = json.loads(upload_event.metadata)
 	parser = parse_upload_event(upload_event, meta)
 	game_tree = validate_parser(parser, meta)
+
 	global_game, unified = find_or_create_global_game(game_tree, meta)
+	update_global_players(global_game, game_tree, meta)
+
 	if upload_event.game:
 		replay, duplicate = upload_event.game, True
 	else:
 		replay, duplicate = find_or_create_replay(global_game, meta, unified)
-
-	if unified or duplicate:
-		update_global_players(global_game, game_tree, meta)
-	else:
-		create_global_players(global_game, game_tree, meta)
 
 	user = upload_event.token.user if upload_event.token else None
 	if user and not replay.user:
