@@ -38,6 +38,7 @@ class GlobalGame(models.Model):
 	first created the GlobalGame record. If no existing GlobalGame
 	record is found, then one is created.
 	"""
+
 	id = models.BigAutoField(primary_key=True)
 
 	# We believe game_id is not monotonically increasing as it appears
@@ -188,6 +189,9 @@ class GlobalGamePlayer(models.Model):
 	)
 	deck_id = models.IntegerField("Deck ID", null=True, blank=True)
 	cardback_id = models.IntegerField("Cardback ID", null=True, blank=True)
+
+	class Meta:
+		unique_together = ("game", "player_id")
 
 	def __str__(self):
 		return self.name or self.real_name
