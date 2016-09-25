@@ -63,10 +63,6 @@ def build_cloudwatch_url(log_group_name, log_stream_name):
 	)
 
 
-def build_papertrail_url(tracing_id):
-	return "https://papertrailapp.com/systems/Lambda/events?q=%s" % tracing_id
-
-
 def build_admin_url(tracing_id):
 	return "https://dev.hsreplay.net/admin/uploads/uploadevent/?q=%s" % tracing_id
 
@@ -121,7 +117,6 @@ def lambda_handler(
 					"aws_log_stream_name": context.log_stream_name,
 					"aws_function_name": context.function_name,
 					"aws_cloudwatch_url": cloudwatch_url,
-					"papertrail_url": build_papertrail_url(tracing_id),
 					"admin_url": build_admin_url(tracing_id),
 					"tracing_id": tracing_id
 				})
