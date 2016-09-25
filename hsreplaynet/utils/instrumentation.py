@@ -52,18 +52,23 @@ if settings.INFLUX_ENABLED:
 		raise ImproperlyConfigured('settings.INFLUX_DATABASES["hsreplaynet"] setting is not set')
 
 	influx_settings = settings.INFLUX_DATABASES["hsreplaynet"]
-	influx = InfluxDBClient(
-		host=influx_settings["HOST"],
-		port=influx_settings.get("PORT", 8086),
-		username=influx_settings["USER"],
-		password=influx_settings["PASSWORD"],
-		database=influx_settings["NAME"],
-		ssl=influx_settings.get("SSL", False),
-		timeout=2,
-		# Uncomment to switch over to using UDP
-		# use_udp=True,
-		# udp_port=8089
-	)
+
+	kwargs = {
+		"host": influx_settings["HOST"],
+		"port": influx_settings.get("PORT", 8086),
+		"username": influx_settings["USER"],
+		"password": influx_settings["PASSWORD"],
+		"database": influx_settings["NAME"],
+		"ssl": influx_settings.get("SSL", False),
+		"timeout": influx_settings.get("TIMEOUT", 2)
+	}
+
+	udp_port = influx_settings.get("UDP_PORT", 0)
+	if udp_port:
+		kwargs["use_udp"] = True
+		kwargs["udp_port"] = udp_port
+
+	influx = InfluxDBClient(**kwargs)
 else:
 	influx = None
 
