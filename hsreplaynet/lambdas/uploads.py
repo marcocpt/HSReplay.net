@@ -8,8 +8,9 @@ from hsreplaynet.uploads.models import (
 	UploadEvent, RawUpload, UploadEventStatus, _generate_upload_key
 )
 from hsreplaynet.utils import instrumentation
-from hsreplaynet.utils.latch import CountDownLatch
 from hsreplaynet.utils.aws.clients import LAMBDA
+from hsreplaynet.utils.latch import CountDownLatch
+from hsreplaynet.utils.influx import influx_metric
 
 
 @instrumentation.lambda_handler(
@@ -130,7 +131,7 @@ def process_raw_upload(raw_upload, reprocessing=False):
 		# 1) The client sends the PUT request twice
 		# 2) Re-enabling processing queues an upload to the stream and the S3 event fires
 		logger.info("Invocation is an instance of double_put. Exiting Early.")
-		instrumentation.influx_metric("raw_log_double_put", {
+		influx_metric("raw_log_double_put", {
 			"count": 1,
 			"shortid": raw_upload.shortid,
 			"key": raw_upload.log_key
@@ -207,7 +208,7 @@ def process_raw_upload(raw_upload, reprocessing=False):
 		is_unsupported_client = not obj.user_agent
 		if is_unsupported_client:
 			logger.info("No UA provided. Marking as unsupported (client too old).")
-			instrumentation.influx_metric("upload_from_unsupported_client", {
+			influx_metric("upload_from_unsupported_client", {
 				"count": 1,
 				"shortid": raw_upload.shortid,
 				"api_key": obj.api_key.full_name

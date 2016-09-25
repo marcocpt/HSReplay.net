@@ -1,14 +1,12 @@
 import os
-import time
 from datetime import datetime, timedelta
-from contextlib import contextmanager
 from functools import wraps
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.utils.timezone import now
 from raven.contrib.django.raven_compat.models import client as sentry
 from hsreplaynet.uploads.models import RawUpload
 from . import log
+from .influx import influx_timer
 
 
 def error_handler(e):
@@ -42,35 +40,6 @@ def get_tracing_id(event):
 		return kinesis_event["partitionKey"]
 
 	return UNKNOWN_ID
-
-
-if settings.INFLUX_ENABLED:
-	from influxdb import InfluxDBClient
-
-	dbs = getattr(settings, "INFLUX_DATABASES", None)
-	if not dbs or "hsreplaynet" not in dbs:
-		raise ImproperlyConfigured('settings.INFLUX_DATABASES["hsreplaynet"] setting is not set')
-
-	influx_settings = settings.INFLUX_DATABASES["hsreplaynet"]
-
-	kwargs = {
-		"host": influx_settings["HOST"],
-		"port": influx_settings.get("PORT", 8086),
-		"username": influx_settings["USER"],
-		"password": influx_settings["PASSWORD"],
-		"database": influx_settings["NAME"],
-		"ssl": influx_settings.get("SSL", False),
-		"timeout": influx_settings.get("TIMEOUT", 2)
-	}
-
-	udp_port = influx_settings.get("UDP_PORT", 0)
-	if udp_port:
-		kwargs["use_udp"] = True
-		kwargs["udp_port"] = udp_port
-
-	influx = InfluxDBClient(**kwargs)
-else:
-	influx = None
 
 
 _lambda_descriptors = []
@@ -125,7 +94,6 @@ def lambda_handler(
 	"""
 
 	def inner_lambda_handler(func):
-
 		global _lambda_descriptors
 
 		_lambda_descriptors.append({
@@ -178,62 +146,3 @@ def lambda_handler(
 		return wrapper
 
 	return inner_lambda_handler
-
-
-def influx_write_payload(payload):
-	if influx is None:
-		return
-
-	try:
-		result = influx.write_points(payload)
-		if not result:
-			log.warn("Influx Write Failure.")
-	except Exception as e:
-		# Can happen if Influx if not available for example
-		error_handler(e)
-
-
-def influx_metric(measure, fields, timestamp=None, **kwargs):
-	if timestamp is None:
-		timestamp = now()
-
-	payload = {
-		"measurement": measure,
-		"tags": kwargs,
-		"fields": fields,
-		"time": timestamp.isoformat()
-	}
-	influx_write_payload([payload])
-
-
-@contextmanager
-def influx_timer(measure, timestamp=None, **kwargs):
-	"""
-	Reports the duration of the context manager.
-	Additional kwargs are passed to InfluxDB as tags.
-	"""
-	start_time = time.clock()
-	exception_raised = False
-	if timestamp is None:
-		timestamp = now()
-	try:
-		yield
-	except Exception:
-		exception_raised = True
-		raise
-	finally:
-		stop_time = time.clock()
-		duration = (stop_time - start_time) * 10000
-
-		tags = kwargs
-		tags["exception_thrown"] = exception_raised
-		payload = {
-			"fields": {
-				"value": duration,
-			},
-			"measurement": measure,
-			"tags": tags,
-			"time": timestamp.isoformat(),
-		}
-
-		influx_write_payload([payload])

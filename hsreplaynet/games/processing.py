@@ -9,7 +9,7 @@ from hearthstone.enums import CardType, GameTag
 from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import guess_ladder_season, log
-from hsreplaynet.utils.instrumentation import influx_metric
+from hsreplaynet.utils.influx import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
 from .models import GameReplay, GlobalGame, GlobalGamePlayer
 
