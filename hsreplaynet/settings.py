@@ -197,6 +197,17 @@ SOCIALACCOUNT_PROVIDERS = {"battlenet": {"SCOPE": []}}
 
 
 ##
+# Cache (django-redis-cache)
+# https://django-redis-cache.readthedocs.io/en/latest/intro_quick_start.html
+CACHES = {
+	"default": {
+		"BACKEND": "redis_cache.RedisCache",
+		"LOCATION": "localhost:6379",
+	}
+}
+
+
+##
 # RQ
 # https://github.com/ui/django-rq
 
