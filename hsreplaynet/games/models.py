@@ -87,7 +87,7 @@ class GlobalGame(models.Model):
 	num_entities = models.IntegerField(null=True, blank=True)
 
 	digest = models.CharField(
-		max_length=40, null=True, db_index=True,
+		max_length=40, unique=True, null=True, db_index=True,
 		help_text="SHA1 of str(game_handle), str(server_address), str(lo1), str(lo2)"
 	)
 
