@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.timezone import now
-from raven.contrib.django.raven_compat.models import client as sentry
 from . import log
 
 
@@ -44,10 +43,10 @@ def influx_write_payload(payload):
 	try:
 		result = influx.write_points(payload)
 		if not result:
-			log.warn("Influx Write Failure.")
+			log.warn("Influx write failure")
 	except Exception as e:
-		# Can happen if Influx if not available for example
-		sentry.captureException()
+		log.exception("Exception while writing to influx.")
+		result = None
 
 
 def influx_metric(measure, fields, timestamp=None, **kwargs):
