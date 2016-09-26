@@ -24,16 +24,9 @@ class AuthTokenAdmin(admin.ModelAdmin):
 	inlines = (UploadEventInline, )
 
 
-class AuthTokenInline(admin.TabularInline):
-	model = APIKey.tokens.through
-	raw_id_fields = ("authtoken", )
-	extra = 3
-
-
 @admin.register(APIKey)
 class APIKeyAdmin(admin.ModelAdmin):
 	list_display = ("__str__", "email", "website", "api_key", "enabled")
 	search_fields = ("full_name", "email", "website")
 	list_filter = ("enabled", )
-	inlines = (AuthTokenInline, )
 	exclude = ("tokens", )

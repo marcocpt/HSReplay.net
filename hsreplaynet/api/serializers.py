@@ -48,10 +48,9 @@ class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
 		fields = ("key", "user", "test_data")
 
 	def create(self, data):
-		ret = super(AuthTokenSerializer, self).create(data)
 		api_key = self.context["request"].api_key
-		api_key.tokens.add(ret)
-		ret.creation_apikey = api_key
+		data["creation_apikey"] = api_key
+		ret = super(AuthTokenSerializer, self).create(data)
 		# Create a "fake" user to correspond to the AuthToken
 		ret.create_fake_user(save=False)
 		ret.save()

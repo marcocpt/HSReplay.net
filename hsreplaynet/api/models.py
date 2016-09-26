@@ -11,7 +11,7 @@ class AuthToken(models.Model):
 		related_name="auth_tokens", null=True, blank=True
 	)
 	created = models.DateTimeField("Created", auto_now_add=True)
-	creation_apikey = models.ForeignKey("api.APIKey", null=True)
+	creation_apikey = models.ForeignKey("api.APIKey", null=True, related_name="tokens")
 
 	test_data = models.BooleanField(default=False)
 
@@ -55,8 +55,6 @@ class APIKey(models.Model):
 	website = models.URLField(blank=True)
 	api_key = models.UUIDField(blank=True)
 	enabled = models.BooleanField(default=True)
-
-	tokens = models.ManyToManyField(AuthToken)
 
 	def __str__(self):
 		return self.full_name
