@@ -30,7 +30,10 @@ class MockRawUpload(object):
 		})[0]
 
 		auth_token_str = self._descriptor["gateway_headers"]["Authorization"].split()[1]
-		self._auth_token = AuthToken.objects.get_or_create(key=auth_token_str)[0]
+		self._auth_token = AuthToken.objects.get_or_create(
+			key=auth_token_str,
+			creation_apikey=self._api_key
+		)[0]
 		self._api_key.tokens.add(self._auth_token)
 
 		timestamp_str = self._descriptor["upload_metadata"]["match_start"][0:16]
