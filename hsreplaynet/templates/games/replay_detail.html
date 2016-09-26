@@ -48,7 +48,7 @@
 		</div>
 		<div class="col-lg-2 col-md-3 col-sm-12 col-xs-12">
 			{% with replay.global_game as gg %}
-			<div id="replay-infobox">
+			<div id="replay-infobox" data-shortid="{{ replay.shortid }}">
 				{% if gg.is_ranked %}
 					<h1>
 						Ranked
@@ -75,8 +75,16 @@
 					<h1>Ranked</h1>
 				{% endif %}
 
-				<h2>Share <span id="replay-visibility">{{ replay.visibility.name }}{% if user.is_staff %} ({{ replay.views }} views){% endif %}</span></h2>
+				<h2>Share{% if user.is_staff %}<strong class="pull-right">{{ replay.views }} views</strong>{% endif %}</h2>
 				<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
+
+				{% if user == replay.user %}
+					<h2>Visibility</h2>
+					<ul class="infobox-settings">
+						<li id="replay-visibility" data-selected="{{ replay.visibility }}" class="clearfix"></li>
+						<li id="replay-delete" data-redirect="{% url 'my_replays' %}"></li>
+					</ul>
+				{% endif %}
 
 				<h2>Players</h2>
 				<ul id="infobox-players">

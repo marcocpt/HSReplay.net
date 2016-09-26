@@ -6,8 +6,19 @@ import JoustEmbedder from "./JoustEmbedder";
 import MetricsReporter from "./metrics/MetricsReporter";
 import BatchingMiddleware from "./metrics/BatchingMiddleware";
 import InfluxMetricsBackend from "./metrics/InfluxMetricsBackend";
+import jQueryCSRF from "./jQueryCSRF";
+import VisibilityDropdown from "./components/VisibilityDropdown";
+import {Visibility} from "./interfaces";
+import DeleteReplayButton from "./components/DeleteReplayButton";
 
 
+// add Django CSRF token to jQuery.ajax
+jQueryCSRF.init();
+
+// shortid
+let shortid = document.getElementById("replay-infobox").getAttribute("data-shortid");
+
+// Joust
 let embedder = new JoustEmbedder();
 
 var container = document.getElementById("joust-container");
@@ -73,3 +84,23 @@ renderShareDialog();
 embedder.on("turn", renderShareDialog);
 embedder.on("reveal", renderShareDialog);
 embedder.on("swap", renderShareDialog);
+
+// privacy dropodown
+let visibilityTarget = document.getElementById("replay-visibility");
+if(visibilityTarget) {
+	let status = +visibilityTarget.getAttribute("data-selected") as Visibility;
+	ReactDOM.render(
+		<VisibilityDropdown initial={status} shortid={shortid} />,
+		visibilityTarget
+	);
+}
+
+// delete link
+let deleteTarget = document.getElementById("replay-delete");
+if(deleteTarget) {
+	let redirect = deleteTarget.getAttribute("data-redirect");
+	ReactDOM.render(
+		<DeleteReplayButton shortid={shortid} done={() => window.location.href = redirect} />,
+		deleteTarget
+	);
+}
