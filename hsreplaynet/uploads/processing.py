@@ -10,7 +10,7 @@ from hsreplaynet.utils import aws
 logger = logging.getLogger(__file__)
 
 
-def queue_raw_uploads_for_processing(attempt_reprocessing):
+def queue_raw_uploads_for_processing(attempt_reprocessing, limit=None):
 	"""
 	Queue all raw logs to attempt processing them into UploadEvents.
 
@@ -27,18 +27,22 @@ def queue_raw_uploads_for_processing(attempt_reprocessing):
 	logger.info("Starting - Queue all raw uploads for processing")
 
 	publisher_func = aws.publish_raw_upload_to_processing_stream
-	iterable = generate_raw_uploads_for_processing(attempt_reprocessing)
+	iterable = generate_raw_uploads_for_processing(attempt_reprocessing, limit)
 	stream_name = settings.KINESIS_UPLOAD_PROCESSING_STREAM_NAME
 	fill_stream_from_iterable(stream_name, iterable, publisher_func)
 
 
-def generate_raw_uploads_for_processing(attempt_reprocessing):
+def generate_raw_uploads_for_processing(attempt_reprocessing, limit=None):
+	count = 0
 	for object in aws.list_all_objects_in(settings.S3_RAW_LOG_UPLOAD_BUCKET, prefix="raw"):
 		key = object["Key"]
 		if key.endswith(".log"):  # Don't queue the descriptor files, just the .logs
 			raw_upload = RawUpload(settings.S3_RAW_LOG_UPLOAD_BUCKET, key)
 			raw_upload.attempt_reprocessing = attempt_reprocessing
 			yield raw_upload
+			count += 1
+			if limit and limit >= count:
+				return
 
 
 def current_raw_upload_bucket_size():
