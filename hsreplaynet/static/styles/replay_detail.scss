@@ -64,11 +64,6 @@
 		border-bottom: none;
 	}
 
-	#replay-visibility {
-		font-weight: bold;
-		float: right;
-	}
-
 	#share-game-dialog {
 		padding: 1em 0.5em 0;
 	}
@@ -81,5 +76,10 @@
 		color: $lighterblue;
 		font-weight: bold;
 		float: right;
+	}
+
+	input, select {
+		color: black;
+		font-weight: normal;
 	}
 }
