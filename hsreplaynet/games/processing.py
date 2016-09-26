@@ -178,6 +178,9 @@ def process_upload_event(upload_event):
 		upload_event.status = UploadEventStatus.SUCCESS
 		upload_event.save()
 
+		if not upload_event.test_data:
+			capture_class_distribution_stats(replay)
+
 	return replay
 
 
