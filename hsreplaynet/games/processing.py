@@ -65,11 +65,9 @@ def find_or_create_global_game(game_tree, meta):
 	if not ladder_season:
 		ladder_season = guess_ladder_season(end_time)
 
-	common = {
+	defaults = {
 		"game_handle": meta.get("game_handle"),
 		"server_address": meta.get("server_ip"),
-	}
-	defaults = {
 		"server_port": meta.get("server_port"),
 		"server_version": meta.get("server_version"),
 		"game_type": meta.get("game_type", 0),
@@ -89,13 +87,8 @@ def find_or_create_global_game(game_tree, meta):
 		# and get_or_create the object
 		digest = generate_globalgame_digest(game_tree, meta)
 		log.info("GlobalGame digest is %r" % (digest))
-		global_game, created = GlobalGame.objects.get_or_create(
-			digest=digest,
-			defaults=defaults,
-			**common
-		)
+		global_game, created = GlobalGame.objects.get_or_create(digest=digest, defaults=defaults)
 	else:
-		defaults.update(common)
 		global_game = GlobalGame.objects.create(digest=None, **defaults)
 		created = True
 
