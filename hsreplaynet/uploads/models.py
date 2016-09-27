@@ -8,7 +8,7 @@ from django.db import models
 from django.dispatch.dispatcher import receiver
 from django.urls import reverse
 from hsreplaynet.utils.fields import IntEnumField, ShortUUIDField
-from hsreplaynet.utils import aws
+from hsreplaynet.utils import aws, log
 
 
 class UploadEventStatus(IntEnum):
@@ -104,20 +104,14 @@ class RawUpload(object):
 		self._upload_event_descriptor_key = descriptor
 
 		if key != self.log_key:
-			log_copy_source = "%s/%s" % (self.bucket, self.log_key)
-			aws.S3.copy_object(
-				Bucket=bucket,
-				Key=key,
-				CopySource=log_copy_source,
-			)
+			copy_source = "%s/%s" % (self.bucket, self.log_key)
+			log.info("%r: Copying power.log %r to %r:%r" % (self, copy_source, bucket, key))
+			aws.S3.copy_object(Bucket=bucket, Key=key, CopySource=copy_source)
 
 		if descriptor != self.descriptor_key:
-			descriptor_copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
-			aws.S3.copy_object(
-				Bucket=bucket,
-				Key=descriptor,
-				CopySource=descriptor_copy_source,
-			)
+			copy_source = "%s/%s" % (self.bucket, self.descriptor_key)
+			log.info("%r: Copying descriptor %r to %r:%r" % (self, copy_source, bucket, descriptor))
+			aws.S3.copy_object(Bucket=bucket, Key=descriptor, CopySource=copy_source)
 
 		self._upload_event_location_populated = True
 
@@ -125,16 +119,9 @@ class RawUpload(object):
 		# We only perform delete on NEW raw uploads because when we get to this point we have
 		# a copy of the log and descriptor attached to the UploadEvent
 		if self.state == RawUploadState.NEW:
-
-			aws.S3.delete_object(
-				Bucket=self.bucket,
-				Key=self.log_key
-			)
-
-			aws.S3.delete_object(
-				Bucket=self.bucket,
-				Key=self.descriptor_key
-			)
+			log.info("%r: Deleting files from S3")
+			aws.S3.delete_object(Bucket=self.bucket, Key=self.log_key)
+			aws.S3.delete_object(Bucket=self.bucket, Key=self.descriptor_key)
 
 	@staticmethod
 	def from_s3_event(event):

@@ -88,6 +88,7 @@ def find_or_create_global_game(game_tree, meta):
 		# If the globalgame is eligible for unification, generate a digest
 		# and get_or_create the object
 		digest = generate_globalgame_digest(game_tree, meta)
+		log.info("GlobalGame digest is %r" % (digest))
 		global_game, created = GlobalGame.objects.get_or_create(
 			digest=digest,
 			defaults=defaults,
@@ -212,17 +213,19 @@ def parse_upload_event(upload_event, meta):
 	if match_start != orig_match_start:
 		upload_event.tainted = True
 		upload_event.save()
+
 	upload_event.file.open(mode="rb")
 	log_bytes = upload_event.file.read()
-	influx_metric("raw_power_log_upload_num_bytes", {"size": len(log_bytes)})
 	if not log_bytes:
 		raise ValidationError("The uploaded log file is empty.")
+	influx_metric("raw_power_log_upload_num_bytes", {"size": len(log_bytes)})
 	log = StringIO(log_bytes.decode("utf-8"))
 	upload_event.file.close()
 
 	try:
 		parser = parse_log(log, processor="GameState", date=match_start)
 	except Exception as e:
+		log.exception("Got exception %r while parsing log", e)
 		raise ParsingError(str(e))  # from e
 
 	return parser
@@ -240,6 +243,7 @@ def validate_parser(parser, meta):
 	# If a player's name is None, this is an unsupported replay.
 	for player in game_tree.game.players:
 		if player.name is None:
+			log.error("Cannot find player %i name. Replay not supported.", player.player_id)
 			raise GameTooShort("The game was too short to parse correctly")
 
 		if not player.heroes:
@@ -282,7 +286,8 @@ def update_global_players(global_game, game_tree, meta):
 
 		name, real_name = get_player_names(player)
 
-		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
+		deck, created = Deck.objects.get_or_create_from_id_list(decklist)
+		log.debug("Prepared deck %i (created=%r)", deck.id, created)
 
 		common = {
 			"game": global_game,
@@ -300,6 +305,7 @@ def update_global_players(global_game, game_tree, meta):
 		}
 
 		game_player, created = GlobalGamePlayer.objects.get_or_create(defaults=defaults, **common)
+		log.debug("Prepared player %r (%i) (created=%r)", game_player, game_player.id, created)
 
 		update = {
 			"name": name,
@@ -329,6 +335,7 @@ def update_global_players(global_game, game_tree, meta):
 			updated = True
 
 		if updated:
+			log.debug("Saving updated player to the database.")
 			game_player.save()
 
 
@@ -339,10 +346,12 @@ def do_process_upload_event(upload_event):
 
 	# Create/Update the global game object and its players
 	global_game, created = find_or_create_global_game(game_tree, meta)
+	log.debug("Prepared GlobalGame(id=%r), created=%r", global_game.id, created)
 	update_global_players(global_game, game_tree, meta)
 
 	# Create/Update the replay object itself
 	replay, created = find_or_create_replay(global_game, meta, upload_event.game)
+	log.debug("Prepared GameReplay(id=%r), created=%r", replay.id, created)
 
 	user = upload_event.token.user if upload_event.token else None
 	if user and not replay.user:
@@ -353,6 +362,7 @@ def do_process_upload_event(upload_event):
 
 	# Create and save hsreplay.xml file
 	file = replay.save_hsreplay_xml(parser, meta)
+	log.debug("Saved HSReplay XML file")
 	influx_metric("replay_xml_num_bytes", {"size": file.size})
 	replay.update_final_states()
 	replay.save()

@@ -148,14 +148,8 @@ def process_raw_upload(raw_upload, reprocessing=False):
 	)
 	new_bucket = settings.AWS_STORAGE_BUCKET_NAME
 
-	logger.info("Moving power.log to: %s/%s", new_bucket, new_log_key)
-	logger.info("Moving descriptor.json to: %s/%s", new_bucket, new_descriptor_key)
-
-	raw_upload.prepare_upload_event_log_location(
-		new_bucket,
-		new_log_key,
-		new_descriptor_key
-	)
+	# Move power.log/descriptor.json to the other bucket if it's needed
+	raw_upload.prepare_upload_event_log_location(new_bucket, new_log_key, new_descriptor_key)
 
 	upload_metadata = descriptor["upload_metadata"]
 	gateway_headers = descriptor["gateway_headers"]
