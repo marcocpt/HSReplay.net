@@ -155,6 +155,7 @@ class GameReplaySerializer(serializers.ModelSerializer):
 			"shortid", "user", "global_game", "spectator_mode", "friendly_player_id",
 			"replay_xml", "build", "won", "disconnected", "reconnecting", "visibility"
 		)
+		read_only_fields = ("user", "global_game", "replay_xml")
 		lookup_field = "shortid"
 
 
