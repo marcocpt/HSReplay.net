@@ -1,6 +1,6 @@
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, RetrieveModelMixin
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveDestroyAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -54,7 +54,7 @@ class UploadEventViewSet(WriteOnlyOnceViewSet):
 	lookup_field = "shortid"
 
 
-class GameReplayDetail(RetrieveDestroyAPIView):
+class GameReplayDetail(RetrieveUpdateDestroyAPIView):
 	queryset = GameReplay.objects.live()
 	serializer_class = serializers.GameReplaySerializer
 	lookup_field = "shortid"
