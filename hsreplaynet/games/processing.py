@@ -285,10 +285,10 @@ def update_global_players(global_game, game_tree, meta):
 		common = {
 			"game": global_game,
 			"player_id": player.player_id,
-			"account_hi": player.account_hi,
-			"account_lo": player.account_lo,
 		}
 		defaults = {
+			"account_hi": player.account_hi,
+			"account_lo": player.account_lo,
 			"is_first": player.tags.get(GameTag.FIRST_PLAYER, False),
 			"is_ai": player.is_ai,
 			"hero_id": player._hero.card_id,
