@@ -13,7 +13,6 @@ interface DeleteReplayButtonState {
 }
 
 export default class DeleteReplayButton extends React.Component<DeleteReplayButtonProps, DeleteReplayButtonState> {
-
 	constructor(props: DeleteReplayButtonProps, context: any) {
 		super(props, context);
 		this.state = {

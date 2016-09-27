@@ -78,14 +78,6 @@
 				<h2>Share{% if user.is_staff %}<strong class="pull-right">{{ replay.views }} views</strong>{% endif %}</h2>
 				<div id="share-game-dialog" data-url="{{ canonical_url }}"></div>
 
-				{% if user == replay.user %}
-					<h2>Visibility</h2>
-					<ul class="infobox-settings">
-						<li id="replay-visibility" data-selected="{{ replay.visibility }}" class="clearfix"></li>
-						<li id="replay-delete" data-redirect="{% url 'my_replays' %}"></li>
-					</ul>
-				{% endif %}
-
 				<h2>Players</h2>
 				<ul id="infobox-players">
 					{% for player in players %}
@@ -108,9 +100,6 @@
 					{% if replay.spectator_mode %}
 						<li>Spectator mode <span class="infobox-value">POV: {{ replay.friendly_player.name }}</span></li>
 					{% endif %}
-					{% if user.is_staff %}
-						<li>View in Admin<span class="infobox-value"><a href="{% url 'admin:games_gamereplay_change' replay.id %}">Link</a></span></li>
-					{% endif %}
 				</ul>
 
 				{% comment %}
@@ -126,8 +115,18 @@
 				</ul>
 				{% endcomment %}
 
-				<!-- TODO: move this to Joust itself, in the extra menu -->
-				<h2><a href="{{ replay.replay_xml.url }}" download="{{ replay.shortid }}.hsreplay">Download XML</a></h2>
+				<h2>Controls</h2>
+				<ul class="infobox-settings">
+					{% if user == replay.user %}
+						<li>Visibility <span class="infobox-value" id="replay-visibility" data-selected="{{ replay.visibility.value }}"></span></li>
+						<li>Delete <span class="infobox-value" id="replay-delete" data-redirect="{% url 'my_replays' %}"></span></li>
+					{% endif %}
+					{% if user.is_staff %}
+						<li>View in Admin<span class="infobox-value"><a href="{% url 'admin:games_gamereplay_change' replay.id %}">Link</a></span></li>
+					{% endif %}
+					<!-- TODO: move this to Joust itself, in the extra menu -->
+					<li><a href="{{ replay.replay_xml.url }}" download="{{ replay.shortid }}.hsreplay.xml">Download XML</a></li>
+				</ul>
 			</div>
 			{% endwith %}
 		</div>
