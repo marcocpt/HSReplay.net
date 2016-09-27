@@ -9,7 +9,6 @@ export default class jQueryCSRF {
 	 */
 	public static init(): void {
 		let token = this.getCookie("csrftoken");
-		console.debug(token);
 		$.ajaxSetup({
 			beforeSend: function (xhr, settings) {
 				if (!(/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type)) && !this.crossDomain) {
