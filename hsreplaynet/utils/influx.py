@@ -63,7 +63,7 @@ def influx_metric(measure, fields, timestamp=None, **kwargs):
 
 
 @contextmanager
-def influx_timer(measure, timestamp=None, **kwargs):
+def influx_timer(measure, timestamp=None, cloudwatch_url=None, **kwargs):
 	"""
 	Reports the duration of the context manager.
 	Additional kwargs are passed to InfluxDB as tags.
@@ -92,6 +92,8 @@ def influx_timer(measure, timestamp=None, **kwargs):
 			"time": timestamp.isoformat(),
 		}
 
+		if exception_raised and cloudwatch_url:
+			payload["fields"]["cloudwatch"] = cloudwatch_url
 		influx_write_payload([payload])
 
 

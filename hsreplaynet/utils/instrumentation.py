@@ -123,7 +123,11 @@ def lambda_handler(
 
 			try:
 				measurement = "%s_duration_ms" % (func.__name__)
-				with influx_timer(measurement, timestamp=now()):
+				with influx_timer(
+					measurement,
+					timestamp=now(),
+					cloudwatch_url=cloudwatch_url
+				):
 					return func(event, context)
 			except Exception as e:
 				log.exception("Got an exception: %r", e)
