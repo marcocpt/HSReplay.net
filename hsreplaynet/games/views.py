@@ -16,8 +16,8 @@ class ReplayDetailView(View):
 		replay = get_object_or_404(GameReplay.objects.live(), shortid=id)
 
 		# TODO: IP caching in redis
-		# replay.views += 1
-		# replay.save()
+		replay.views += 1
+		replay.save()
 
 		players = replay.global_game.players.all()
 		# players = players.prefetch_related("deck_list", "deck_list__includes")
