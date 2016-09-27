@@ -212,11 +212,11 @@ def parse_upload_event(upload_event, meta):
 	if not log_bytes:
 		raise ValidationError("The uploaded log file is empty.")
 	influx_metric("raw_power_log_upload_num_bytes", {"size": len(log_bytes)})
-	log = StringIO(log_bytes.decode("utf-8"))
+	powerlog = StringIO(log_bytes.decode("utf-8"))
 	upload_event.file.close()
 
 	try:
-		parser = parse_log(log, processor="GameState", date=match_start)
+		parser = parse_log(powerlog, processor="GameState", date=match_start)
 	except Exception as e:
 		log.exception("Got exception %r while parsing log", e)
 		raise ParsingError(str(e))  # from e
