@@ -119,7 +119,7 @@ class RawUpload(object):
 		# We only perform delete on NEW raw uploads because when we get to this point we have
 		# a copy of the log and descriptor attached to the UploadEvent
 		if self.state == RawUploadState.NEW:
-			log.info("%r: Deleting files from S3")
+			log.info("Deleting files from S3")
 			aws.S3.delete_object(Bucket=self.bucket, Key=self.log_key)
 			aws.S3.delete_object(Bucket=self.bucket, Key=self.descriptor_key)
 
