@@ -2,7 +2,7 @@ from enum import IntEnum
 import re
 import json
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models
 from django.dispatch.dispatcher import receiver
@@ -267,9 +267,26 @@ class UploadEvent(models.Model):
 	file = models.FileField(upload_to=_generate_upload_path, null=True)
 	descriptor = models.FileField(upload_to=_generate_descriptor_path, blank=True, null=True)
 	user_agent = models.CharField(max_length=100, blank=True)
+	log_stream_name = models.CharField(max_length=64, blank=True)
+	log_group_name = models.CharField(max_length=64, blank=True)
+	updated = models.DateTimeField(auto_now=True)
 
 	def __str__(self):
 		return self.shortid
+
+	@property
+	def cloudwatch_url(self):
+		baseurl = "https://console.aws.amazon.com/cloudwatch/home"
+		tpl = "?region=%s#logEventViewer:group=%s;stream=%s;start=%s;end=%s;tz=UTC"
+		start = self.updated
+		end = start + timedelta(days=1)
+		return baseurl + tpl % (
+			settings.AWS_DEFAULT_REGION,
+			self.log_group_name,
+			self.log_stream_name,
+			start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+			end.strftime("%Y-%m-%dT%H:%M:%SZ")
+		)
 
 	@property
 	def is_processing(self):

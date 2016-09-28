@@ -80,6 +80,9 @@ def process_single_replay_upload_stream_handler(event, context):
 	logger = logging.getLogger(
 		"hsreplaynet.lambdas.process_single_replay_upload_stream_handler"
 	)
+	log_group_name = context.log_group_name
+	log_stream_name = context.log_stream_name
+
 	kinesis_event = event["Records"][0]["kinesis"]
 	raw_upload = RawUpload.from_kinesis_event(kinesis_event)
 
@@ -89,7 +92,7 @@ def process_single_replay_upload_stream_handler(event, context):
 	logger.info(
 		"Processing a Kinesis RawUpload: %r (reprocessing=%r)", raw_upload, reprocessing
 	)
-	process_raw_upload(raw_upload, reprocessing)
+	process_raw_upload(raw_upload, reprocessing, log_group_name, log_stream_name)
 
 
 @instrumentation.lambda_handler(
@@ -101,6 +104,8 @@ def process_s3_create_handler(event, context):
 	A handler that is triggered whenever a "..power.log" suffixed object is created in S3.
 	"""
 	logger = logging.getLogger("hsreplaynet.lambdas.process_s3_create_handler")
+	log_group_name = context.log_group_name
+	log_stream_name = context.log_stream_name
 
 	s3_event = event["Records"][0]["s3"]
 	raw_upload = RawUpload.from_s3_event(s3_event)
@@ -111,10 +116,15 @@ def process_s3_create_handler(event, context):
 	logger.info(
 		"Processing an S3 RawUpload: %r (reprocessing=%r)", raw_upload, reprocessing
 	)
-	process_raw_upload(raw_upload, reprocessing)
+	process_raw_upload(raw_upload, reprocessing, log_group_name, log_stream_name)
 
 
-def process_raw_upload(raw_upload, reprocessing=False):
+def process_raw_upload(
+	raw_upload,
+	reprocessing=False,
+	log_group_name=None,
+	log_stream_name=None
+):
 	"""
 	Generic processing logic for raw log files.
 	"""
@@ -138,6 +148,9 @@ def process_raw_upload(raw_upload, reprocessing=False):
 		})
 
 		return
+
+	obj.log_stream_name = log_group_name
+	obj.log_stream_name = log_stream_name
 
 	descriptor = raw_upload.descriptor
 
