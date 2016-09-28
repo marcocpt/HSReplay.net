@@ -238,7 +238,14 @@ class GameReplay(models.Model):
 	"""
 	class Meta:
 		ordering = ("global_game", )
-		unique_together = ("upload_token", "global_game")
+		# Replays are unique to a perspective on the game (global_game):
+		# - client_handle: the *same* client cant be used for multiple replays
+		# - reconnecting: We do not currently unify games where the player reconnects
+		# - friendly_player_id: Unique across a client_handle and a spectator_mode
+		unique_together = (
+			"global_game", "client_handle", "friendly_player_id",
+			"spectator_mode", "reconnecting"
+		)
 
 	id = models.BigAutoField(primary_key=True)
 	shortid = ShortUUIDField("Short ID")
