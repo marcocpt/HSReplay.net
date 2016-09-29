@@ -5,3 +5,4 @@
 q
 flake8==3.0.4
 pytest-django==3.0.0
+pytest-mock==1.2
