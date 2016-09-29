@@ -18,7 +18,7 @@ class UploadEventAdmin(admin.ModelAdmin):
 	)
 	list_filter = ("status", "tainted", "canary")
 	raw_id_fields = ("token", "game")
-	readonly_fields = ("created", )
+	readonly_fields = ("created", "cloudwatch_url")
 	search_fields = ("shortid", )
 
 	def get_queryset(self, request):
