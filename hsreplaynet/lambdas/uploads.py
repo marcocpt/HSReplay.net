@@ -144,7 +144,7 @@ def process_raw_upload(raw_upload, reprocess=False, log_group_name="", log_strea
 
 		return
 
-	obj.log_stream_name = log_group_name
+	obj.log_group_name = log_group_name
 	obj.log_stream_name = log_stream_name
 
 	descriptor = raw_upload.descriptor
