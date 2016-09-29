@@ -31,6 +31,8 @@
 		<meta property="og:image:height" content="400" />
 		<meta name="twitter:card" content="summary" />
 		<meta name="twitter:site" content="@{{ twitter_handle }}" />
+		{% setting 'HSREPLAY_FACEBOOK_APP_ID' as facebook_app_id %}
+		<meta property="fb:app_id" content="{{ facebook_app_id }}" />
 	{% endblock %}
 
 	<meta name="format-detection" content="telephone=no">

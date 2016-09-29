@@ -281,6 +281,7 @@ HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/c
 HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 
 HSREPLAY_TWITTER_HANDLE="HSReplayNet"
+HSREPLAY_FACEBOOK_APP_ID="1278788528798942"
 
 # This setting controls whether utils.aws.clients are initialized.
 # Add `CONNECT_TO_AWS = True` in local_settings.py if you need to use those locally.
