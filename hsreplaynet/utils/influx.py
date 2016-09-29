@@ -1,4 +1,5 @@
 """Utils for interacting with Influx"""
+import resource
 import time
 from contextlib import contextmanager
 from django.conf import settings
@@ -80,12 +81,14 @@ def influx_timer(measure, timestamp=None, cloudwatch_url=None, **kwargs):
 	finally:
 		stop_time = time.clock()
 		duration = (stop_time - start_time) * 10000
+		mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
 		tags = kwargs
 		tags["exception_thrown"] = exception_raised
 		payload = {
 			"fields": {
 				"value": duration,
+				"mem": mem,
 			},
 			"measurement": measure,
 			"tags": tags,
