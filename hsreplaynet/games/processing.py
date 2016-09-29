@@ -5,13 +5,16 @@ from hashlib import sha1
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from hearthstone.enums import CardType, GameTag
+from hsreplay.document import HSReplayDocument
 from hsreplay.dumper import parse_log
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import guess_ladder_season, log
 from hsreplaynet.utils.influx import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
-from .models import GameReplay, GlobalGame, GlobalGamePlayer
+from .models import GameReplay, GlobalGame, GlobalGamePlayer, _generate_upload_path
 
 
 class ProcessingError(Exception):
@@ -46,6 +49,38 @@ def get_valid_match_start(match_start, upload_date):
 
 	log.info("match_start=%r>upload_date=%r - rejecting match_start", match_start, upload_date)
 	return upload_date.astimezone(match_start.tzinfo)
+
+
+def create_hsreplay_document(parser, meta, global_game):
+	hsreplay_doc = HSReplayDocument.from_parser(parser, build=meta["build"])
+	game_xml = hsreplay_doc.games[0]
+	game_xml.game_type = global_game.game_type
+	game_xml.id = global_game.game_handle
+	if meta["reconnecting"]:
+		game_xml.reconnecting = True
+
+	game_tree = parser.games[0]
+	for player in game_tree.game.players:
+		player_meta = meta.get("player%i" % (player.player_id), {})
+		player_xml = game_xml.players[player.player_id - 1]
+		player_xml.rank = player_meta.get("rank")
+		player_xml.legendRank = player_meta.get("legend_rank")
+		player_xml.cardback = player_meta.get("cardback")
+		player_xml.deck = player_meta.get("deck")
+
+	return hsreplay_doc
+
+
+def save_hsreplay_document(hsreplay_doc, shortid, existing_replay):
+	# Not using get_absolute_url() to avoid tying into Django
+	# (not necessarily avail on lambda)
+	url = "https://hsreplay.net/replay/%s" % (shortid)
+
+	xml_str = hsreplay_doc.to_xml()
+	# Add the replay's full URL as a comment
+	xml_str += "\n<!-- %s -->\n" % (url)
+
+	return ContentFile(xml_str)
 
 
 def generate_globalgame_digest(game_tree, meta):
@@ -92,43 +127,88 @@ def find_or_create_global_game(game_tree, meta):
 		global_game = GlobalGame.objects.create(digest=None, **defaults)
 		created = True
 
+	log.debug("Prepared GlobalGame(id=%r), created=%r", global_game.id, created)
 	return global_game, created
 
 
-def find_or_create_replay(global_game, meta, existing_replay):
+def find_or_create_replay(parser, meta, upload_event, global_game, players):
 	client_handle = meta.get("client_handle") or None
+	existing_replay = upload_event.game
+	shortid = existing_replay.shortid if existing_replay else shortuuid.uuid()
+	replay_xml_path = _generate_upload_path(global_game.match_start, shortid)
+	log.debug("Will save replay %r to %r", shortid, replay_xml_path)
+
+	# The user that owns the replay
+	user = upload_event.token.user if upload_event.token else None
+	friendly_player = players[meta["friendly_player"]]
+
+	hsreplay_doc = create_hsreplay_document(parser, meta, global_game)
 
 	common = {
 		"global_game": global_game,
 		"client_handle": client_handle,
 		"spectator_mode": meta.get("spectator_mode", False),
-		"reconnecting": meta.get("reconnecting", False),
-		"friendly_player_id": meta["friendly_player"],
+		"reconnecting": meta["reconnecting"],
+		"friendly_player_id": friendly_player.player_id,
 	}
 	defaults = {
-		"shortid": shortuuid.uuid(),
+		"shortid": shortid,
 		"aurora_password": meta.get("aurora_password", ""),
 		"spectator_password": meta.get("spectator_password", ""),
 		"resumable": meta.get("resumable"),
 		"build": meta["build"],
+		"upload_token": upload_event.token,
+		"won": friendly_player.won,
+		"replay_xml": replay_xml_path,
+		"hsreplay_version": hsreplay_doc.version,
 	}
 
+	# Create and save hsreplay.xml file
+	# Noop in the database, as it should already be set before the initial save()
+	xml_file = save_hsreplay_document(hsreplay_doc, shortid, existing_replay)
+	influx_metric("replay_xml_num_bytes", {"size": xml_file.size})
+
 	if existing_replay:
-		# We are reprocessing an existing replay, so straight up update it.
+		log.debug("Found existing replay %r", existing_replay.shortid)
+		# Clean up existing replay file
+		filename = existing_replay.replay_xml.name
+		if filename and filename != replay_xml_path and default_storage.exists(filename):
+			# ... but only if it's not the same path as the new one (it'll get overwridden)
+			log.debug("Deleting %r", filename)
+			default_storage.delete(filename)
+
+		# Now update all the fields
 		defaults.update(common)
 		for k, v in defaults.items():
 			setattr(existing_replay, k, v)
-		created = False
-		replay = existing_replay
-	elif client_handle:
+
+		# Save the replay file
+		existing_replay.replay_xml.save("hsreplay.xml", xml_file, save=False)
+
+		# Finally, save to the db and exit early with created=False
+		existing_replay.save()
+		return existing_replay, False
+
+	# No existing replay, so we assign a default user/visibility to the replay
+	# (eg. we never update those fields on existing replays)
+	if user:
+		defaults["user"] = user
+		defaults["visibility"] = user.default_replay_visibility
+
+	if client_handle:
 		# Get or create a replay object based on our defaults
 		replay, created = GameReplay.objects.get_or_create(defaults=defaults, **common)
+		log.debug("Replay %r has created=%r, client_handle=%r", replay.id, created, client_handle)
 	else:
 		# The client_handle is the minimum we require to update an existing replay.
 		# If we don't have it, we'll instead *always* create a new replay.
 		defaults.update(common)
 		replay = GameReplay.objects.create(**defaults)
 		created = True
+		log.debug("Created replay %r (no client_handle)", replay.id)
+
+	# Save the replay file
+	replay.replay_xml.save("hsreplay.xml", xml_file, save=False)
 
 	return replay, created
 
@@ -257,8 +337,8 @@ def validate_parser(parser, meta):
 			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 		meta["friendly_player"] = id
 
-	if not meta.get("build") and "stats" in meta:
-		meta["build"] = meta["stats"]["meta"]["build"]
+	if "reconnecting" not in meta:
+		meta["reconnecting"] = False
 
 	return game_tree
 
@@ -272,6 +352,8 @@ def get_player_names(player):
 
 def update_global_players(global_game, game_tree, meta):
 	# Fill the player metadata and objects
+	players = {}
+
 	for player in game_tree.game.players:
 		player_meta = meta.get("player%i" % (player.player_id), {})
 		decklist = player_meta.get("deck")
@@ -334,33 +416,24 @@ def update_global_players(global_game, game_tree, meta):
 				log.debug("Saving updated player to the database.")
 				game_player.save()
 
+		players[player.player_id] = game_player
+
+	return players
+
 
 def do_process_upload_event(upload_event):
 	meta = json.loads(upload_event.metadata)
+
+	# Parse the UploadEvent's file
 	parser = parse_upload_event(upload_event, meta)
+	# Validate the resulting object and metadata
 	game_tree = validate_parser(parser, meta)
 
 	# Create/Update the global game object and its players
 	global_game, created = find_or_create_global_game(game_tree, meta)
-	log.debug("Prepared GlobalGame(id=%r), created=%r", global_game.id, created)
-	update_global_players(global_game, game_tree, meta)
+	players = update_global_players(global_game, game_tree, meta)
 
 	# Create/Update the replay object itself
-	replay, created = find_or_create_replay(global_game, meta, upload_event.game)
-	log.debug("Prepared GameReplay(id=%r), created=%r", replay.id, created)
-
-	user = upload_event.token.user if upload_event.token else None
-	if user and not replay.user:
-		replay.user = user
-		replay.visibility = user.default_replay_visibility
-	if upload_event.token:
-		replay.upload_token = upload_event.token
-
-	# Create and save hsreplay.xml file
-	file = replay.save_hsreplay_xml(parser, meta)
-	log.debug("Saved HSReplay XML file")
-	influx_metric("replay_xml_num_bytes", {"size": file.size})
-	replay.update_final_states()
-	replay.save()
+	replay, created = find_or_create_replay(parser, meta, upload_event, global_game, players)
 
 	return replay
