@@ -200,11 +200,10 @@ def find_or_create_replay(parser, meta, upload_event, global_game, players):
 		log.debug("Replay %r has created=%r, client_handle=%r", replay.id, created, client_handle)
 	else:
 		# The client_handle is the minimum we require to update an existing replay.
-		# If we don't have it, we'll instead *always* create a new replay.
+		# If we don't have it, we won't try deduplication, we instead get_or_create by shortid.
 		defaults.update(common)
-		replay = GameReplay.objects.create(**defaults)
-		created = True
-		log.debug("Created replay %r (no client_handle)", replay.id)
+		replay, created = GameReplay.objects.get_or_create(defaults=defaults, shortid=shortid)
+		log.debug("Replay %r has created=%r (no client_handle)", replay.id, created)
 
 	# Save the replay file
 	replay.replay_xml.save("hsreplay.xml", xml_file, save=False)
