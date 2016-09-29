@@ -1,6 +1,5 @@
 import json
 import traceback
-import shortuuid
 from hashlib import sha1
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
@@ -134,7 +133,7 @@ def find_or_create_global_game(game_tree, meta):
 def find_or_create_replay(parser, meta, upload_event, global_game, players):
 	client_handle = meta.get("client_handle") or None
 	existing_replay = upload_event.game
-	shortid = existing_replay.shortid if existing_replay else shortuuid.uuid()
+	shortid = existing_replay.shortid if existing_replay else upload_event.shortid
 	replay_xml_path = _generate_upload_path(global_game.match_start, shortid)
 	log.debug("Will save replay %r to %r", shortid, replay_xml_path)
 
