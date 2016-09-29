@@ -63,8 +63,8 @@ def build_cloudwatch_url(log_group_name, log_stream_name):
 	)
 
 
-def build_admin_url(tracing_id):
-	return "https://dev.hsreplay.net/admin/uploads/uploadevent/?q=%s" % tracing_id
+def build_admin_url(shortid):
+	return "https://dev.hsreplay.net/admin/uploads/uploadevent/?shortid=%s" % (shortid)
 
 
 def lambda_handler(
