@@ -138,10 +138,11 @@ def process_upload_event(upload_event):
 	Wrapper around do_process_upload_event() to set the event's
 	status and error/traceback as needed.
 	"""
-	upload_event.status = UploadEventStatus.PROCESSING
 	upload_event.error = ""
 	upload_event.traceback = ""
-	upload_event.save()
+	if upload_event.status != UploadEventStatus.PROCESSING:
+		upload_event.status = UploadEventStatus.PROCESSING
+		upload_event.save()
 
 	try:
 		replay = do_process_upload_event(upload_event)

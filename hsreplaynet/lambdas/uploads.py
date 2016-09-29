@@ -233,6 +233,7 @@ def process_raw_upload(raw_upload, reprocess=False, log_group_name="", log_strea
 	serializer = UploadEventSerializer(obj, data=upload_metadata)
 	if serializer.is_valid():
 		logger.info("UploadEvent passed serializer validation")
+		obj.status = UploadEventStatus.PROCESSING
 		serializer.save()
 
 		logger.info("Starting GameReplay processing for UploadEvent")
