@@ -120,8 +120,8 @@
 				<h2>Controls</h2>
 				<ul class="infobox-settings">
 					{% if user == replay.user %}
-						<li>Visibility <span class="infobox-value" id="replay-visibility" data-selected="{{ replay.visibility.value }}"></span></li>
-						<li>Delete <span class="infobox-value" id="replay-delete" data-redirect="{% url 'my_replays' %}"></span></li>
+						<li class="clearfix">Visibility <span class="infobox-value" id="replay-visibility" data-selected="{{ replay.visibility.value }}"></span></li>
+						<li class="clearfix">Delete <span class="infobox-value" id="replay-delete" data-redirect="{% url 'my_replays' %}"></span></li>
 					{% endif %}
 					{% if user.is_staff %}
 						<li>View in Admin<span class="infobox-value"><a href="{% url 'admin:games_gamereplay_change' replay.id %}">Link</a></span></li>
