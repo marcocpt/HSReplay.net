@@ -298,9 +298,6 @@ def update_global_players(global_game, game_tree, meta):
 			"deck_list": deck,
 		}
 
-		game_player, created = GlobalGamePlayer.objects.get_or_create(defaults=defaults, **common)
-		log.debug("Prepared player %r (%i) (created=%r)", game_player, game_player.id, created)
-
 		update = {
 			"name": name,
 			"real_name": real_name,
@@ -313,24 +310,29 @@ def update_global_players(global_game, game_tree, meta):
 			"cardback_id": player_meta.get("cardback"),
 		}
 
-		# Go through the update dict and update values on the player
-		# This gets us extra data we might not have had when the player was first created
-		updated = False
-		for k, v in update.items():
-			if v and getattr(game_player, k) != v:
-				setattr(game_player, k, v)
+		defaults.update(update)
+		game_player, created = GlobalGamePlayer.objects.get_or_create(defaults=defaults, **common)
+		log.debug("Prepared player %r (%i) (created=%r)", game_player, game_player.id, created)
+
+		if not created:
+			# Go through the update dict and update values on the player
+			# This gets us extra data we might not have had when the player was first created
+			updated = False
+			for k, v in update.items():
+				if v and getattr(game_player, k) != v:
+					setattr(game_player, k, v)
+					updated = True
+
+			# Skip updating the deck if we already have a bigger one
+			# TODO: We should make deck_list nullable and only create it here
+			if len(decklist) > game_player.deck_list.size():
+				# XXX: Maybe we should also check friendly_player_id for good measure
+				game_player.deck_list = deck
 				updated = True
 
-		# Skip updating the deck if we already have a bigger one
-		# TODO: We should make deck_list nullable and only create it here
-		if not created and len(decklist) > game_player.deck_list.size():
-			# XXX: Maybe we should also check friendly_player_id for good measure
-			game_player.deck_list = deck
-			updated = True
-
-		if updated:
-			log.debug("Saving updated player to the database.")
-			game_player.save()
+			if updated:
+				log.debug("Saving updated player to the database.")
+				game_player.save()
 
 
 def do_process_upload_event(upload_event):
