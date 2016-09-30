@@ -12,22 +12,20 @@ Specific design considerations:
 These design considerations mean this lambda can be deployed on a different cycle than
 the rest of the hsreplaynet codebase.
 """
-import json
-import shortuuid
 import logging
-from random import randrange
+import json
+import boto3
+import shortuuid
 from base64 import b64decode
 from datetime import datetime
+from random import randrange
 
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-try:
-	import boto3
-	S3 = boto3.client("s3")
-except ImportError:
-	S3 = None
+
+S3 = boto3.client("s3")
 
 S3_RAW_LOG_UPLOAD_BUCKET = "hsreplaynet-uploads"
 
