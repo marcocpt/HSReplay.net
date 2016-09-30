@@ -68,14 +68,10 @@ def get_auth_token(headers):
 
 
 def generate_log_upload_address_handler(event, context):
-	logger.info("***** EVENT INFO *****")
-	logger.info(json.dumps(event, sort_keys=True, indent=4))
 	gateway_headers = event["headers"]
 
 	auth_token = get_auth_token(gateway_headers)
 	shortid = get_shortid()
-	is_canary = is_canary_upload(event)
-	logger.info("Is Canary: %s", is_canary)
 
 	ts = get_timestamp()
 	ts_path = ts.strftime("%Y/%m/%d/%H/%M")
@@ -94,7 +90,9 @@ def generate_log_upload_address_handler(event, context):
 	# However during a lambdas deploy, the canaries are exposed to the newest code first
 	# All canary uploads must succeed before the newest code gets promoted
 	# To handle 100% of the upload volume.
+	is_canary = is_canary_upload(event)
 	if is_canary:
+		logger.info("Upload is a canary")
 		upload_metadata["canary"] = is_canary
 
 	descriptor = {
@@ -115,8 +113,6 @@ def generate_log_upload_address_handler(event, context):
 	logger.info("S3 Powerlog Key: %s", s3_powerlog_key)
 
 	descriptor["event"] = event
-	logger.info("***** COMPLETE DESCRIPTOR *****")
-	logger.info(json.dumps(descriptor, sort_keys=True, indent=4))
 
 	S3.put_object(
 		ACL="private",
@@ -137,7 +133,7 @@ def generate_log_upload_address_handler(event, context):
 		ExpiresIn=log_put_expiration,
 		HttpMethod="PUT"
 	)
-	logger.info("Presigned Put URL:\n%s" % presigned_put_url)
+	logger.info("Presigned Put URL:\n%s", presigned_put_url)
 
 	return {
 		"put_url": presigned_put_url,
