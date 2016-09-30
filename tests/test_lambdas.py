@@ -44,12 +44,12 @@ def test_upload(upload_event, upload_context, monkeypatch):
 
 	assert "shortid" in result
 	# Ensure the shortID returned is also saved to use on the upload event
-	assert descriptor["shortid"] == result["upload_shortid"]
+	assert descriptor["shortid"] == result["shortid"]
 
 	assert result["url"] == "https://hsreplay.net/uploads/upload/%s/" % (result["shortid"])
 
 	# Deprecated
-	assert result["shortid"] == result["upload_shortid"]
+	assert result["shortid"] == result["shortid"]
 
 
 def test_process_s3_object(s3_create_object_event, upload_context, monkeypatch):

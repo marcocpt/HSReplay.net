@@ -137,7 +137,6 @@ def generate_log_upload_address_handler(event, context):
 
 	return {
 		"put_url": presigned_put_url,
-		"upload_shortid": shortid,  # Deprecated (Beta, 2016-08-06)
 		"shortid": shortid,
 		"url": get_upload_url(shortid),
 	}
