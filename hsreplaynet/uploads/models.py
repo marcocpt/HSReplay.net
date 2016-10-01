@@ -41,6 +41,7 @@ class RawUpload(object):
 	"""
 	Represents a raw upload in S3.
 	"""
+	DESCRIPTOR_KEY_PATTERN = r"raw/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.descriptor.json"
 	RAW_LOG_KEY_PATTERN = r"raw/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.\w{5,6}.log"
 	HAS_UPLOAD_KEY_PATTERN = r"uploads/(?P<ts>[\d/]{16})/(?P<shortid>\w{22})\.power.log"
 	TIMESTAMP_FORMAT = "%Y/%m/%d/%H/%M"

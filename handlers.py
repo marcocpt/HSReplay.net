@@ -17,3 +17,4 @@ lambdas_logger.setLevel(logging.DEBUG)
 
 # Make sure django.setup() has already been invoked to import handlers
 from hsreplaynet.lambdas.uploads import *  # noqa
+from hsreplaynet.lambdas.crons import * # noqa
