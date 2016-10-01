@@ -11,7 +11,7 @@ from hsreplaynet.utils import instrumentation, log, aws
 from hsreplaynet.utils.influx import influx_metric
 
 
-@instrumentation.lambda_handler(cpu_seconds=180, tracing=False)
+@instrumentation.lambda_handler(cpu_seconds=300, tracing=False)
 def reap_orphan_descriptors_handler(event, context):
 	"""A daily job to cleanup orphan descriptors in the raw uploads bucket."""
 	current_date = date.today()
@@ -20,6 +20,11 @@ def reap_orphan_descriptors_handler(event, context):
 	reaping_date = current_date - timedelta(days=reaping_delay)
 	log.info("Reaping Orphan Descriptors For: %r", reaping_date.isoformat())
 
+	reap_orphans_for_date(reaping_date)
+	log.info("Finished.")
+
+
+def reap_orphans_for_date(reaping_date):
 	inventory = get_reaping_inventory_for_date(reaping_date)
 
 	for hour, hour_inventory in inventory.items():
@@ -54,7 +59,6 @@ def reap_orphan_descriptors_handler(event, context):
 			timestamp=reaping_date,
 			hour=hour
 		)
-	log.info("Finished.")
 
 
 def is_safe_to_reap(shortid, keys):
