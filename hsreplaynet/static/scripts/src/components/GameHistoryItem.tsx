@@ -102,6 +102,7 @@ export default class GameHistoryItem extends React.Component<GameHistoryItemProp
 				if (player.legend_rank) {
 					return "Rank " + player.legend_rank;
 				}
+				return "Ranked";
 			case BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI:
 			case BnetGameType.BGT_TAVERNBRAWL_2P_COOP:
 			case BnetGameType.BGT_TAVERNBRAWL_PVP:
