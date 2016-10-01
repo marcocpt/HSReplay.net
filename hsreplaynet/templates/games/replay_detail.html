@@ -85,7 +85,20 @@
 					{% for player in players %}
 						<li>
 							{{ player }}
-							<!-- decklist temporarily disabled -->
+							{# TODO: Make this an API call (inefficient as-is) #}
+							{% with player.deck_list.all_includes as decklist %}
+							{% if decklist %}
+								<a class="infobox-value {% if player.is_ai %}player-ai{% endif %} {% if player.is_first %}player-first{% endif %}"
+									onclick="$('#infobox-deck-{{ player.player_id }}').toggle()" href="javascript:;">
+									Show deck
+								</a>
+								<ul id="infobox-deck-{{ player.player_id }}" style="display: none;">
+									{% for card in decklist %}
+										<li>{{ card }}</li>
+									{% endfor %}
+								</ul>
+							{% endif %}
+							{% endwith %}
 						</li>
 					{% endfor %}
 				</ul>
