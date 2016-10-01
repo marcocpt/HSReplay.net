@@ -69,7 +69,7 @@ def build_admin_url(shortid):
 
 def lambda_handler(
 	cpu_seconds=60, memory=128, name=None, handler=None,
-	stream_name=None, stream_batch_size=1, trap_exceptions=True
+	stream_name=None, stream_batch_size=1, trap_exceptions=True, tracing=True
 ):
 	"""Indicates the decorated function is a AWS Lambda handler.
 
@@ -103,7 +103,7 @@ def lambda_handler(
 
 		@wraps(func)
 		def wrapper(event, context):
-			tracing_id = get_tracing_id(event)
+			tracing_id = get_tracing_id(event) if tracing else ""
 			os.environ["TRACING_REQUEST_ID"] = tracing_id
 			if sentry:
 				# Provide additional metadata to sentry in case the exception

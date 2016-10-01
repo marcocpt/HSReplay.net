@@ -271,7 +271,7 @@ KINESIS_STREAM_PROCESSING_THROUGHPUT_SLA_SECONDS = 600
 
 LAMBDA_DEFAULT_EXECUTION_ROLE_NAME = "iam_lambda_execution_role"
 # Orphan descriptor.json files created this many days previously will be automatically reaped.
-LAMBDA_ORPHAN_REAPING_DELAY_DAYS = 2
+LAMBDA_ORPHAN_REAPING_DELAY_DAYS = 3
 
 # We initially wait this long when doing a canary deploy before checking the results
 MAX_CANARY_WAIT_SECONDS = 180

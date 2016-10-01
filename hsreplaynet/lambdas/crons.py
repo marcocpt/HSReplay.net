@@ -11,10 +11,10 @@ from hsreplaynet.utils import instrumentation, log, aws
 from hsreplaynet.utils.influx import influx_metric
 
 
-@instrumentation.lambda_handler(cpu_seconds=180)
+@instrumentation.lambda_handler(cpu_seconds=180, tracing=False)
 def reap_orphan_descriptors_handler(event, context):
 	"""A daily job to cleanup orphan descriptors in the raw uploads bucket."""
-	current_date = date.now()
+	current_date = date.today()
 	reaping_delay = settings.LAMBDA_ORPHAN_REAPING_DELAY_DAYS
 	assert reaping_delay >= 1  # Protect against descriptors just created
 	reaping_date = current_date - timedelta(days=reaping_delay)
@@ -63,9 +63,11 @@ def is_safe_to_reap(shortid, keys):
 		# It's more likely data we're having trouble processing
 		return False
 
-	if UploadEvent.objects.filter(shortid=shortid).exists():
+	if UploadEvent.objects.filter(shortid=shortid).count():
 		# If an upload event for the shortid exists it's not an orphan
 		return False
+
+	return True
 
 
 def get_reaping_inventory_for_date(date):
