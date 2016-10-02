@@ -28,3 +28,9 @@ class ReplayDetailView(View):
 			"canonical_url": baseurl + replay.get_absolute_url(),
 			"players": players,
 		})
+
+
+class ReplayEmbedView(View):
+	def get(self, request, id):
+		replay = get_object_or_404(GameReplay.objects.live(), shortid=id)
+		return render(request, "games/replay_embed.html", {"replay": replay})

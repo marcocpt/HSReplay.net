@@ -1,0 +1,35 @@
+{% load static %}
+{% load web_extras %}
+{% load render_bundle from webpack_loader %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="{% static 'vendor/jquery.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'vendor/react.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'vendor/react-dom.min.js' %}"></script>
+	<link rel="stylesheet" type="text/css" href="{% joust_static 'joust.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'fonts/belwefs_extrabold_macroman/stylesheet.css' %}"/>
+	<link rel="stylesheet" type="text/css" href="{% static 'fonts/franklingothicfs_mediumcondensed_macroman/stylesheet.css' %}"/>
+	{% comment %} The following shim fixes card texture clipping in Firefox.
+	See bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1075457 {% endcomment %}
+	<style type="text/css">
+		{% include "games/svg-paths-shim.css" with svg="/static/svg-paths.svg" %}
+	</style>
+</head>
+<body>
+
+<div id="tabletop" class="container-fluid">
+	<div class="full_height">
+		<div id="joust-container" class="full_height"
+			data-replayurl="{{ replay.replay_xml.url }}"
+			{% if user.is_authenticated %}data-locale="{{ user.locale }}"{% endif %}
+		></div>
+	</div>
+</div>
+
+<div id="replay-infobox" data-shortid="{{ replay.shortid }}"></div>
+
+<script src="{% joust_static 'joust.js' %}"></script>
+{% render_bundle "replay_detail" %}
+
+</html>

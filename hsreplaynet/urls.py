@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls import include, url
 from django.views.generic import TemplateView
-from .games.views import ReplayDetailView
+from .games.views import ReplayDetailView, ReplayEmbedView
 
 
 urlpatterns = [
@@ -14,6 +14,7 @@ urlpatterns = [
 
 	# Direct link to replays
 	url(r"^replay/(?P<id>\w+)$", ReplayDetailView.as_view(), name="games_replay_view"),
+	url(r"^replay/(?P<id>\w+)/embed$", ReplayEmbedView.as_view(), name="games_replay_embed"),
 ]
 
 if not settings.ENV_LAMBDA:
