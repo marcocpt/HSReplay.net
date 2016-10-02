@@ -140,7 +140,7 @@ class GlobalGamePlayer(models.Model):
 		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
 	)
 
-	player_id = PlayerIDField(null=True, blank=True)
+	player_id = PlayerIDField(blank=True)
 	account_hi = models.BigIntegerField(
 		"Account Hi", blank=True, null=True,
 		help_text="The region value from account hilo"
