@@ -2,6 +2,7 @@ from enum import IntEnum
 import re
 import json
 import base64
+import os
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models
@@ -282,7 +283,7 @@ class UploadEvent(models.Model):
 		start = self.updated
 		end = start + timedelta(minutes=3)
 		return baseurl + tpl % (
-			settings.AWS_DEFAULT_REGION,
+			os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
 			self.log_group_name,
 			self.log_stream_name,
 			start.strftime("%Y-%m-%dT%H:%M:%SZ"),
