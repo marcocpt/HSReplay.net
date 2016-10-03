@@ -13,7 +13,7 @@ class PackSerializer(HyperlinkedModelSerializer):
 
 	class Meta:
 		model = Pack
-		fields = ("user", "booster_type", "date")
+		fields = ("user", "booster_type", "date", "account_hi", "account_lo")
 
 
 class PackViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet):

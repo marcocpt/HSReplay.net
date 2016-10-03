@@ -19,6 +19,8 @@ class Pack(models.Model):
 	date = models.DateTimeField()
 	cards = models.ManyToManyField(Card, through="packs.PackCard")
 	user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+	account_hi = models.BigIntegerField()
+	account_lo = models.BigIntegerField()
 
 	def __str__(self):
 		cards = self.cards.all()
