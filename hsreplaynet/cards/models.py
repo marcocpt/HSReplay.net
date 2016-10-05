@@ -1,6 +1,6 @@
 import hashlib
 import random
-from django.db import models
+from django.db import models, connection
 from hearthstone import enums
 from hsreplaynet.utils.fields import IntEnumField
 
@@ -128,6 +128,14 @@ class DeckManager(models.Manager):
 
 		deck.save()
 		return deck, True
+
+
+	def _db_get_or_create_from_id_list(self, id_list):
+		cursor = connection.cursor()
+		cursor.callproc("get_or_create_deck", (id_list,))
+		deck_id = int(cursor.fetchone()[0])
+		cursor.close()
+		return Deck(id=deck_id)
 
 
 def generate_digest_from_deck_list(id_list):

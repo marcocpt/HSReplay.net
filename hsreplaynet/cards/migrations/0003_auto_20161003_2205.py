@@ -40,7 +40,41 @@ DROP_DECK_DIGEST = """
 DROP FUNCTION deck_digest(text[]);
 """
 
+CREATE_GET_OR_CREATE_DECK = """
+CREATE OR REPLACE FUNCTION get_or_create_deck(text[]) RETURNS numeric AS $$
+DECLARE
+	computed_digest text;
+	generated_deck_id numeric;
+BEGIN
+	-- Compute the deck digest
+	computed_digest = deck_digest($1);
 
+	SELECT cd.id INTO generated_deck_id
+	FROM cards_deck cd WHERE cd.digest = computed_digest;
+
+	-- First check whether this deck already exists
+	IF FOUND THEN
+		RETURN generated_deck_id;
+	END IF;
+
+	-- Since the deck does not exist, we must now create it.
+	INSERT INTO cards_deck (digest, created)
+	VALUES (computed_digest, current_timestamp)
+	RETURNING id INTO STRICT generated_deck_id;
+
+	INSERT INTO cards_include (deck_id, card_id, count)
+	SELECT generated_deck_id AS deck_id, c.id AS card_id, count(*)
+	FROM UNNEST($1) c(id)
+	GROUP BY c.id;
+
+	RETURN generated_deck_id;
+END;
+$$ LANGUAGE plpgsql;
+"""
+
+DROP_GET_OR_CREATE_DECK = """
+DROP FUNCTION get_or_create_deck(text[]);
+"""
 
 class Migration(migrations.Migration):
 	dependencies = [
@@ -59,5 +93,9 @@ class Migration(migrations.Migration):
 		migrations.RunSQL(
 			CREATE_DECK_DIGEST,
 			DROP_DECK_DIGEST
+		),
+		migrations.RunSQL(
+			CREATE_GET_OR_CREATE_DECK,
+			DROP_GET_OR_CREATE_DECK
 		),
 	]
