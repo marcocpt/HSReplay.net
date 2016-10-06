@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.db.models import Count
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.uploads.processing import queue_upload_event_for_reprocessing
 from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
@@ -58,27 +57,6 @@ class GameReplayAdmin(admin.ModelAdmin):
 		return qs.prefetch_related("global_game__players")
 
 
-class ReplaySidesFilter(admin.SimpleListFilter):
-	"""
-	A filter to look up the amount of uploads on a GlobalGame
-	"""
-	title = "replay sides"
-	parameter_name = "sides"
-
-	def lookups(self, request, model_admin):
-		return (0, "0 (broken)"), (1, "1 (normal)"), (2, "2 (both sides)"), (3, "3+ (?)")
-
-	def queryset(self, request, queryset):
-		queryset = queryset.annotate(sides=Count("replays"))
-		value = self.value()
-		if value is not None and value.isdigit():
-			value = int(value)
-			if value > 2:
-				return queryset.filter(sides__gt=2)
-			return queryset.filter(sides__exact=value)
-		return queryset
-
-
 @admin.register(GlobalGame)
 class GlobalGameAdmin(admin.ModelAdmin):
 	list_display = (
@@ -86,7 +64,7 @@ class GlobalGameAdmin(admin.ModelAdmin):
 		"game_handle", "ladder_season", "scenario_id", "num_turns",
 	)
 	list_filter = (
-		"game_type", "ladder_season", "brawl_season", "build", ReplaySidesFilter
+		"game_type", "ladder_season", "brawl_season", "build",
 	)
 	search_fields = ("replays__shortid", "players__name")
 	inlines = (GlobalGamePlayerInline, GameReplayInline)
