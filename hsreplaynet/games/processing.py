@@ -361,8 +361,24 @@ def get_player_names(player):
 	else:
 		return player.name, ""
 
+def is_eligable_for_stats(global_game, player_account_hi, user_exclusion_setting):
+	# For a deck to be eligable for including in stats:
+		# 1) It must be allowed by the user's privacy settings
+		# 2) All the required fields must be present:
+			# global_game.match_start (nullable)
+			# global_game.game_type (nullable)
+			# account_hi (nullable)
+			# deck_id (not null)
+			# hero_id (not null)
+	if global_game.match_start and global_game.game_type and player_account_hi:
 
-def update_global_players(global_game, entity_tree, meta):
+		if not user_exclusion_setting:
+			return True
+
+	return False
+
+
+def update_global_players(global_game, entity_tree, meta, exclude_from_statistics=False):
 	# Fill the player metadata and objects
 	players = {}
 
@@ -377,6 +393,12 @@ def update_global_players(global_game, entity_tree, meta):
 		deck, created = Deck.objects.get_or_create_from_id_list(decklist)
 		log.debug("Prepared deck %i (created=%r)", deck.id, created)
 
+		final_stats_participation_setting = is_eligable_for_stats(
+			global_game,
+			player.account_hi,
+			exclude_from_statistics
+		)
+
 		common = {
 			"game": global_game,
 			"player_id": player.player_id,
@@ -390,6 +412,7 @@ def update_global_players(global_game, entity_tree, meta):
 			"hero_premium": player._hero.tags.get(GameTag.PREMIUM, False),
 			"final_state": player.tags.get(GameTag.PLAYSTATE, 0),
 			"deck_list": deck,
+			"include_in_stats": final_stats_participation_setting,
 		}
 
 		update = {
@@ -443,7 +466,18 @@ def do_process_upload_event(upload_event):
 
 	# Create/Update the global game object and its players
 	global_game, created = find_or_create_global_game(entity_tree, meta)
-	players = update_global_players(global_game, entity_tree, meta)
+
+	# The user that owns the replay
+	user_exclude_from_statistics = False
+	if upload_event.token and upload_event.token.user:
+		user_exclude_from_statistics = upload_event.token.user.exclude_from_statistics
+
+	players = update_global_players(
+		global_game,
+		entity_tree,
+		meta,
+		user_exclude_from_statistics
+	)
 
 	# Create/Update the replay object itself
 	replay, created = find_or_create_replay(

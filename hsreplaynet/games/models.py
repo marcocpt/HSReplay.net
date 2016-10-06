@@ -192,6 +192,19 @@ class GlobalGamePlayer(models.Model):
 	deck_id = models.IntegerField("Deck ID", null=True, blank=True)
 	cardback_id = models.IntegerField("Cardback ID", null=True, blank=True)
 
+	# For a deck to be eligable for including in stats:
+		# 1) account_user.exclude_from_statistics == False
+		# 2) All the required fields must be present:
+			# global_game.match_start (nullable)
+			# global_game.game_type (nullable)
+			# account_hi (nullable)
+			# deck_id (not null)
+			# hero_id (not null)
+	include_in_stats = models.BooleanField(
+		"The required has all required fields AND user settings allows stats",
+		default = True
+	)
+
 	class Meta:
 		unique_together = ("game", "player_id")
 
