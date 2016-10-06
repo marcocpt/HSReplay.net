@@ -20,6 +20,7 @@ class UploadEventAdmin(admin.ModelAdmin):
 	raw_id_fields = ("token", "game")
 	readonly_fields = ("created", "cloudwatch_url")
 	search_fields = ("shortid", )
+	show_full_result_count = False
 
 	def get_queryset(self, request):
 		qs = super().get_queryset(request)
