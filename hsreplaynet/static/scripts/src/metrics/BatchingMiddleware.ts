@@ -1,4 +1,5 @@
 import {MetricsBackend, Point} from "./MetricsBackend";
+import $ from "jquery";
 
 
 export default class BatchingMiddleware implements MetricsBackend {
@@ -16,12 +17,9 @@ export default class BatchingMiddleware implements MetricsBackend {
 		}
 	}
 
-	private _consume(async: boolean = true) {
+	private _consume() {
 		let points = this.points;
 		this.points = [];
-		if (async != this.backend["async"]) {
-			this.backend["async"] = async;
-		}
 		this.backend.writePoints(points);
 	}
 
@@ -34,12 +32,7 @@ export default class BatchingMiddleware implements MetricsBackend {
 			if (this.finalCallback) {
 				this.finalCallback();
 			}
-			let async = true;
-			if (/Firefox\/\d+/.test(navigator.userAgent)) {
-				// send final request synchronous in Firefox
-				async = false;
-			}
-			this._consume(async);
+			this._consume();
 		});
 	}
 

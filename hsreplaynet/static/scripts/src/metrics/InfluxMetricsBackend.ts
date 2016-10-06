@@ -2,8 +2,6 @@ import {MetricsBackend, Point} from "./MetricsBackend";
 
 
 export default class InfluxMetricsBackend implements MetricsBackend {
-	public async: boolean = true;
-
 	constructor(public url: string) {
 	}
 
@@ -38,7 +36,7 @@ export default class InfluxMetricsBackend implements MetricsBackend {
 		if (!success) {
 			// fallback to plain old XML http requests
 			let request = new XMLHttpRequest();
-			request.open("POST", url, this.async);
+			request.open("POST", url, true);
 			request.send(blob);
 		}
 	}
