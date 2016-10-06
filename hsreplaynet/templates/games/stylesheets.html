@@ -1,0 +1,12 @@
+{% load static %}
+{% load web_extras %}
+
+<link rel="stylesheet" type="text/css" href="{% joust_static 'joust.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'fonts/belwefs_extrabold_macroman/stylesheet.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'fonts/franklingothicfs_mediumcondensed_macroman/stylesheet.css' %}"/>
+
+{% comment %} The following shim fixes card texture clipping in Firefox.
+See bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1075457 {% endcomment %}
+<style type="text/css">
+	{% include "games/svg-paths-shim.css" with svg="/static/svg-paths.svg" %}
+</style>

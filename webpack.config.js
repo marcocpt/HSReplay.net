@@ -48,6 +48,7 @@ module.exports = {
 	entry: {
 		my_replays: path.resolve(__dirname, "./hsreplaynet/static/scripts/src/my_replays"),
 		replay_detail: path.resolve(__dirname, "./hsreplaynet/static/scripts/src/replay_detail"),
+		replay_embed: path.resolve(__dirname, "./hsreplaynet/static/scripts/src/replay_embed"),
 	},
 	output: {
 		path: path.resolve(__dirname, "./hsreplaynet/static/bundles/"),
