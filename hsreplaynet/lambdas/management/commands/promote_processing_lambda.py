@@ -102,6 +102,9 @@ class Command(BaseCommand):
 
 				if canary_uploads.count() >= min_canary_uploads:
 					wait_for_more_canary_uploads = False
+				elif len(self.get_failed_canaries(canary_uploads.all())):
+					# Exit early since some canaries have already failed
+					wait_for_more_canary_uploads = False
 				else:
 					if datetime.now() > max_wait_time:
 						msg = "Waited too long for canary events. Exiting."
@@ -143,18 +146,22 @@ class Command(BaseCommand):
 		self.set_prod_version(new_version_num)
 		self.log("Finished.")
 
+	def get_failed_canaries(self, canaries):
+		acceptable_status = [
+			UploadEventStatus.SUCCESS,
+			UploadEventStatus.UNSUPPORTED_CLIENT,
+			UploadEventStatus.UNSUPPORTED
+		]
+
+		canary_failures = [c for c in canaries if c.status not in acceptable_status]
+
+		return canary_failures
+
 	def get_canary_failures_since(self, canary_period_start):
 		canary_uploads = UploadEvent.objects.filter(
 			canary=True,
 			created__gte=canary_period_start,
 		).exclude(status__in=UploadEventStatus.processing_statuses())
 
-		acceptable_status = [
-			UploadEventStatus.SUCCESS,
-			UploadEventStatus.UNSUPPORTED_CLIENT,
-			UploadEventStatus.UNSUPPORTED
-		]
 		canaries = canary_uploads.all()
-		canary_failures = [c for c in canaries if c.status not in acceptable_status]
-
-		return canary_failures
+		return self.get_failed_canaries(canaries)
