@@ -1,5 +1,5 @@
 from django.utils.timezone import now
-from hearthstone.enums import GameTag, BlockType, BnetGameType
+from hearthstone.enums import GameTag, BnetGameType
 from hearthstone.hslog.parser import LogParser
 from hsreplaynet.utils.influx import influx_write_payload
 
@@ -16,8 +16,8 @@ class InfluxInstrumentedParser(LogParser):
 
 	def block_end(self, ts):
 		block = super(InfluxInstrumentedParser, self).block_end(ts)
-		if getattr(block, "type", 0) == BlockType.PLAY:
-			self.record_play_block(block)
+		# if getattr(block, "type", 0) == BlockType.PLAY:
+		# 	self.record_play_block(block)
 		return block
 
 	def record_play_block(self, block):
