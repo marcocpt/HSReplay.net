@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from hearthstone.enums import CardType, GameTag
+from hearthstone.hslog.export import EntityTreeExporter
 from hsreplay.document import HSReplayDocument
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils import guess_ladder_season, log
@@ -228,7 +229,7 @@ def process_upload_event(upload_event):
 		# Set the upload status based on the exception
 		if isinstance(e, ParsingError):
 			upload_event.status = UploadEventStatus.PARSING_ERROR
-		elif isinstance(e, (GameTooShort, UnsupportedReplay)):
+		elif isinstance(e, (GameTooShort, UnsupportedReplay, EntityTreeExporter.EntityNotFound)):
 			upload_event.status = UploadEventStatus.UNSUPPORTED
 		elif isinstance(e, ValidationError):
 			upload_event.status = UploadEventStatus.VALIDATION_ERROR
