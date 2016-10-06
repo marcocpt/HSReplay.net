@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
+from django.views.decorators.clickjacking import xframe_options_exempt
 from .models import GameReplay
 
 
@@ -31,6 +32,7 @@ class ReplayDetailView(View):
 
 
 class ReplayEmbedView(View):
+	@xframe_options_exempt
 	def get(self, request, id):
 		replay = get_object_or_404(GameReplay.objects.live(), shortid=id)
 		return render(request, "games/replay_embed.html", {"replay": replay})
