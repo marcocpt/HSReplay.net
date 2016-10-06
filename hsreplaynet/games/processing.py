@@ -50,7 +50,7 @@ def get_valid_match_start(match_start, upload_date):
 	return upload_date.astimezone(match_start.tzinfo)
 
 
-def create_hsreplay_document(parser, meta, global_game):
+def create_hsreplay_document(parser, game_tree, meta, global_game):
 	hsreplay_doc = HSReplayDocument.from_parser(parser, build=meta["build"])
 	game_xml = hsreplay_doc.games[0]
 	game_xml.game_type = global_game.game_type
@@ -58,8 +58,7 @@ def create_hsreplay_document(parser, meta, global_game):
 	if meta["reconnecting"]:
 		game_xml.reconnecting = True
 
-	game_tree = parser.games[0]
-	for player in game_tree.game.players:
+	for player in game_tree.players:
 		player_meta = meta.get("player%i" % (player.player_id), {})
 		player_xml = game_xml.players[player.player_id - 1]
 		player_xml.rank = player_meta.get("rank")
@@ -91,11 +90,9 @@ def generate_globalgame_digest(meta, lo1, lo2):
 
 
 def find_or_create_global_game(game_tree, meta):
-	end_time = game_tree.end_time
-
 	ladder_season = meta.get("ladder_season")
 	if not ladder_season:
-		ladder_season = guess_ladder_season(end_time)
+		ladder_season = guess_ladder_season(meta["end_time"])
 
 	defaults = {
 		"game_handle": meta.get("game_handle"),
@@ -105,19 +102,19 @@ def find_or_create_global_game(game_tree, meta):
 		"game_type": meta.get("game_type", 0),
 		"format": meta.get("format", 0),
 		"build": meta["build"],
-		"match_start": game_tree.start_time,
-		"match_end": end_time,
+		"match_start": meta["start_time"],
+		"match_end": meta["end_time"],
 		"brawl_season": meta.get("brawl_season", 0),
 		"ladder_season": ladder_season,
 		"scenario_id": meta.get("scenario_id"),
-		"num_entities": len(game_tree.game.entities),
-		"num_turns": game_tree.game.tags.get(GameTag.TURN),
+		"num_entities": len(game_tree.entities),
+		"num_turns": game_tree.tags.get(GameTag.TURN),
 	}
 
 	if eligible_for_unification(meta):
 		# If the globalgame is eligible for unification, generate a digest
 		# and get_or_create the object
-		players = game_tree.game.players
+		players = game_tree.players
 		lo1, lo2 = players[0].account_lo, players[1].account_lo
 		digest = generate_globalgame_digest(meta, lo1, lo2)
 		log.info("GlobalGame digest is %r" % (digest))
@@ -130,7 +127,7 @@ def find_or_create_global_game(game_tree, meta):
 	return global_game, created
 
 
-def find_or_create_replay(parser, meta, upload_event, global_game, players):
+def find_or_create_replay(parser, game_tree, meta, upload_event, global_game, players):
 	client_handle = meta.get("client_handle") or None
 	existing_replay = upload_event.game
 	shortid = existing_replay.shortid if existing_replay else upload_event.shortid
@@ -141,7 +138,7 @@ def find_or_create_replay(parser, meta, upload_event, global_game, players):
 	user = upload_event.token.user if upload_event.token else None
 	friendly_player = players[meta["friendly_player"]]
 
-	hsreplay_doc = create_hsreplay_document(parser, meta, global_game)
+	hsreplay_doc = create_hsreplay_document(parser, game_tree, meta, global_game)
 
 	common = {
 		"global_game": global_game,
@@ -313,14 +310,17 @@ def validate_parser(parser, meta):
 	# Validate upload
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
-	game_tree = parser.games[0]
+	packet_tree = parser.games[0]
+	game_tree = packet_tree.export()
 
-	if len(game_tree.game.players) != 2:
-		raise ValidationError("Expected 2 players, found %i" % (len(game_tree.game.players)))
+	if len(game_tree.players) != 2:
+		raise ValidationError("Expected 2 players, found %i" % (len(game_tree.players)))
 
-	# If a player's name is None, this is an unsupported replay.
-	for player in game_tree.game.players:
+	for player in game_tree.players:
+		# Set the player's name
+		player.name = parser.games[0].manager.get_player_by_id(player.id).name
 		if player.name is None:
+			# If it's None, this is an unsupported replay.
 			log.error("Cannot find player %i name. Replay not supported.", player.player_id)
 			raise GameTooShort("The game was too short to parse correctly")
 
@@ -336,13 +336,20 @@ def validate_parser(parser, meta):
 			raise ValidationError("%r is not a valid hero." % (player._hero))
 
 	if not meta.get("friendly_player"):
-		id = game_tree.guess_friendly_player()
+		# Friendly player guessing mechanic changed in 13619.
+		# We don't use the old method by default (it's faster)
+		attempt_old = meta["build"] < 13619
+		id = packet_tree.guess_friendly_player(attempt_old)
 		if not id:
 			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 		meta["friendly_player"] = id
 
 	if "reconnecting" not in meta:
 		meta["reconnecting"] = False
+
+	# Add the start/end time to meta dict
+	meta["start_time"] = packet_tree.start_time
+	meta["end_time"] = packet_tree.end_time
 
 	return game_tree
 
@@ -358,7 +365,7 @@ def update_global_players(global_game, game_tree, meta):
 	# Fill the player metadata and objects
 	players = {}
 
-	for player in game_tree.game.players:
+	for player in game_tree.players:
 		player_meta = meta.get("player%i" % (player.player_id), {})
 		decklist = player_meta.get("deck")
 		if not decklist:
@@ -438,6 +445,8 @@ def do_process_upload_event(upload_event):
 	players = update_global_players(global_game, game_tree, meta)
 
 	# Create/Update the replay object itself
-	replay, created = find_or_create_replay(parser, meta, upload_event, global_game, players)
+	replay, created = find_or_create_replay(
+		parser, game_tree, meta, upload_event, global_game, players
+	)
 
 	return replay
