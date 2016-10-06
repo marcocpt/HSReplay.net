@@ -278,7 +278,7 @@ MAX_CANARY_WAIT_SECONDS = 180
 # We require at least this many uploads before we declare the canary a success
 MIN_CANARY_UPLOADS = 10
 
-JOUST_STATIC_URL = "https://s3.amazonaws.com/hearthsim-joust/branches/master/"
+JOUST_STATIC_URL = "https://joust.hearthsim.net/branches/master/"
 HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 HEARTHSTONE_ART_URL = "https://art.hearthstonejson.com/v1/256x/"
 
