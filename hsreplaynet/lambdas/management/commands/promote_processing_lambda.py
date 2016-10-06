@@ -1,7 +1,6 @@
 import time
 import sys
 from datetime import datetime, timedelta
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from hsreplaynet.uploads.models import UploadEvent, UploadEventStatus
 from hsreplaynet.uploads.processing import queue_upload_events_for_reprocessing
@@ -15,8 +14,16 @@ class Command(BaseCommand):
 
 	def add_arguments(self, parser):
 		parser.add_argument(
-			"--bypass_canary", action="store_true", default=False,
+			"--bypass_canary", action="store_true",
 			help="Skip the canary stage and promote directly to PROD"
+		)
+		parser.add_argument(
+			"--max-wait-seconds", type=int, default=180,
+			help="Maximum amount of seconds to wait for Canary"
+		)
+		parser.add_argument(
+			"--min-canary-uploads", type=int, default=10,
+			help="Minimum amount of Canary uploads to wait for"
 		)
 
 	def log(self, msg):
@@ -80,13 +87,10 @@ class Command(BaseCommand):
 			return
 
 		# If we did not exit already, then we are doing a canary deployment.
-		max_wait_seconds = settings.MAX_CANARY_WAIT_SECONDS
-		self.log("MAX_CANARY_WAIT_SECONDS = %s" % max_wait_seconds)
-
-		min_canary_uploads = settings.MIN_CANARY_UPLOADS
-		self.log("MIN_CANARY_UPLOADS = %s" % min_canary_uploads)
-
+		max_wait_seconds = options["max_wait_seconds"]
 		max_wait_time = datetime.now() + timedelta(seconds=max_wait_seconds)
+
+		min_canary_uploads = options["min_canary_uploads"]
 
 		wait_for_more_canary_uploads = True
 		try:
