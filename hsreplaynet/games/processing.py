@@ -82,11 +82,9 @@ def save_hsreplay_document(hsreplay_doc, shortid, existing_replay):
 	return ContentFile(xml_str)
 
 
-def generate_globalgame_digest(game_tree, meta):
+def generate_globalgame_digest(meta, lo1, lo2):
 	game_handle = meta["game_handle"]
 	server_address = meta["server_ip"]
-	players = game_tree.game.players
-	lo1, lo2 = players[0].account_lo, players[1].account_lo
 	values = (game_handle, server_address, lo1, lo2)
 	ret = "-".join(str(k) for k in values)
 	return sha1(ret.encode("utf-8")).hexdigest()
@@ -119,7 +117,9 @@ def find_or_create_global_game(game_tree, meta):
 	if eligible_for_unification(meta):
 		# If the globalgame is eligible for unification, generate a digest
 		# and get_or_create the object
-		digest = generate_globalgame_digest(game_tree, meta)
+		players = game_tree.game.players
+		lo1, lo2 = players[0].account_lo, players[1].account_lo
+		digest = generate_globalgame_digest(meta, lo1, lo2)
 		log.info("GlobalGame digest is %r" % (digest))
 		global_game, created = GlobalGame.objects.get_or_create(digest=digest, defaults=defaults)
 	else:
