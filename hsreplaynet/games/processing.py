@@ -50,7 +50,7 @@ def get_valid_match_start(match_start, upload_date):
 	return upload_date.astimezone(match_start.tzinfo)
 
 
-def create_hsreplay_document(parser, game_tree, meta, global_game):
+def create_hsreplay_document(parser, entity_tree, meta, global_game):
 	hsreplay_doc = HSReplayDocument.from_parser(parser, build=meta["build"])
 	game_xml = hsreplay_doc.games[0]
 	game_xml.game_type = global_game.game_type
@@ -58,7 +58,7 @@ def create_hsreplay_document(parser, game_tree, meta, global_game):
 	if meta["reconnecting"]:
 		game_xml.reconnecting = True
 
-	for player in game_tree.players:
+	for player in entity_tree.players:
 		player_meta = meta.get("player%i" % (player.player_id), {})
 		player_xml = game_xml.players[player.player_id - 1]
 		player_xml.rank = player_meta.get("rank")
@@ -89,7 +89,7 @@ def generate_globalgame_digest(meta, lo1, lo2):
 	return sha1(ret.encode("utf-8")).hexdigest()
 
 
-def find_or_create_global_game(game_tree, meta):
+def find_or_create_global_game(entity_tree, meta):
 	ladder_season = meta.get("ladder_season")
 	if not ladder_season:
 		ladder_season = guess_ladder_season(meta["end_time"])
@@ -107,14 +107,14 @@ def find_or_create_global_game(game_tree, meta):
 		"brawl_season": meta.get("brawl_season", 0),
 		"ladder_season": ladder_season,
 		"scenario_id": meta.get("scenario_id"),
-		"num_entities": len(game_tree.entities),
-		"num_turns": game_tree.tags.get(GameTag.TURN),
+		"num_entities": len(entity_tree.entities),
+		"num_turns": entity_tree.tags.get(GameTag.TURN),
 	}
 
 	if eligible_for_unification(meta):
 		# If the globalgame is eligible for unification, generate a digest
 		# and get_or_create the object
-		players = game_tree.players
+		players = entity_tree.players
 		lo1, lo2 = players[0].account_lo, players[1].account_lo
 		digest = generate_globalgame_digest(meta, lo1, lo2)
 		log.info("GlobalGame digest is %r" % (digest))
@@ -127,7 +127,7 @@ def find_or_create_global_game(game_tree, meta):
 	return global_game, created
 
 
-def find_or_create_replay(parser, game_tree, meta, upload_event, global_game, players):
+def find_or_create_replay(parser, entity_tree, meta, upload_event, global_game, players):
 	client_handle = meta.get("client_handle") or None
 	existing_replay = upload_event.game
 	shortid = existing_replay.shortid if existing_replay else upload_event.shortid
@@ -138,7 +138,7 @@ def find_or_create_replay(parser, game_tree, meta, upload_event, global_game, pl
 	user = upload_event.token.user if upload_event.token else None
 	friendly_player = players[meta["friendly_player"]]
 
-	hsreplay_doc = create_hsreplay_document(parser, game_tree, meta, global_game)
+	hsreplay_doc = create_hsreplay_document(parser, entity_tree, meta, global_game)
 
 	common = {
 		"global_game": global_game,
@@ -311,12 +311,13 @@ def validate_parser(parser, meta):
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
 	packet_tree = parser.games[0]
-	game_tree = packet_tree.export()
+	exporter = packet_tree.export()
+	entity_tree = exporter.game
 
-	if len(game_tree.players) != 2:
-		raise ValidationError("Expected 2 players, found %i" % (len(game_tree.players)))
+	if len(entity_tree.players) != 2:
+		raise ValidationError("Expected 2 players, found %i" % (len(entity_tree.players)))
 
-	for player in game_tree.players:
+	for player in entity_tree.players:
 		# Set the player's name
 		player.name = parser.games[0].manager.get_player_by_id(player.id).name
 		if player.name is None:
@@ -351,7 +352,7 @@ def validate_parser(parser, meta):
 	meta["start_time"] = packet_tree.start_time
 	meta["end_time"] = packet_tree.end_time
 
-	return game_tree
+	return entity_tree
 
 
 def get_player_names(player):
@@ -361,11 +362,11 @@ def get_player_names(player):
 		return player.name, ""
 
 
-def update_global_players(global_game, game_tree, meta):
+def update_global_players(global_game, entity_tree, meta):
 	# Fill the player metadata and objects
 	players = {}
 
-	for player in game_tree.players:
+	for player in entity_tree.players:
 		player_meta = meta.get("player%i" % (player.player_id), {})
 		decklist = player_meta.get("deck")
 		if not decklist:
@@ -438,15 +439,15 @@ def do_process_upload_event(upload_event):
 	# Parse the UploadEvent's file
 	parser = parse_upload_event(upload_event, meta)
 	# Validate the resulting object and metadata
-	game_tree = validate_parser(parser, meta)
+	entity_tree = validate_parser(parser, meta)
 
 	# Create/Update the global game object and its players
-	global_game, created = find_or_create_global_game(game_tree, meta)
-	players = update_global_players(global_game, game_tree, meta)
+	global_game, created = find_or_create_global_game(entity_tree, meta)
+	players = update_global_players(global_game, entity_tree, meta)
 
 	# Create/Update the replay object itself
 	replay, created = find_or_create_replay(
-		parser, game_tree, meta, upload_event, global_game, players
+		parser, entity_tree, meta, upload_event, global_game, players
 	)
 
 	return replay
