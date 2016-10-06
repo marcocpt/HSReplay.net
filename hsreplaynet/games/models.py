@@ -359,15 +359,11 @@ class GameReplay(models.Model):
 
 	@property
 	def friendly_player(self):
-		for player in self.global_game.players.all():
-			if player.player_id == self.friendly_player_id:
-				return player
+		return self.global_game.players.get(player_id=self.friendly_player_id)
 
 	@property
 	def opposing_player(self):
-		for player in self.global_game.players.all():
-			if player.player_id != self.friendly_player_id:
-				return player
+		return self.global_game.players.exclude(player_id=self.friendly_player_id).get()
 
 	def related_replays(self, num=3):
 		"""
