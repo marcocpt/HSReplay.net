@@ -7,10 +7,12 @@ from hsreplaynet.utils.fields import IntEnumField
 
 class BoosterType(IntEnum):
 	"DBF/BOOSTER.xml"
+	# INVALID = 0
 	CLASSIC = 1
-	GVG = 2
-	TGT = 3
-	OG = 4
+	GOBLINS_VS_GNOMES = 9
+	THE_GRAND_TOURNAMENT = 10
+	OLD_GODS = 11
+	FIRST_PURCHASE = 17
 
 
 class Pack(models.Model):
