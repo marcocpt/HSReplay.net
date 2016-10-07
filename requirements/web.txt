@@ -4,13 +4,13 @@
 
 django-allauth==0.27.0
 django-contrib-comments==1.7.3
-django-debug-toolbar==1.5
+django-debug-toolbar==1.6
 django-loginas==0.2.3
 django-webpack-loader==0.3.3
 humanize==0.5.1
 libsass==0.11.1
 nodeenv==1.0.0
-uwsgi==2.0.13.1
+uwsgi==2.0.14
 
 # redis requirements
 django-redis-cache==1.7.0
