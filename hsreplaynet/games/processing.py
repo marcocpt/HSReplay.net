@@ -209,6 +209,24 @@ def find_or_create_replay(parser, entity_tree, meta, upload_event, global_game, 
 	return replay, created
 
 
+def handle_upload_event_exception(e):
+	"""
+	Returns a (status, reraise) tuple.
+	The status will be set on the UploadEvent.
+	If reraise is True, the exception will bubble up.
+	"""
+	if isinstance(e, ParsingError):
+		return UploadEventStatus.PARSING_ERROR, True
+	elif isinstance(e, (GameTooShort, EntityTreeExporter.EntityNotFound)):
+		return UploadEventStatus.UNSUPPORTED, False
+	elif isinstance(e, UnsupportedReplay):
+		return UploadEventStatus.UNSUPPORTED, True
+	elif isinstance(e, ValidationError):
+		return UploadEventStatus.VALIDATION_ERROR, True
+	else:
+		return UploadEventStatus.SERVER_ERROR, True
+
+
 def process_upload_event(upload_event):
 	"""
 	Wrapper around do_process_upload_event() to set the event's
@@ -225,25 +243,12 @@ def process_upload_event(upload_event):
 	except Exception as e:
 		upload_event.error = str(e)
 		upload_event.traceback = traceback.format_exc()
-
-		# Set the upload status based on the exception
-		if isinstance(e, ParsingError):
-			upload_event.status = UploadEventStatus.PARSING_ERROR
-		elif isinstance(e, (GameTooShort, UnsupportedReplay, EntityTreeExporter.EntityNotFound)):
-			upload_event.status = UploadEventStatus.UNSUPPORTED
-		elif isinstance(e, ValidationError):
-			upload_event.status = UploadEventStatus.VALIDATION_ERROR
-		else:
-			upload_event.status = UploadEventStatus.SERVER_ERROR
-
+		upload_event.status, reraise = handle_upload_event_exception(e)
 		upload_event.save()
-
-		if isinstance(e, GameTooShort):
-			# Do not re-raise on GameTooShort
+		if reraise:
+			raise
+		else:
 			return
-
-		raise
-
 	else:
 		upload_event.game = replay
 		upload_event.status = UploadEventStatus.SUCCESS
