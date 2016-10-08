@@ -209,7 +209,7 @@ CREATE_APPLY_DECK_SUMMARY_STATS_DELTA_FUNCTION = """
 			delta.rank,
 			delta.matches,
 			delta.wins
-		);
+		) ON CONFLICT DO NOTHING;
 
 	END;
 	$$ LANGUAGE plpgsql;
