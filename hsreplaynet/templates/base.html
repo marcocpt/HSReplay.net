@@ -25,10 +25,14 @@
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="HSReplay.net" />
 		<meta property="og:locale" content="en_US" />
-		<meta name="twitter:site" content="@{{ twitter_handle }}" />
 		{% setting 'HSREPLAY_FACEBOOK_APP_ID' as facebook_app_id %}
-		<meta property="fb:app_id" content="{{ facebook_app_id }}" />
-		<link rel="me" href="https://twitter.com/{{ twitter_handle }}" />
+		{% if twitter_handle %}
+			<meta name="twitter:site" content="@{{ twitter_handle }}" />
+			<link rel="me" href="https://twitter.com/{{ twitter_handle }}" />
+		{% endif %}
+		{% if facebook_app_id %}
+			<meta property="fb:app_id" content="{{ facebook_app_id }}" />
+		{% endif %}
 	{% endblock %}
 
 	<meta name="format-detection" content="telephone=no">
