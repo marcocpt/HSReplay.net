@@ -3,21 +3,44 @@
 
 {% block content %}
 	<form action="" method="post" id="account-form">
-	{% csrf_token %}
+		{% csrf_token %}
+
+		<section id="account-locale" class="box-section">
+			<h3>Replay language</h3>
+			<div class="inner">
+				<p>
+					Choose your preferred replay language from the ones that are supported by Hearthstone.
+				</p>
+				<p>
+					{{ form.locale }}
+				</p>
+				<p class="help-block">
+					This currently only affects cards in the replays, not the replayer or the site itself.
+				</p>
+
+			</div>
+		</section>
+
 		<section id="account-privacy" class="box-section">
 			<h3>Privacy</h3>
 			<div class="inner">
 				<p>
-					By default, your replays are <strong>Public</strong>.
-					They may appear in listings such as <em>Related games</em>.
+					You can currently choose between two privacy options:
 				</p>
+				<dl class="dl-horizontal">
+				  <dt>Public</dt>
+				  <dd>Your replays may be appear in listings such as <em>Related games</em></dd>
+				  <dt>Unlisted</dt>
+				  <dd>Your replays will not appear in such listings. Anyone you share the link to a specific replay with will still be able to view it, though.</dd>
+				</dl>
 				<p>
-					You can set the default visibility to be <strong>Unlisted</strong>
-					to prevent future games from showing up in such listings.<br/>
-					Anyone you share the link to will still be able to view them!
+					Changing this option will only affect newly uploaded replays.
 				</p>
 				<p>
 					{{ form.default_replay_visibility }}
+				</p>
+				<p class="help-block">
+					You can always change the visibility for a specific replay on the replay's page.
 				</p>
 			</div>
 		</section>
@@ -40,19 +63,6 @@
 						{{ form.exclude_from_statistics }}
 						Exclude my data from public statistics
 					</label>
-				</p>
-			</div>
-		</section>
-
-		<section id="account-locale" class="box-section">
-			<h3>Replayer Locale</h3>
-			<div class="inner">
-				<p>
-					Customize the default locale of the replayer to any of Hearthstone's locales.<br/>
-					This only affects replays on the website.
-				</p>
-				<p>
-					{{ form.locale }}
 				</p>
 			</div>
 		</section>
