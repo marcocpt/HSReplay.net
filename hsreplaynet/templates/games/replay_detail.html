@@ -12,7 +12,7 @@
 {% block meta %}
 {% with replay.generate_description as description %}
 	{{ block.super }}
-	<meta property="og:title" content="{{ replay.pretty_name_spoilerfree }}" />
+	<meta property="og:title" content="{{ title }}" />
 	<meta property="og:description" content="{{ description }}" />
 	<meta property="og:url" content="{{ canonical_url }}" />
 	<meta property="og:image" content="{% static_absolute 'images/hsreplay-thumbnail.png' %}" />
@@ -21,11 +21,20 @@
 	<link rel="canonical" href="{{ canonical_url }}" />
 	<meta name="date" content="{{ replay.global_game.match_start|date:"c" }}">
 	<meta name="description" content="{{ description }}" />
-	<meta name="twitter:card" content="summary" />
+	{% if twitter_card == "player" %}
+		<meta name="twitter:card" content="player" />
+		<meta name="twitter:player" content="{% url 'games_replay_embed' replay.shortid %}" />
+		<meta name="twitter:player:width" content="640" />
+		<meta name="twitter:player:height" content="360" />
+		<meta name="twitter:player:image" content="{% static_absolute 'images/joust-thumbnail.png' %}" />
+	{% elif twitter_card == "summary" %}
+		<meta name="twitter:card" content="summary" />
+	{% endif %}
+	<meta name="twitter:title" content="{{ title }}" />
 {% endwith %}
 {% endblock %}
 
-{% block title %}{{ replay.pretty_name_spoilerfree }}{% endblock title %}
+{% block title %}{{ title }}{% endblock title %}
 
 {% block fullcontent %}
 <div id="tabletop" class="container-fluid">

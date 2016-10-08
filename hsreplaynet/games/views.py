@@ -26,8 +26,10 @@ class ReplayDetailView(View):
 		baseurl = "%s://%s" % (request.scheme, request.get_host())
 		return render(request, "games/replay_detail.html", {
 			"replay": replay,
+			"title": replay.pretty_name_spoilerfree,
 			"canonical_url": baseurl + replay.get_absolute_url(),
 			"players": players,
+			"twitter_card": request.GET.get("twitter_card", "summary")
 		})
 
 
