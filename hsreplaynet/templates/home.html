@@ -34,7 +34,7 @@
 		<div class="container">
 			<img src="{% static 'images/logo.png' %}" id="logo" alt="HSReplay"/>
 			<h1>HSReplay.net</h1>
-			<p class="tagline">Share your Hearthstone games</p>
+			<p class="tagline">Share your Hearthstone games!</p>
 			{% if user.is_authenticated %}
 				<p>
 					<a href="{% url 'my_replays' %}" class="promo-button">My Replays</a>
@@ -64,7 +64,7 @@
 			<div class="row">
 				<div class="col-md-8 col-md-offset-2 col-xs-12 col-xs-offset-0">
 					<header class="text-center">
-						<h2>All your replays in one place</h2>
+						<h2>All your replays in one place.</h2>
 						<p>
 							Try out our super slick Hearthstone replayer:
 						</p>
@@ -116,7 +116,7 @@
 			<ul class="row home-steps">
 				<li class="col-sm-6">
 					<h3>Step 1:</h3>
-					<p><a href="{% url 'downloads' %}" class="promo-button-outline text-uppercase">Download HDT</a></p>
+					<p><a href="{% url 'downloads' %}" class="promo-button-outline text-uppercase">Download Deck Tracker</a></p>
 					<p>Hearthstone Deck Tracker runs while you're in Hearthstone.<br />
 					It will automatically upload your matches as you play them.</p>
 				</li>
@@ -156,6 +156,8 @@
 				</div>
 				<div class="col-lg-6 col-xs-12">
 					<dl>
+						<dt>How do you know which cards the opponent was holding in his hand?</dt>
+						<dd>Once a card is played from hand we can deduce when that card was drawn, discovered or created in any other way.</dd>
 						<dt>Where can I get the latest news about HSReplay.net?</dt>
 						{% setting 'HSREPLAY_TWITTER_HANDLE' as twitter_handle %}
 						<dd>Follow us {% if twitter_handle %}<a href="https://twitter.com/{{ twitter_handle }}">@{{ twitter_handle }}</a> {% endif %}and subscribe to <a href="https://www.reddit.com/r/hsreplay">/r/hsreplay</a>.</dd>
