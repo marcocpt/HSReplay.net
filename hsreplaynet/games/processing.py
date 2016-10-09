@@ -343,10 +343,8 @@ def validate_parser(parser, meta):
 			raise ValidationError("%r is not a valid hero." % (player._hero))
 
 	if not meta.get("friendly_player"):
-		# Friendly player guessing mechanic changed in 13619.
-		# We don't use the old method by default (it's faster)
-		attempt_old = meta["build"] < 13619
-		id = packet_tree.guess_friendly_player(attempt_old)
+		from hearthstone.hslog.export import FriendlyPlayerExporter
+		id = packet_tree.export(cls=FriendlyPlayerExporter)
 		if not id:
 			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 		meta["friendly_player"] = id
